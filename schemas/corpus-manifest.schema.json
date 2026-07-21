@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["corpus_id", "title", "source_type", "permissions"],
+  "properties": {
+    "corpus_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "title": {"type": "string", "minLength": 1},
+    "source_type": {"enum": ["project_original", "official_external", "licensed_private", "seasonal_reported", "personal", "synthetic"]},
+    "authenticity": {"type": "string"},
+    "storage": {
+      "type": "object",
+      "properties": {
+        "mode": {"type": "string"},
+        "local_path": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "permissions": {
+      "type": "object",
+      "required": ["bundled_with_project", "redistribution_allowed"],
+      "properties": {
+        "bundled_with_project": {"type": "boolean"},
+        "redistribution_allowed": {"type": "boolean"},
+        "local_personal_use_only": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "path"],
+        "properties": {
+          "kind": {"enum": ["passages", "questions"]},
+          "path": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

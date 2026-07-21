@@ -1,0 +1,25 @@
+# Reading error taxonomy
+
+Use the narrowest stable tag supported by evidence.
+
+- `R_TFNG_FALSE_NOT_GIVEN`
+- `R_TFNG_OVER_INFERENCE`
+- `R_TFNG_SCOPE_SHIFT`
+- `R_YNNG_WRITER_VIEW`
+- `R_DISTRACTOR_KEYWORD`
+- `R_DISTRACTOR_HALF_TRUE`
+- `R_CAUSE_EFFECT_REVERSAL`
+- `R_WRONG_LOCATION`
+- `R_PARAPHRASE_MISS`
+- `R_MATCHING_HEADINGS_DETAIL_TRAP`
+- `R_MATCHING_INFORMATION_ENTITY_CONFUSION`
+- `R_COMPLETION_WORD_LIMIT`
+- `R_COMPLETION_WORD_CLASS`
+- `R_COMPLETION_SINGULAR_PLURAL`
+- `R_COMPLETION_SPELLING`
+- `R_SHORT_ANSWER_EXTRA_WORDS`
+- `R_TIME_MANAGEMENT`
+- `R_ATTENTION_MISS`
+
+Do not tag a single wrong answer with every plausible category. Separate the
+observable mistake from a speculative cause.

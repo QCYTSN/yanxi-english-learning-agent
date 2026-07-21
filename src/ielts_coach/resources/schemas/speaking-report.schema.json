@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["mode"],
+  "properties": {
+    "session_id": {"type": ["string", "null"]},
+    "mode": {"type": "string"},
+    "occurred_at": {"type": ["string", "null"]},
+    "duration_minutes": {"type": ["number", "null"], "minimum": 0},
+    "estimated_overall": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
+    "parts": {"type": "array"},
+    "transcript": {"type": ["string", "null"]},
+    "criterion_scores": {"type": "array"},
+    "errors": {"type": "array"},
+    "feedback": {"type": "object"},
+    "document_body": {"type": "string"}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,35 @@
+# Speaking error taxonomy
+
+## Fluency and coherence
+
+- FC_LONG_PAUSE
+- FC_REPETITION
+- FC_SELF_CORRECTION
+- FC_SHORT_ANSWER
+- FC_WEAK_DEVELOPMENT
+- FC_LOST_STRUCTURE
+
+## Lexical resource
+
+- LR_REPETITIVE_WORDING
+- LR_INACCURATE_COLLOCATION
+- LR_LIMITED_PARAPHRASING
+- LR_INAPPROPRIATE_REGISTER
+
+## Grammar
+
+- GRA_TENSE_CONTROL
+- GRA_SUBJECT_VERB_AGREEMENT
+- GRA_COMPLEX_SENTENCE_BREAKDOWN
+- GRA_ARTICLE
+
+## Pronunciation
+
+Use only with acoustic evidence:
+
+- PRON_WORD_STRESS
+- PRON_FINAL_CONSONANT
+- PRON_INTONATION
+- PRON_INTELLIGIBILITY
+
+A transcript alone cannot establish most pronunciation tags.

@@ -1,0 +1,10 @@
+session_id: L-20260721-001
+module: listening
+occurred_at: 2026-07-21T19:00:00
+source_id: CAM20-T2-L
+raw_score: 32
+band: 7.5
+duration_minutes: 40
+error_tags:
+  - L_SINGULAR_PLURAL
+  - L_DISTRACTOR

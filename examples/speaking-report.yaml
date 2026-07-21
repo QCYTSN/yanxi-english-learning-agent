@@ -1,0 +1,23 @@
+mode: full_mock
+occurred_at: 2026-07-22T19:00:00+08:00
+duration_minutes: 14
+estimated_overall: 6.0
+parts:
+  - part: 1
+    topics: [study, home]
+  - part: 2
+    topic: a useful skill
+  - part: 3
+    topics: [education, technology]
+criterion_scores:
+  - criterion: FC
+    score: 6.0
+    confidence: medium
+    evidence:
+      - Several long pauses in Part 2.
+errors:
+  - tag: FC_LONG_PAUSE
+    count: 3
+feedback:
+  priorities:
+    - Extend Part 3 answers with a reason and example.

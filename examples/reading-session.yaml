@@ -1,0 +1,26 @@
+session_id: R-20260722-001
+module: reading
+status: completed
+occurred_at: 2026-07-22T10:00:00+08:00
+source_id: ielts-ai-coach-starter
+question_id: START-R-003
+duration_minutes: 12
+score:
+  correct: 3
+  total: 4
+questions:
+  - question_id: START-R-003
+    question_number: 3
+    question_type: multiple_choice
+    user_answer: C
+    correct_answer: B
+    is_correct: false
+    duration_seconds: 95
+    evidence_location: Paragraph C
+    explanation: The distractor repeats a passage detail but answers a different purpose.
+    error_tags:
+      - R_DISTRACTOR_KEYWORD
+errors:
+  - tag: R_DISTRACTOR_KEYWORD
+    count: 1
+    evidence: START-R-003

@@ -1,0 +1,16 @@
+corpus_id: my-private-reading
+title: My legally obtained reading material
+source_type: licensed_private
+authenticity: official_practice_book
+storage:
+  mode: external_reference
+  local_path: D:\IELTS\my-private-reading
+permissions:
+  bundled_with_project: false
+  redistribution_allowed: false
+  local_personal_use_only: true
+files:
+  - kind: passages
+    path: passages.jsonl
+  - kind: questions
+    path: questions.jsonl

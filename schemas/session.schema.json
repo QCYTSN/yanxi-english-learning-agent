@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["session_id", "module"],
+  "properties": {
+    "session_id": {"type": "string", "pattern": "^[LRSW]-[0-9]{8}-[0-9]{3}$|^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "module": {"enum": ["listening", "reading", "writing", "speaking"]},
+    "status": {"enum": ["draft", "completed", "cancelled"]},
+    "occurred_at": {"type": ["string", "null"]},
+    "source_id": {"type": ["string", "null"]},
+    "question_id": {"type": ["string", "null"]},
+    "mode": {"type": ["string", "null"]},
+    "raw_score": {"type": ["number", "null"], "minimum": 0},
+    "band": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+    "estimated_overall": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+    "duration_minutes": {"type": ["number", "null"], "minimum": 0},
+    "score": {
+      "type": "object",
+      "properties": {
+        "correct": {"type": ["integer", "null"], "minimum": 0},
+        "total": {"type": ["integer", "null"], "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "content"],
+        "properties": {
+          "label": {"type": "string"},
+          "content": {"type": "string"},
+          "word_count": {"type": ["integer", "null"], "minimum": 0}
+        },
+        "additionalProperties": true
+      }
+    },
+    "criterion_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion"],
+        "properties": {
+          "criterion": {"type": "string"},
+          "version": {"type": "string"},
+          "score": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
+          "score_low": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
+          "score_high": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
+          "confidence": {"enum": ["low", "medium", "high", null]},
+          "evidence": {"type": ["array", "string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_type"],
+        "properties": {
+          "question_id": {"type": ["string", "null"]},
+          "question_number": {"type": ["string", "integer", "null"]},
+          "question_type": {"type": "string"},
+          "user_answer": {},
+          "correct_answer": {},
+          "is_correct": {"type": ["boolean", "null"]},
+          "duration_seconds": {"type": ["number", "null"], "minimum": 0},
+          "evidence_location": {"type": ["string", "null"]},
+          "error_tags": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    },
+    "errors": {"type": "array"},
+    "error_tags": {"type": "array"},
+    "speaking_report": {"type": "object"},
+    "document_body": {"type": "string"}
+  },
+  "additionalProperties": true
+}

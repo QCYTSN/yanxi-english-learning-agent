@@ -1,0 +1,17 @@
+corpus_id: cambridge-ielts-20-private
+title: Cambridge IELTS 20
+publisher: Cambridge University Press & Assessment
+source_type: licensed_private
+authenticity: official_practice_book
+storage:
+  mode: external_reference
+  local_path: "D:\\Books\\Cambridge IELTS 20"
+permissions:
+  bundled_with_project: false
+  redistribution_allowed: false
+  local_personal_use_only: true
+content:
+  listening: true
+  reading: true
+  writing: true
+  speaking: true

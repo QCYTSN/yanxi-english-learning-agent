@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ielts-ai-coach"
+version = "0.2.1"
+description = "Local-first, agent-native IELTS learning system for Claude Code, Codex, and OpenCode"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "IELTS AI Coach contributors"}]
+dependencies = [
+  "PyYAML>=6.0",
+  "typer>=0.12",
+  "jsonschema>=4.22"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+ielts-coach = "ielts_coach.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"ielts_coach.resources" = [
+  "starter-corpus/*.jsonl",
+  "starter-corpus/*.yaml",
+  "schemas/*.json"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,9 @@
+case_id: authorised-writing-sample-001
+module: writing
+criterion: overall
+model: model-name
+official_score: 6.0
+predicted_low: 6.0
+predicted_high: 6.5
+tolerance: 0.5
+notes: Use only with a sample the user is legally allowed to process.
