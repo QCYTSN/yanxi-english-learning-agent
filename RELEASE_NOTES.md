@@ -1,3 +1,34 @@
+# IELTS AI Coach v0.5.0
+
+## Lightweight Agent runtime
+
+### Changed
+
+- clear Writing, Speaking, Reading, Progress and Corpus requests now bypass the
+  generic router and begin in the specialist Skill
+- specialist Skills skip global status checks when the learner already supplied
+  the task material
+- detailed references load only at the stage that needs them
+- routine safe CLI work is not narrated to the learner
+- a missing diagnostic baseline no longer blocks direct practice
+
+### Added
+
+- `ielts-coach study-context` for one compact cross-module planning payload
+- `ielts-coach study-context --module <module>` for minimal personalised context
+- regression tests that prevent global planning data from leaking into a narrow
+  specialist preflight and limit Skill-body prompt growth
+
+### Preserved
+
+- official-descriptor requirements and score provenance
+- active Writing revision before model alternatives
+- Reading hint and answer integrity
+- uninterrupted Speaking mocks and pronunciation evidence boundaries
+- V0.1-V0.4 local data and database schema compatibility
+
+---
+
 # IELTS AI Coach v0.4.0
 
 ## Academic diagnostic and calibration foundation

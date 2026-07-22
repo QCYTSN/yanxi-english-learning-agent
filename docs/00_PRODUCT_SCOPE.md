@@ -1,4 +1,4 @@
-# Current core scope — V0.3
+# Current core scope — V0.5
 
 ## Identity
 
@@ -6,6 +6,10 @@ IELTS AI Coach is an **agent-native, local-first IELTS Academic learning
 system**. Claude Code, Codex or OpenCode supplies the model intelligence. The
 project supplies six Skills, deterministic CLI tools, local data, indexed
 questions, provenance, learning memory and planning.
+
+The runtime is intent-first: a clear module request goes directly to its
+specialist. Global onboarding, diagnostic, profile and allocation checks are not
+mandatory preflight for every learning turn.
 
 It is not a standalone chatbot that calls another model API.
 

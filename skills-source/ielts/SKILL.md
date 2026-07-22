@@ -1,69 +1,47 @@
 ---
 name: ielts
-description: Unified IELTS Academic learning entrypoint. Use to start study, run a diagnostic, decide today's task, review goals, create a weekly plan, or route work to Writing, Speaking, Reading, Progress, or Corpus modules.
-license: MIT
-compatibility: Requires this repository and the ielts-coach CLI. Designed for Claude Code, OpenAI Codex, OpenCode, and Agent Skills-compatible clients.
-metadata:
-  version: "0.4.0"
+description: "Unified IELTS Academic entrypoint for generic or cross-skill requests: first-use setup, diagnostic, today's task, goals, weekly planning, or an ambiguous request to study. Do not use as a preflight when the request is already clearly about Writing, Speaking, Reading, Progress, Listening review, or Corpus; use that specialist directly."
 ---
 
 # IELTS router
 
-Coordinate the local IELTS AI Coach. Do not absorb specialist work into this
-router.
+Route; do not teach specialist content here.
 
-This project supports IELTS Academic only. If a user asks for General Training,
-explain that its Reading materials and Writing Task 1 letters differ and stop
-before routing them into Academic practice.
+## Fast path
 
-## First actions
-
-1. Resolve `IELTS_HOME`; default to `~/.ielts`.
-2. If missing, instruct the user to run `ielts-coach init`.
-3. Run `ielts-coach onboarding status`. If status is `pending`, ask only for
-   information that is not yet confirmed: confirm Academic, test date,
-   target scores, minimum required scores, known baseline scores, and realistic
-   weekly study time. Never invent a missing baseline. Save confirmed updates in
-   a small YAML/JSON setup file and run
-   `ielts-coach onboarding complete --setup-file <file>`.
-4. Read `IELTS_HOME/config/profile.yaml` and do not repeatedly ask for stored
-   targets after onboarding is ready.
-5. Run `ielts-coach summary --days 14`, `ielts-coach allocation --no-save`, and
-   `ielts-coach learning-profile` when data exists.
-6. Run `ielts-coach diagnostic status`. When the user has no usable baseline,
-   use the standard diagnostic workflow in `references/diagnostic-policy.md`.
-   Recommend `quick` for first use; use `full` only when the learner wants a
-   complete four-skill baseline and has suitable user-owned material.
-
-Do not require the learner to name or slash-invoke a specialist Skill. Infer the
-intent from the request and route it. Explicit commands remain available for
-clients that do not support automatic Skill discovery.
+- If the request clearly names a module or includes an essay, passage, question,
+  answer, transcript, score, or corpus operation, hand off immediately to the
+  matching specialist. Do not run global status checks first.
+- For a generic start, plan, goal, or first-use request, run exactly one read-only
+  preflight: `ielts-coach study-context`.
+- Do not separately run summary, allocation, learning-profile, onboarding status,
+  and diagnostic status in the same turn; the compact context replaces them.
+- Do not narrate routine file reads or CLI calls. Report only information that
+  changes the learner's next action.
 
 ## Routing
 
-- Essay, Task 1 data/image, writing score, revision or correction: `ielts-writing`.
-- Speaking mock, Cue Card, story bank, Voice handoff or transcript: `ielts-speaking`.
-- Reading passage, question, options, wrong answer, paragraph or word analysis:
-  `ielts-reading`.
-- Question search, draw, source, import or copyright metadata: `ielts-corpus`.
-- Score recording, listening review, trends, profile, allocation or weekly report:
-  `ielts-progress`.
-- First-use placement or a new four-skill baseline: follow
-  `references/diagnostic-policy.md`, then route each component normally.
+- Writing task, essay, scoring or revision: `ielts-writing`.
+- Speaking mock, Cue Card, Voice/Live report or story: `ielts-speaking`.
+- Reading practice, passage, question or language analysis: `ielts-reading`.
+- Question search, draw, import or provenance: `ielts-corpus`.
+- Scores, Listening review, trends, errors or allocation: `ielts-progress`.
 
-## Strategy
+## First use and diagnostic
 
-Default to “Listening/Reading raise the overall score; Writing/Speaking protect
-minimum sub-scores,” near 35/35/20/10. Use the current data-driven allocation,
-not a permanently fixed ratio.
+If onboarding is pending, ask once for the missing setup information and save it
+with `ielts-coach onboarding complete --setup-file <file>`. Do not repeatedly ask
+for stored targets.
 
-## Daily recommendation
+A missing baseline does not block direct practice. For a generic start, offer a
+quick diagnostic or direct practice in one short choice. Read
+`references/diagnostic-policy.md` only when the learner chooses a diagnostic.
 
-Return one primary task, one optional maintenance task, estimated time, the data
-reason, and an exact command or prompt. Avoid generic encouragement.
+IELTS Academic is the only supported exam type. Do not route General Training
+Reading or letter-writing tasks into Academic workflows.
 
-## Integrity
+## Output
 
-- AI scores are training estimates, not examiner results.
-- Do not claim authenticity without corpus provenance.
-- Do not distribute or locate unauthorised copyrighted materials.
+For a daily recommendation, give one primary task, one optional maintenance
+task, time, a short data reason, and then start once the learner accepts. Keep AI
+scores labelled as estimates and respect corpus provenance.

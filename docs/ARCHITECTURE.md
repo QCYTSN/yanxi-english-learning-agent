@@ -25,6 +25,28 @@ Skills to:
 
 Each Skill uses a short `SKILL.md` and detailed `references/` policies.
 
+## Lightweight runtime contract
+
+Specialist requests bypass the router. If the learner already supplied the
+material needed for an explanation or review, the specialist starts teaching
+without reading global history. When personalisation is useful, one command
+returns a compact module-specific payload:
+
+```text
+ielts-coach study-context --module writing
+```
+
+Generic planning uses `ielts-coach study-context` once. It replaces the former
+sequence of separate onboarding, summary, allocation, learning-profile and
+diagnostic calls. Detailed references are loaded only at the stage that needs
+them; for example, a Writing scoring policy is not loaded during simple question
+analysis.
+
+```text
+clear specialist intent -> specialist -> optional compact context -> teaching
+generic/ambiguous intent -> router -> one compact context -> route or plan
+```
+
 ## Data layer
 
 Core tables:

@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V0.4.0 已实现
+## V0.5.0 已实现
 
 ### 六个 Skill
 
@@ -20,6 +20,10 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - `ielts-corpus`：语料登记、题目索引、检索、抽题、去重和来源管理
 
 ### 本地系统
+
+- 意图优先的轻量工作流：明确的专项请求直接进入对应 Skill
+- `ielts-coach study-context` 单次返回紧凑规划上下文，避免重复预检
+- 按阶段加载参考规则，不在讲题前读取无关评分、画像或诊断资料
 
 - `IELTS_HOME` 初始化与 SQLite 数据库
 - Claude Code、Codex、OpenCode 三端 Skill 同步

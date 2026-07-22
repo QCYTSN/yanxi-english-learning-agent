@@ -1,55 +1,46 @@
 ---
 name: ielts-speaking
-description: IELTS Speaking coach for personal story banks, Part 1-3 mocks, ChatGPT Voice handoff, structured Voice-report import, transcript review, targeted drills, and cautious four-criterion feedback.
-license: MIT
-compatibility: Voice may occur in ChatGPT Voice or another voice-capable client; this skill prepares sessions and imports structured reports locally.
-metadata:
-  version: "0.4.0"
+description: "IELTS Speaking coach. Use directly for Part 1-3 practice, full mocks, Cue Cards, personal story material, Voice or Live handoff, transcript review, structured report import, targeted drills, and cautious official-rubric feedback."
 ---
 
 # IELTS Speaking coach
 
-Support actual practice and reusable personal material without encouraging fixed
-memorised scripts.
+Use natural learner language and real experiences, not memorised universal
+scripts.
 
-Read `references/mock-policy.md`, `references/story-bank.md`,
-`references/error-taxonomy.md`, `references/voice-handoff.md`, and
-`references/evaluation-policy.md` and `references/session-template.md` as needed.
+## Start with minimum context
 
-## Modes
+- If the learner supplied a speaking task, begin immediately. Do not run global planning or
+  diagnostic checks first.
+- Run `ielts-coach study-context --module speaking` only for personalised task
+  selection, saved history, or a formal Session.
+- Load `references/mock-policy.md` only for a mock,
+  `references/voice-handoff.md` only for Voice/Live,
+  `references/evaluation-policy.md` only for scoring, and story/taxonomy/template
+  references only for those operations.
 
-- `build-story-bank`
-- `voice-session-prep`
-- `full-mock-text`
-- `part1-drill`
-- `part2-drill`
-- `part3-drill`
-- `transcript-review`
+## Practice contract
 
-## Principles
+- During a full mock, do not correct, coach, praise or evaluate between answers.
+- Keep Part 3 related to Part 2 and give feedback only after the mock.
+- Treat Voice/Live observations and scores as source evidence, not the system's
+  final evaluation.
+- Evaluate only FC, LR, GRA and PRON against the official IELTS Speaking Band
+  Descriptors. A transcript can support LR, GRA and part of FC; it cannot support
+  PRON or a complete overall estimate without acoustic evidence.
+- Content development informs FC and appropriate wording informs LR; content is
+  not a fifth criterion.
 
-1. Use real learner experiences and adaptable details.
-2. During a full mock, do not correct, coach, praise or explain between answers.
-3. Part 3 should respond to Part 2 content.
-4. Treat a Voice/Live report as source evidence, not the system's final score.
-5. Evaluate FC, LR and GRA locally against the official IELTS descriptors.
-6. Do not score Pronunciation locally without audio or explicit voice-model
-   pronunciation observations.
-7. Do not calculate a complete overall estimate when any criterion lacks
-   sufficient evidence.
-8. Save recurring issues and next drills, not a fabricated examiner score.
+## Voice and saving
 
-## Local workflow
-
-Use `ielts-coach session start speaking` for a handoff ID. After Voice practice,
-return a structured Markdown/YAML report with the same Session ID. The local
-Agent reviews that evidence, adds `local_evaluation`, and runs:
+For a formal handoff, start one Session, run the uninterrupted Voice/Live mock,
+then independently review the returned evidence before import:
 
 ```bash
+ielts-coach session start speaking
 ielts-coach speaking import-report <report-file>
 ```
 
-The importer stores observations and any source-model estimate separately. It
-never silently promotes the Voice model's estimate to the Session Band. The
-same report may be re-imported with the same Session ID after local evaluation;
-the record is updated rather than duplicated.
+Read `references/session-template.md` only when preparing the structured report.
+Save supported observations, local rubric evidence, recurring errors and next
+drills. Do not narrate routine storage steps.

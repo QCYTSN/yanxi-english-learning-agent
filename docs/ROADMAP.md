@@ -1,6 +1,6 @@
 # Roadmap
 
-## Delivered through V0.4
+## Delivered through V0.5
 
 - six-Skill architecture
 - independent Reading coach
@@ -29,6 +29,9 @@
 - strict timed Reading with submission-before-answer enforcement
 - standard quick/full Academic diagnostic runs
 - blind authorised-sample calibration workflow with input hashing
+- intent-first specialist routing without mandatory global preflight
+- compact `study-context` payloads for module and cross-module turns
+- stage-specific Skill reference loading and prompt-size regression guards
 
 ## Next decision points
 

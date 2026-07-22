@@ -1,5 +1,16 @@
 # Usage workflows
 
+## Fast natural-language entry
+
+Users do not need to invoke the router before a clear task. Requests such as
+“练一篇Task 2”, “解释这道阅读题为什么选C” or “开始Part 2模拟” should trigger the
+corresponding specialist directly. The Agent must not run full progress and
+diagnostic reports before teaching.
+
+Use `ielts-coach study-context --module <module>` only when selecting or
+personalising a task. Use the command without `--module` only for a daily plan,
+first-use setup or a cross-module decision.
+
 ## Writing
 
 ```text

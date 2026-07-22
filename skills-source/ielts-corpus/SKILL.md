@@ -1,49 +1,30 @@
 ---
 name: ielts-corpus
-description: Manage the local IELTS question bank and corpus provenance. Use to register user-owned materials, index passages and questions, search or draw questions, avoid repeats, inspect source metadata, and explain copyright-safe import formats.
-license: MIT
-compatibility: Requires IELTS_HOME and the ielts-coach CLI. Does not parse or distribute copyrighted books automatically.
-metadata:
-  version: "0.4.0"
+description: "Manage the local IELTS corpus and question bank. Use directly to register user-owned materials, index passages and questions, search or draw tasks, avoid repeats, inspect provenance, or explain copyright-safe import formats."
 ---
 
 # IELTS Corpus manager
 
-Use deterministic CLI results rather than claiming a question exists from
-conversation memory.
+Use deterministic CLI results; never claim a question exists from memory.
 
-Read:
+## Efficient workflow
 
-- `references/import-format.md` for JSONL and manifest structure;
-- `references/provenance.md` for source and authenticity rules;
-- `references/selection-policy.md` before recommending or drawing questions.
-
-## Commands
+- For search, draw, show or list, run only the matching command and return its
+  useful result without a global study preflight.
+- Read `references/selection-policy.md` only when choosing a learning task,
+  `references/import-format.md` only for import, and
+  `references/provenance.md` only for source/authenticity questions.
+- Do not load all three references for a routine search.
 
 ```bash
 ielts-coach corpus import <manifest.yaml>
-ielts-coach corpus list
-ielts-coach question list --module reading
 ielts-coach question search "urban" --module reading
 ielts-coach question show <question-id>
-ielts-coach question draw --module writing --task task2 --topic education
-ielts-coach question draw --module reading --type multiple_choice --exclude-completed
+ielts-coach question draw --module writing --task task2 --exclude-completed
 ```
 
-## Responsibilities
-
-- register corpus-level permissions and local paths;
-- index standard JSONL passages and questions;
-- preserve question-level source type, authenticity and review status;
-- detect duplicate question content by hash;
-- search by module, task, type, topic, source and corpus;
-- exclude completed indexed questions when requested;
-- show answer keys only when the learning workflow permits it.
-
-## Boundaries
-
-- Do not search for pirated copies or bundle Cambridge/third-party content.
-- A publicly reachable page is not automatically redistributable.
-- Do not label seasonal recollections or synthetic items as official questions.
-- The current importer expects structured user-prepared JSONL; it is not a full
-PDF/OCR ingestion engine.
+Preserve corpus ID, source type, authenticity, review status and content hash.
+Reveal keys only when the learning workflow permits it. Do not locate or bundle
+pirated materials, infer authenticity from availability, or label synthetic or
+reported questions as official. The importer accepts prepared JSONL; it is not
+a full PDF/OCR engine.

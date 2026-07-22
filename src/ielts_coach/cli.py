@@ -37,6 +37,7 @@ from .session_manager import finish_session, show_session, start_session, transi
 from .speaking_io import import_speaking_report
 from .storage import connect, db_path, list_corpora, list_error_profile, list_sessions, record_session, update_error_status
 from .story_bank import add_story, list_stories, show_story
+from .study_context import build_study_context
 from .sync import SKILLS, TARGETS, skills_are_synced, sync_skills
 
 app = typer.Typer(no_args_is_help=True, help="Local CLI for IELTS AI Coach")
@@ -130,7 +131,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             schema_row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key='schema_version'"
             ).fetchone() if "schema_meta" in tables else None
-        checks["V0.4 database schema"] = (
+        checks["database schema v4"] = (
             required_tables.issubset(tables)
             and schema_row is not None
             and schema_row["value"] == "4"
@@ -161,6 +162,28 @@ def record(session_file: Path = typer.Argument(..., exists=True, readable=True),
 @app.command()
 def summary(days: int = typer.Option(14, min=1), home: Optional[Path] = typer.Option(None)) -> None:
     typer.echo(build_summary(resolve_home(home), days), nl=False)
+
+
+@app.command("study-context")
+def study_context_command(
+    module: Optional[str] = typer.Option(None, help="Optional direct module intent"),
+    days: int = typer.Option(14, min=1, max=365),
+    pretty: bool = typer.Option(False, help="Pretty-print JSON for human inspection"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Emit one compact, read-only context payload for an Agent study turn."""
+    try:
+        context = build_study_context(resolve_home(home), module=module, days=days)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(
+        json.dumps(
+            context,
+            ensure_ascii=False,
+            indent=2 if pretty else None,
+            separators=None if pretty else (",", ":"),
+        )
+    )
 
 
 @app.command()
