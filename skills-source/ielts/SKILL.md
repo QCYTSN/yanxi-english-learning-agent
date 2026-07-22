@@ -18,6 +18,8 @@ Route; do not teach specialist content here.
   and diagnostic status in the same turn; the compact context replaces them.
 - Do not narrate routine file reads or CLI calls. Report only information that
   changes the learner's next action.
+- Before creating another formal Session, use `ielts-coach session resume` and
+  continue an active one when it matches the learner's intent.
 
 ## Routing
 

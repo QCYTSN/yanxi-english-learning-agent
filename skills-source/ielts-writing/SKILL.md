@@ -43,9 +43,16 @@ wants the work saved:
 
 ```bash
 ielts-coach session start writing --question-id <id>
-ielts-coach session finish <session-file>
+ielts-coach session submit-writing <session-id> <essay-file> --label v1
 ```
 
-Store V1/V2/final in `versions`; store TA or TR, CC, LR and GRA in
-`criterion_scores` with confidence, official rubric metadata, short evidence
-and reusable errors. AI scores remain training estimates.
+For a numeric review, confirm `ielts-coach rubric list` contains the Writing
+descriptors. Produce a `writing-review` contract, validate it with
+`ielts-coach teaching validate-writing <review-file>`, then apply it with
+`ielts-coach session apply-writing-review <session-id> <review-file>`. Submit V2
+with `--label v2`; finish only after the learning loop. Do not print storage
+payloads to the learner.
+
+The validated contract stores V1/V2/final and `criterion_scores` (TA or TR, CC,
+LR, GRA) with confidence, official rubric metadata, short evidence and reusable
+errors. AI scores remain training estimates.

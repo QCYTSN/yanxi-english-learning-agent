@@ -60,17 +60,27 @@ Codex: open the repository and use `$ielts`.
 
 OpenCode: open the repository and ask the Agent to load the `ielts` skill.
 
-## Start a structured Session manually
+## Start and resume a structured Session
 
 ```powershell
 ielts-coach session start reading --question-id START-R-003
+ielts-coach session resume --module reading
 ```
 
-Edit the generated Markdown file. Finish it with:
+Formal Skills use validated runtime commands instead of hand-editing
+frontmatter. For example:
 
 ```powershell
+ielts-coach session submit-reading R-YYYYMMDD-001 answers.yaml
+ielts-coach teaching validate-reading review.yaml
+ielts-coach session apply-reading-review R-YYYYMMDD-001 review.yaml
 ielts-coach session finish "D:\IELTS_AI\data\sessions\reading\R-YYYYMMDD-001.md"
 ```
+
+Writing uses `session submit-writing` and `session apply-writing-review` in the
+same way. Run `ielts-coach rubric list` before numerical Writing or Speaking
+evaluation. For private material sent to a remote Agent, first run
+`ielts-coach privacy check --remote --question-id <id>`.
 
 ## Review progress
 

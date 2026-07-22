@@ -32,8 +32,8 @@ def _recent_snapshot(home: Path, module: str | None, days: int) -> dict[str, Any
             f"SELECT module,COUNT(*) count,MAX(occurred_at) last_at FROM sessions {where} GROUP BY module",
             params,
         ).fetchall()
-        error_where = "WHERE e.status<>'resolved'"
-        error_params: list[Any] = []
+        error_where = "WHERE e.status<>'resolved' AND s.occurred_at>=?"
+        error_params: list[Any] = [cutoff]
         if module:
             error_where += " AND s.module=?"
             error_params.append(module)
@@ -46,6 +46,41 @@ def _recent_snapshot(home: Path, module: str | None, days: int) -> dict[str, Any
             """,
             error_params,
         ).fetchall()
+        ability: list[dict[str, Any]] = []
+        if module in {"writing", "speaking"}:
+            ability_rows = conn.execute(
+                """
+                SELECT cs.criterion,
+                       ROUND(AVG(COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0)),2) average,
+                       COUNT(*) samples
+                FROM criterion_scores cs JOIN sessions s USING(session_id)
+                WHERE s.module=? AND s.status='completed' AND s.occurred_at>=?
+                  AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
+                  AND COALESCE(cs.confidence,'medium') IN ('medium','high')
+                GROUP BY cs.criterion ORDER BY average,cs.criterion LIMIT 4
+                """,
+                (module, cutoff),
+            ).fetchall()
+            ability = [
+                {"criterion": row["criterion"], "average": row["average"], "samples": row["samples"]}
+                for row in ability_rows
+            ]
+        elif module == "reading":
+            ability_rows = conn.execute(
+                """
+                SELECT ra.question_type,
+                       ROUND(AVG(CASE WHEN ra.is_correct=1 THEN 1.0 ELSE 0.0 END),3) accuracy,
+                       COUNT(*) samples
+                FROM reading_answers ra JOIN sessions s USING(session_id)
+                WHERE s.status='completed' AND s.occurred_at>=? AND ra.is_correct IS NOT NULL
+                GROUP BY ra.question_type ORDER BY accuracy,ra.question_type LIMIT 3
+                """,
+                (cutoff,),
+            ).fetchall()
+            ability = [
+                {"question_type": row["question_type"], "accuracy": row["accuracy"], "samples": row["samples"]}
+                for row in ability_rows
+            ]
     sessions = {
         str(row["module"]): {"count": int(row["count"]), "last_at": row["last_at"]}
         for row in rows
@@ -55,6 +90,8 @@ def _recent_snapshot(home: Path, module: str | None, days: int) -> dict[str, Any
         "active_errors": [
             {"tag": str(row["tag"]), "count": int(row["total"])} for row in errors
         ],
+        "ability_signals": ability,
+        "scope_days": days,
     }
 
 

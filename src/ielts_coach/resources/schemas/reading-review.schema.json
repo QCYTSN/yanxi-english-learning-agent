@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["review_version", "session_id", "mode", "answer_revealed", "items"],
+  "properties": {
+    "review_version": {"const": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["guided_hint", "wrong_answer_review", "question_type_drill", "close_reading", "context_analysis"]},
+    "hint_level": {"type": ["integer", "null"], "minimum": 1, "maximum": 3},
+    "answer_revealed": {"type": "boolean"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_type"],
+        "properties": {
+          "question_id": {"type": ["string", "null"]},
+          "question_number": {"type": ["string", "integer", "null"]},
+          "question_type": {"type": "string", "minLength": 1},
+          "user_answer": {},
+          "correct_answer": {},
+          "evidence_location": {"type": ["string", "null"]},
+          "evidence": {"type": ["string", "null"]},
+          "reasoning": {"type": ["string", "null"]},
+          "distractors": {"type": "array", "items": {"type": "object"}},
+          "error_tags": {"type": "array", "items": {"type": "string"}},
+          "next_rule": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "next_action": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

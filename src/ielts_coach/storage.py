@@ -245,6 +245,50 @@ CREATE TABLE IF NOT EXISTS diagnostic_runs (
     result_json TEXT NOT NULL DEFAULT '{}'
 );
 
+CREATE TABLE IF NOT EXISTS rubric_registry (
+    rubric_id TEXT PRIMARY KEY,
+    module TEXT NOT NULL CHECK(module IN ('writing','speaking')),
+    publisher TEXT NOT NULL,
+    standard TEXT NOT NULL,
+    version TEXT,
+    source_reference TEXT NOT NULL,
+    local_path TEXT,
+    content_hash TEXT,
+    availability TEXT NOT NULL CHECK(availability IN ('reference_only','local_verified','local_missing')),
+    permissions_json TEXT NOT NULL DEFAULT '{}',
+    manifest_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS runtime_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL UNIQUE,
+    session_id TEXT,
+    module TEXT,
+    event_type TEXT NOT NULL,
+    revision INTEGER,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_runtime_events_session ON runtime_events(session_id,created_at);
+
+CREATE TABLE IF NOT EXISTS runtime_telemetry (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_type TEXT NOT NULL,
+    module TEXT,
+    session_id TEXT,
+    model_label TEXT,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    latency_ms REAL,
+    tool_calls INTEGER,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_runtime_telemetry_time ON runtime_telemetry(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -329,7 +373,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
         if name not in report_columns:
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
     conn.execute(
-        "INSERT INTO schema_meta(key,value) VALUES('schema_version','4') "
+        "INSERT INTO schema_meta(key,value) VALUES('schema_version','5') "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
     )
 
@@ -942,3 +986,73 @@ def update_error_status(home: Path, tag: str, status: str) -> int:
     with connect(home) as conn:
         cursor = conn.execute("UPDATE errors SET status=? WHERE tag=?", (status, tag))
         return cursor.rowcount
+
+
+def record_runtime_event(
+    home: Path,
+    *,
+    event_id: str,
+    event_type: str,
+    session_id: str | None = None,
+    module: str | None = None,
+    revision: int | None = None,
+    payload: dict[str, Any] | None = None,
+) -> None:
+    """Record an idempotent local runtime event without storing learner prose."""
+    initialise_database(home)
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO runtime_events(event_id,session_id,module,event_type,revision,payload_json,created_at)
+            VALUES(?,?,?,?,?,?,?)
+            ON CONFLICT(event_id) DO NOTHING
+            """,
+            (
+                event_id,
+                session_id,
+                module,
+                event_type,
+                revision,
+                json.dumps(payload or {}, ensure_ascii=False, default=str),
+                _now(),
+            ),
+        )
+
+
+def record_runtime_telemetry(home: Path, event: dict[str, Any]) -> None:
+    """Persist metadata-only cost/latency observations; raw prompts are forbidden."""
+    initialise_database(home)
+    event = validate_data(event, "telemetry-event")
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO runtime_telemetry(
+              event_type,module,session_id,model_label,input_tokens,output_tokens,
+              latency_ms,tool_calls,created_at
+            ) VALUES(?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                event["event_type"], event.get("module"), event.get("session_id"),
+                event.get("model_label"), event.get("input_tokens"), event.get("output_tokens"),
+                event.get("latency_ms"), event.get("tool_calls"), event.get("created_at") or _now(),
+            ),
+        )
+
+
+def telemetry_summary(home: Path, days: int = 30) -> list[sqlite3.Row]:
+    initialise_database(home)
+    cutoff = datetime.now(timezone.utc).timestamp() - days * 86400
+    cutoff_iso = datetime.fromtimestamp(cutoff, timezone.utc).isoformat()
+    with connect(home) as conn:
+        return conn.execute(
+            """
+            SELECT COALESCE(module,'unspecified') module,COUNT(*) events,
+                   SUM(COALESCE(input_tokens,0)) input_tokens,
+                   SUM(COALESCE(output_tokens,0)) output_tokens,
+                   ROUND(AVG(latency_ms),1) average_latency_ms,
+                   SUM(COALESCE(tool_calls,0)) tool_calls
+            FROM runtime_telemetry WHERE created_at>=?
+            GROUP BY COALESCE(module,'unspecified') ORDER BY module
+            """,
+            (cutoff_iso,),
+        ).fetchall()

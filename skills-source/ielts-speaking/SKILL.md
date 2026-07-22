@@ -30,6 +30,9 @@ scripts.
   PRON or a complete overall estimate without acoustic evidence.
 - Content development informs FC and appropriate wording informs LR; content is
   not a fifth criterion.
+- Before a numerical local evaluation, confirm the official Speaking rubric is
+  registered with `ielts-coach rubric list`. If unavailable, keep feedback
+  qualitative.
 
 ## Voice and saving
 
@@ -44,3 +47,6 @@ ielts-coach speaking import-report <report-file>
 Read `references/session-template.md` only when preparing the structured report.
 Save supported observations, local rubric evidence, recurring errors and next
 drills. Do not narrate routine storage steps.
+
+Before a private Voice/Live handoff, run `ielts-coach privacy check --remote
+--question-id <id>` and require one-time consent if blocked.

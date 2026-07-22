@@ -44,7 +44,56 @@ def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
             raise ValueError("predicted_low must not exceed predicted_high")
     elif schema_name == "speaking-report":
         validate_speaking_report_semantics(normalised)
+    elif schema_name == "writing-review":
+        _validate_writing_review_semantics(normalised)
+    elif schema_name == "reading-review":
+        _validate_reading_review_semantics(normalised)
+    elif schema_name == "rubric-manifest":
+        _validate_rubric_manifest_semantics(normalised)
     return normalised
+
+
+def _validate_writing_review_semantics(data: dict[str, Any]) -> None:
+    band = data.get("estimated_band") or {}
+    if float(band.get("low", 0)) > float(band.get("high", 0)):
+        raise ValueError("estimated_band.low must not exceed estimated_band.high")
+    expected = {"TA", "CC", "LR", "GRA"} if data["task"] == "task1" else {"TR", "CC", "LR", "GRA"}
+    criteria = data.get("criteria") or []
+    names = {str(item.get("criterion")) for item in criteria}
+    if names != expected or len(names) != len(criteria):
+        raise ValueError(f"Writing review requires exactly these criteria: {', '.join(sorted(expected))}")
+    for item in criteria:
+        if float(item["score_low"]) > float(item["score_high"]):
+            raise ValueError("criterion score_low must not exceed score_high")
+    if data["stage"] == "first_review" and data.get("full_model_answer"):
+        raise ValueError("First Writing review must not reveal a full model answer before learner revision")
+
+
+def _validate_reading_review_semantics(data: dict[str, Any]) -> None:
+    if data["mode"] == "guided_hint":
+        if data.get("answer_revealed"):
+            raise ValueError("Guided Reading hints must not reveal the answer")
+        if data.get("hint_level") not in {1, 2, 3}:
+            raise ValueError("Guided Reading hints require hint_level 1, 2, or 3")
+        for item in data.get("items") or []:
+            if item.get("correct_answer") not in {None, ""}:
+                raise ValueError("Guided Reading hints must not include correct_answer")
+    if data["mode"] == "wrong_answer_review":
+        if not data.get("answer_revealed"):
+            raise ValueError("Wrong-answer review must explicitly mark answer_revealed=true")
+        for item in data.get("items") or []:
+            missing = [key for key in ("correct_answer", "evidence_location", "evidence", "reasoning", "next_rule") if not item.get(key)]
+            if missing:
+                raise ValueError(f"Wrong-answer review item is missing: {', '.join(missing)}")
+
+
+def _validate_rubric_manifest_semantics(data: dict[str, Any]) -> None:
+    expected = {
+        "writing": "IELTS Writing Band Descriptors",
+        "speaking": "IELTS Speaking Band Descriptors",
+    }
+    if data["standard"] != expected[data["module"]]:
+        raise ValueError(f"{data['module']} rubric must use {expected[data['module']]}")
 
 
 def _validate_session_semantics(data: dict[str, Any]) -> None:

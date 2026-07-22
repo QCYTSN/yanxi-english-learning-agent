@@ -1,4 +1,4 @@
-# Current core scope — V0.5
+# Current core scope — V0.6
 
 ## Identity
 
@@ -10,6 +10,12 @@ questions, provenance, learning memory and planning.
 The runtime is intent-first: a clear module request goes directly to its
 specialist. Global onboarding, diagnostic, profile and allocation checks are not
 mandatory preflight for every learning turn.
+
+Formal saved practice uses a revisioned Study Runtime. Skills submit learner
+work and validated feedback through CLI operations; Markdown remains the
+human-readable mirror and SQLite remains the structured store. Writing and
+Reading teaching contracts enforce the non-negotiable learning rules before
+results are saved.
 
 It is not a standalone chatbot that calls another model API.
 

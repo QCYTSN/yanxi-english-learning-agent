@@ -6,6 +6,7 @@
     "session_id": {"type": "string", "pattern": "^[LRSW]-[0-9]{8}-[0-9]{3}$|^[A-Za-z0-9][A-Za-z0-9._-]*$"},
     "module": {"enum": ["listening", "reading", "writing", "speaking"]},
     "status": {"enum": ["draft", "question_presented", "learner_working", "awaiting_feedback", "awaiting_revision", "completed", "cancelled"]},
+    "revision": {"type": "integer", "minimum": 0},
     "occurred_at": {"type": ["string", "null"]},
     "source_id": {"type": ["string", "null"]},
     "question_id": {"type": ["string", "null"]},

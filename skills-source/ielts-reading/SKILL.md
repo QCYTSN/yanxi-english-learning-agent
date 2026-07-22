@@ -42,8 +42,16 @@ explain one sentence unless the learner asks to save it.
 
 ```bash
 ielts-coach session start reading --question-id <id>
-ielts-coach session finish <session-file>
+ielts-coach session submit-reading <session-id> <answers-file>
+ielts-coach teaching validate-reading <review-file>
+ielts-coach session apply-reading-review <session-id> <review-file>
 ```
 
+Before submission, record only progressive hint level with `session
+hint-reading`; timed practice must not use it. A `guided_hint` review must keep
+`answer_revealed=false`; a wrong-answer review must include passage location,
+evidence, reasoning and the reusable next-time rule.
+
 Store question attempts, evidence locations, time and narrow `R_*` tags only
-after meaningful practice. Do not narrate routine tool work.
+after meaningful practice. Do not narrate routine tool work or print runtime
+JSON unless the learner asks for diagnostics.

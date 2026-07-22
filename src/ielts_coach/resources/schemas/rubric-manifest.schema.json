@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["rubric_id", "module", "publisher", "standard", "source_reference"],
+  "properties": {
+    "rubric_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "module": {"enum": ["writing", "speaking"]},
+    "publisher": {"const": "IELTS"},
+    "standard": {"enum": ["IELTS Writing Band Descriptors", "IELTS Speaking Band Descriptors"]},
+    "version": {"type": ["string", "null"]},
+    "source_reference": {"type": "string", "minLength": 1},
+    "local_path": {"type": ["string", "null"]},
+    "expected_sha256": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
+    "permissions": {"type": "object"}
+  },
+  "additionalProperties": false
+}

@@ -5,6 +5,7 @@ from pathlib import Path
 from .config import DEFAULT_PROFILE, DEFAULT_SETTINGS, migrate_configuration, write_yaml
 from .corpus import import_manifest, install_starter_corpus
 from .storage import initialise_database
+from .rubrics import ensure_default_rubrics
 
 DIRECTORIES = (
     "config", "database", "corpus/manifests", "corpus/official-user-imported",
@@ -23,6 +24,7 @@ def initialise_home(home: Path, force: bool = False) -> None:
     if not force:
         migrate_configuration(home)
     initialise_database(home)
+    ensure_default_rubrics(home)
     install_starter_corpus(home, force=force)
     manifest_path = home / "corpus" / "starter-open" / "manifest.yaml"
     if manifest_path.exists():

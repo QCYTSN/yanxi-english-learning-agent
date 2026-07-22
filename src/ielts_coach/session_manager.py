@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -94,6 +96,7 @@ def start_session(
         "session_id": session_id,
         "module": module,
         "status": "draft",
+        "revision": 0,
         "occurred_at": now,
         "question_id": question_id,
         "passage_id": passage_id,
@@ -117,9 +120,64 @@ def start_session(
         "listening": "# Test Reference\n\n# Wrong Answers\n\n# Review\n",
     }[module]
     frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
-    path.write_text(f"---\n{frontmatter}\n---\n\n{body}", encoding="utf-8")
-    record_session(home, data)
+    _write_session_document_atomic(path, data, body)
+    try:
+        record_session(home, data)
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
     return path
+
+
+def _render_session_document(data: dict[str, Any], body: str) -> str:
+    clean = dict(data)
+    clean.pop("document_body", None)
+    frontmatter = yaml.safe_dump(clean, allow_unicode=True, sort_keys=False).strip()
+    return f"---\n{frontmatter}\n---\n\n{body.rstrip()}\n"
+
+
+def _write_text_atomic(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        Path(temporary).replace(path)
+    except Exception:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
+def _write_session_document_atomic(path: Path, data: dict[str, Any], body: str) -> None:
+    _write_text_atomic(path, _render_session_document(data, body))
+
+
+def persist_session_atomic(
+    home: Path,
+    path: Path,
+    data: dict[str, Any],
+    *,
+    body: str | None = None,
+) -> dict[str, Any]:
+    """Keep the human-readable Session and SQLite mirror consistent on errors."""
+    validated = validate_data(data, "session")
+    if body is None:
+        body = str(validated.get("document_body", ""))
+    old_text = path.read_text(encoding="utf-8") if path.exists() else None
+    _write_session_document_atomic(path, validated, body)
+    try:
+        db_data = dict(validated)
+        db_data.pop("document_body", None)
+        record_session(home, db_data)
+    except Exception:
+        if old_text is None:
+            path.unlink(missing_ok=True)
+        else:
+            _write_text_atomic(path, old_text)
+        raise
+    return validated
 
 
 def transition_session(home: Path, path: Path, new_status: str) -> dict[str, Any]:
@@ -131,25 +189,15 @@ def transition_session(home: Path, path: Path, new_status: str) -> dict[str, Any
     if new_status not in SESSION_TRANSITIONS.get(old_status, set()):
         raise ValueError(f"Invalid session transition: {old_status} -> {new_status}")
     data["status"] = new_status
-    data = validate_data(data, "session")
-    body = data.pop("document_body", "")
-    frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
-    path.write_text(f"---\n{frontmatter}\n---\n\n{body}\n", encoding="utf-8")
-    record_session(home, data)
-    return data
+    data["revision"] = int(data.get("revision", 0)) + 1
+    return persist_session_atomic(home, path, data)
 
 
 def finish_session(home: Path, path: Path) -> dict[str, Any]:
     data = load_session_file(path)
     data["status"] = "completed"
-    data = validate_data(data, "session")
-    record_session(home, data)
-    # Keep the canonical Markdown frontmatter in sync with completed status.
-    if path.suffix.lower() in {".md", ".markdown"}:
-        body = data.pop("document_body", "")
-        frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
-        path.write_text(f"---\n{frontmatter}\n---\n\n{body}\n", encoding="utf-8")
-    return data
+    data["revision"] = int(data.get("revision", 0)) + 1
+    return persist_session_atomic(home, path, data)
 
 
 def show_session(home: Path, session_id: str) -> dict[str, Any] | None:

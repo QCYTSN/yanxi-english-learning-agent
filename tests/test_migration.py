@@ -40,7 +40,7 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
         assert conn.execute("SELECT band,status FROM sessions WHERE session_id='W-OLD'").fetchone() == (6.0, "completed")
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("4",)
+        ).fetchone() == ("5",)
         assert conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='diagnostic_runs'"
         ).fetchone() == ("diagnostic_runs",)

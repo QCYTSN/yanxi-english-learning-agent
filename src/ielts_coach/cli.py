@@ -34,11 +34,25 @@ from .question_bank import draw_question, search_questions, show_question, show_
 from .reports import build_summary, build_trend_report, build_weekly_report
 from .session_io import load_data_file, load_session_file
 from .session_manager import finish_session, show_session, start_session, transition_session
+from .study_runtime import (
+    apply_reading_review,
+    apply_writing_review,
+    record_reading_hint,
+    resume_session,
+    submit_reading_answers,
+    submit_writing_version,
+)
 from .speaking_io import import_speaking_report
-from .storage import connect, db_path, list_corpora, list_error_profile, list_sessions, record_session, update_error_status
+from .storage import (
+    connect, db_path, list_corpora, list_error_profile, list_sessions,
+    record_runtime_telemetry, record_session, telemetry_summary, update_error_status,
+)
 from .story_bank import add_story, list_stories, show_story
 from .study_context import build_study_context
 from .sync import SKILLS, TARGETS, skills_are_synced, sync_skills
+from .rubrics import list_rubrics, register_rubric
+from .privacy import check_processing_permission
+from .validation import validate_data
 
 app = typer.Typer(no_args_is_help=True, help="Local CLI for IELTS AI Coach")
 question_app = typer.Typer(no_args_is_help=True, help="Search and draw indexed IELTS questions")
@@ -50,6 +64,10 @@ error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring
 story_app = typer.Typer(no_args_is_help=True, help="Manage reusable personal Speaking stories")
 onboarding_app = typer.Typer(no_args_is_help=True, help="Inspect and complete first-use setup")
 diagnostic_app = typer.Typer(no_args_is_help=True, help="Run a standardised Academic baseline diagnostic")
+teaching_app = typer.Typer(no_args_is_help=True, help="Validate structured teaching feedback contracts")
+rubric_app = typer.Typer(no_args_is_help=True, help="Manage official scoring rubric references")
+privacy_app = typer.Typer(no_args_is_help=True, help="Check whether material may be sent for remote processing")
+telemetry_app = typer.Typer(no_args_is_help=True, help="Record metadata-only cost and latency observations")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -59,6 +77,10 @@ app.add_typer(error_app, name="error")
 app.add_typer(story_app, name="story")
 app.add_typer(onboarding_app, name="onboarding")
 app.add_typer(diagnostic_app, name="diagnostic")
+app.add_typer(teaching_app, name="teaching")
+app.add_typer(rubric_app, name="rubric")
+app.add_typer(privacy_app, name="privacy")
+app.add_typer(telemetry_app, name="telemetry")
 
 
 @app.command()
@@ -110,6 +132,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "question_options", "question_attempts", "reading_answers", "writing_versions",
         "criterion_scores", "speaking_reports", "allocation_history", "calibration_results",
         "calibration_cases", "diagnostic_runs", "schema_meta",
+        "rubric_registry", "runtime_events", "runtime_telemetry",
     }
     if db_path(target).exists():
         with connect(target) as conn:
@@ -131,11 +154,13 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             schema_row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key='schema_version'"
             ).fetchone() if "schema_meta" in tables else None
-        checks["database schema v4"] = (
+            rubric_count = int(conn.execute("SELECT COUNT(*) FROM rubric_registry").fetchone()[0])
+        checks["database schema v5"] = (
             required_tables.issubset(tables)
             and schema_row is not None
-            and schema_row["value"] == "4"
+            and schema_row["value"] == "5"
         )
+        checks["official rubric references registered"] = rubric_count >= 2
         checks["starter corpus indexed (41 questions)"] = starter_questions == 41
         checks["starter Reading indexed (4 passages / 16 questions)"] = (
             starter_reading_passages == 4 and starter_reading_questions == 16
@@ -394,6 +419,168 @@ def session_list(module: Optional[str] = typer.Option(None), limit: int = typer.
             f"- {row['session_id']} | {row['module']} | {row['status']} | "
             f"band={row['band']} | kind={row['score_kind'] or 'unspecified'} | "
             f"confidence={row['score_confidence'] or 'n/a'} | {row['occurred_at']}"
+        )
+
+
+@session_app.command("resume")
+def session_resume(
+    module: Optional[str] = typer.Option(None),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = resume_session(resolve_home(home), module=module)
+    if not data:
+        typer.echo("No active Session found.")
+        raise typer.Exit(code=1)
+    typer.echo(json.dumps(data, ensure_ascii=False, indent=2, default=str))
+
+
+@session_app.command("submit-writing")
+def session_submit_writing(
+    session_id: str,
+    content_file: Path = typer.Argument(..., exists=True, readable=True),
+    label: str = typer.Option("v1", help="v1, v2, or final"),
+    expected_revision: Optional[int] = typer.Option(None, min=0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = submit_writing_version(
+        resolve_home(home), session_id, label=label,
+        content=content_file.read_text(encoding="utf-8"), expected_revision=expected_revision,
+    )
+    typer.echo(json.dumps({"session_id": session_id, "status": data["status"], "revision": data["revision"]}))
+
+
+@session_app.command("apply-writing-review")
+def session_apply_writing_review(
+    session_id: str,
+    review_file: Path = typer.Argument(..., exists=True, readable=True),
+    expected_revision: Optional[int] = typer.Option(None, min=0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = apply_writing_review(
+        resolve_home(home), session_id, load_data_file(review_file),
+        expected_revision=expected_revision,
+    )
+    typer.echo(json.dumps({"session_id": session_id, "status": data["status"], "revision": data["revision"]}))
+
+
+@session_app.command("hint-reading")
+def session_hint_reading(
+    session_id: str,
+    level: Optional[int] = typer.Option(None, min=1, max=3),
+    expected_revision: Optional[int] = typer.Option(None, min=0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = record_reading_hint(
+        resolve_home(home), session_id, level=level, expected_revision=expected_revision
+    )
+    typer.echo(json.dumps({"session_id": session_id, "hint_level": data["hints_used"], "revision": data["revision"]}))
+
+
+@session_app.command("submit-reading")
+def session_submit_reading(
+    session_id: str,
+    answers_file: Path = typer.Argument(..., exists=True, readable=True),
+    expected_revision: Optional[int] = typer.Option(None, min=0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    payload = load_data_file(answers_file)
+    answers = payload.get("answers", payload.get("questions"))
+    if not isinstance(answers, list):
+        raise typer.BadParameter("Reading submission file requires an answers list")
+    data = submit_reading_answers(
+        resolve_home(home), session_id, answers, expected_revision=expected_revision
+    )
+    typer.echo(json.dumps({"session_id": session_id, "status": data["status"], "revision": data["revision"]}))
+
+
+@session_app.command("apply-reading-review")
+def session_apply_reading_review(
+    session_id: str,
+    review_file: Path = typer.Argument(..., exists=True, readable=True),
+    expected_revision: Optional[int] = typer.Option(None, min=0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = apply_reading_review(
+        resolve_home(home), session_id, load_data_file(review_file),
+        expected_revision=expected_revision,
+    )
+    typer.echo(json.dumps({"session_id": session_id, "status": data["status"], "revision": data["revision"]}))
+
+
+@teaching_app.command("validate-writing")
+def teaching_validate_writing(
+    review_file: Path = typer.Argument(..., exists=True, readable=True),
+) -> None:
+    data = validate_data(load_data_file(review_file), "writing-review")
+    typer.echo(f"Valid Writing review: {data['session_id']} | {data['stage']}")
+
+
+@teaching_app.command("validate-reading")
+def teaching_validate_reading(
+    review_file: Path = typer.Argument(..., exists=True, readable=True),
+) -> None:
+    data = validate_data(load_data_file(review_file), "reading-review")
+    typer.echo(f"Valid Reading review: {data['session_id']} | {data['mode']}")
+
+
+@rubric_app.command("register")
+def rubric_register(
+    manifest_file: Path = typer.Argument(..., exists=True, readable=True),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = register_rubric(resolve_home(home), load_data_file(manifest_file))
+    typer.echo(f"Registered rubric: {data['rubric_id']} | {data['availability']}")
+
+
+@rubric_app.command("list")
+def rubric_list(home: Optional[Path] = typer.Option(None)) -> None:
+    for row in list_rubrics(resolve_home(home)):
+        typer.echo(
+            f"- {row['rubric_id']} | {row['module']} | {row['availability']} | "
+            f"{row['source_reference']}"
+        )
+
+
+@privacy_app.command("check")
+def privacy_check(
+    remote: bool = typer.Option(False, help="The selected model processes content remotely"),
+    consent: bool = typer.Option(False, help="Explicit one-time consent for this operation"),
+    source_type: Optional[str] = typer.Option(None),
+    question_id: Optional[str] = typer.Option(None),
+    corpus_id: Optional[str] = typer.Option(None),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = check_processing_permission(
+        resolve_home(home), remote_processing=remote, explicit_consent=consent,
+        source_type=source_type, question_id=question_id, corpus_id=corpus_id,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["allowed"]:
+        raise typer.Exit(code=2)
+
+
+@telemetry_app.command("record")
+def telemetry_record(
+    event_file: Path = typer.Argument(..., exists=True, readable=True),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    record_runtime_telemetry(resolve_home(home), load_data_file(event_file))
+    typer.echo("Recorded metadata-only telemetry event.")
+
+
+@telemetry_app.command("summary")
+def telemetry_summary_command(
+    days: int = typer.Option(30, min=1, max=3650),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    rows = telemetry_summary(resolve_home(home), days=days)
+    if not rows:
+        typer.echo("No telemetry recorded.")
+        return
+    for row in rows:
+        typer.echo(
+            f"- {row['module']} | events={row['events']} | in={row['input_tokens']} | "
+            f"out={row['output_tokens']} | avg_ms={row['average_latency_ms']} | tools={row['tool_calls']}"
         )
 
 

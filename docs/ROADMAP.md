@@ -1,6 +1,6 @@
 # Roadmap
 
-## Delivered through V0.5
+## Delivered through V0.6
 
 - six-Skill architecture
 - independent Reading coach
@@ -32,6 +32,13 @@
 - intent-first specialist routing without mandatory global preflight
 - compact `study-context` payloads for module and cross-module turns
 - stage-specific Skill reference loading and prompt-size regression guards
+- revisioned Study Runtime, active-Session resume and stale-write protection
+- atomic Session-file updates with database-failure rollback
+- validated Writing/Reading teaching-output contracts
+- official rubric registry with reference-only and local-hash modes
+- enforced private-source remote-processing gate
+- optional metadata-only cost and latency telemetry
+- correctly bounded history errors and compact ability signals
 
 ## Next decision points
 

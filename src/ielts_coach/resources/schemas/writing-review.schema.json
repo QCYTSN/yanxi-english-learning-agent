@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["review_version", "session_id", "stage", "task", "version_label", "score_kind", "confidence", "rubric", "criteria", "priority_issues"],
+  "properties": {
+    "review_version": {"const": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "stage": {"enum": ["first_review", "version_comparison", "final_review"]},
+    "task": {"enum": ["task1", "task2"]},
+    "version_label": {"type": "string", "minLength": 1},
+    "score_kind": {"const": "ai_training_estimate"},
+    "confidence": {"enum": ["low", "medium", "high"]},
+    "estimated_band": {
+      "type": "object",
+      "required": ["low", "high"],
+      "properties": {
+        "low": {"type": "number", "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+        "high": {"type": "number", "minimum": 0, "maximum": 9, "multipleOf": 0.5}
+      },
+      "additionalProperties": false
+    },
+    "rubric": {
+      "type": "object",
+      "required": ["rubric_id", "publisher", "standard", "source_reference"],
+      "properties": {
+        "rubric_id": {"type": "string", "minLength": 1},
+        "publisher": {"const": "IELTS"},
+        "standard": {"const": "IELTS Writing Band Descriptors"},
+        "version": {"type": ["string", "null"]},
+        "source_reference": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["criterion", "score_low", "score_high", "evidence_support", "evidence_limit"],
+        "properties": {
+          "criterion": {"enum": ["TA", "TR", "CC", "LR", "GRA"]},
+          "score_low": {"type": "number", "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+          "score_high": {"type": "number", "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+          "evidence_support": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "evidence_limit": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        },
+        "additionalProperties": true
+      }
+    },
+    "priority_issues": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["tag", "evidence", "learner_action"],
+        "properties": {
+          "tag": {"type": "string", "minLength": 1},
+          "evidence": {"type": "string", "minLength": 1},
+          "learner_action": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "full_model_answer": {"type": ["string", "null"]},
+    "next_action": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

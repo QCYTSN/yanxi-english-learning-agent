@@ -1,3 +1,35 @@
+# IELTS AI Coach v0.6.0
+
+## Reliable study runtime and teaching contracts
+
+### Added
+
+- revisioned Writing and Reading runtime operations, active-Session resume and
+  stale-update protection
+- atomic Session document writes with rollback when SQLite recording fails
+- validated `writing-review` and `reading-review` contracts that enforce the
+  active-learning and answer-integrity rules
+- official IELTS Writing/Speaking rubric registry with metadata, optional local
+  file hashing and availability checks; official content is not bundled
+- an enforced one-time privacy gate for remotely processing private sources
+- optional metadata-only token, latency and tool-call telemetry
+- compact criterion and Reading-type ability signals in module study context
+
+### Fixed
+
+- the context history window now limits error aggregation as stated instead of
+  mixing all-time errors into a 14-day payload
+- Session Markdown and SQLite no longer follow opposite write orders
+- formal saved practice no longer requires an Agent to hand-edit frontmatter
+
+### Migration
+
+- database schema version 5 adds only new tables and preserves V0.1-V0.5 data
+- normal `ielts-coach init` registers reference-only official rubric metadata;
+  it does not download or redistribute the descriptor PDFs
+
+---
+
 # IELTS AI Coach v0.5.0
 
 ## Lightweight Agent runtime

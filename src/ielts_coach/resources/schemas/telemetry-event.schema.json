@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["event_type"],
+  "properties": {
+    "event_type": {"type": "string", "minLength": 1},
+    "module": {"enum": ["listening", "reading", "writing", "speaking", null]},
+    "session_id": {"type": ["string", "null"]},
+    "model_label": {"type": ["string", "null"]},
+    "input_tokens": {"type": ["integer", "null"], "minimum": 0},
+    "output_tokens": {"type": ["integer", "null"], "minimum": 0},
+    "latency_ms": {"type": ["number", "null"], "minimum": 0},
+    "tool_calls": {"type": ["integer", "null"], "minimum": 0},
+    "created_at": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

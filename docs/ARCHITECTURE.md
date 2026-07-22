@@ -56,14 +56,26 @@ sessions, errors, corpora
 question_passages, questions, question_options, question_attempts
 reading_answers, writing_versions, criterion_scores, speaking_reports
 allocation_history, calibration_results, schema_meta
+rubric_registry, runtime_events, runtime_telemetry
 ```
 
-Markdown/YAML remains the human-editable session interchange format. SQLite is
-the reporting and query source.
+Markdown/YAML remains the human-readable interchange format. The revisioned
+Study Runtime validates learner submissions and feedback, writes the Session
+document atomically, then updates SQLite; a failed database update rolls the
+file back. `session resume` reconciles stale mirrors by validated revision.
+
+Writing and Reading feedback have separate JSON Schemas plus semantic checks.
+They prevent first-review model-answer leakage, enforce four official Writing
+criteria, protect guided hints, and require passage-grounded wrong-answer
+evidence before a formal review is saved.
 
 Scores carry provenance, confidence and rubric metadata. Planning excludes
 partial profiles, low-confidence AI estimates and source-model provisional
 scores.
+
+Official rubric files are not bundled. The registry stores the official source
+reference, declared version and optional user-owned local file hash so the
+runtime can distinguish a valid reference from a missing local file.
 
 ## Speaking evidence pipeline
 

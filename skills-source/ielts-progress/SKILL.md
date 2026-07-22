@@ -35,3 +35,6 @@ acoustic diagnosis.
 Full Reading teaching belongs to `ielts-reading`; corpus operations belong to
 `ielts-corpus`. Numeric Writing/Speaking feedback requires the applicable
 official Band Descriptors and remains an AI training estimate.
+
+When counts are available, optionally record one metadata-only telemetry event;
+never include prompts, answers, transcripts or corpus text.

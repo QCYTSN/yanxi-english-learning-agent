@@ -28,3 +28,6 @@ Reveal keys only when the learning workflow permits it. Do not locate or bundle
 pirated materials, infer authenticity from availability, or label synthetic or
 reported questions as official. The importer accepts prepared JSONL; it is not
 a full PDF/OCR engine.
+
+Before remote processing of private material, run `ielts-coach privacy check
+--remote --question-id <id>`; require informed one-time consent if blocked.
