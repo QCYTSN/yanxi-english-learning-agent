@@ -13,6 +13,7 @@ DIRECTORIES = (
     "corpus/synthetic", "sessions/listening", "sessions/reading", "sessions/writing",
     "sessions/speaking", "story-bank", "reports/weekly", "reports/monthly",
     "exports", "backups", "calibration/cases", "calibration/results",
+    "media", "runtime/locks", "exports/agent-requests", "exports/agent-results",
 )
 
 

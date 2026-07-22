@@ -1,6 +1,6 @@
 # Roadmap
 
-## Delivered through V0.6
+## Delivered through V0.7
 
 - six-Skill architecture
 - independent Reading coach
@@ -39,6 +39,12 @@
 - enforced private-source remote-processing gate
 - optional metadata-only cost and latency telemetry
 - correctly bounded history errors and compact ability signals
+- packaged loopback-only local learning UI
+- deterministic Writing and Reading browser workflows
+- TextAnchor evidence linking and Task 1 Media Registry
+- schema v6 draft, idempotency, media and Agent-run infrastructure
+- MockAdapter and ManualAdapter with validated result persistence
+- Today, Feedback, Library, History/Progress and Settings surfaces
 
 ## Next decision points
 
@@ -49,9 +55,13 @@ These are intentionally not implemented until user feedback from real study:
 - optional local speech-to-text and acoustic evidence
 - model-executed evaluation harness for Skill outputs
 - local read-only Dashboard after sufficient real data exists
+- verified OpenCode and Claude process adapters
+- Speaking handoff and report-review UI
+- final visual system and optional dark mode
 
 ## Deferred product version
 
-Frontend, model API backend, authentication, cloud sync, multi-user accounts,
+Direct model API backends, authentication, cloud sync, multi-user accounts,
 RAG, fine-tuning and autonomous multi-agent orchestration require a separate
-scope decision.
+scope decision. A desktop shell remains optional until the browser workflow has
+enough real-study feedback.

@@ -289,6 +289,79 @@ CREATE TABLE IF NOT EXISTS runtime_telemetry (
 );
 CREATE INDEX IF NOT EXISTS idx_runtime_telemetry_time ON runtime_telemetry(created_at DESC);
 
+CREATE TABLE IF NOT EXISTS study_drafts (
+    session_id TEXT NOT NULL,
+    draft_kind TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 0,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(session_id,draft_kind),
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS idempotency_records (
+    scope TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    response_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(scope,idempotency_key)
+);
+
+CREATE TABLE IF NOT EXISTS media_assets (
+    media_id TEXT PRIMARY KEY,
+    owner_type TEXT,
+    owner_id TEXT,
+    media_type TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    local_path TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    alt_text TEXT,
+    privacy_status TEXT NOT NULL DEFAULT 'local_only',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    UNIQUE(content_hash,mime_type)
+);
+
+CREATE TABLE IF NOT EXISTS agent_runs (
+    run_id TEXT PRIMARY KEY,
+    study_session_id TEXT,
+    adapter_id TEXT NOT NULL,
+    agent_session_id TEXT,
+    action TEXT NOT NULL,
+    output_contract TEXT NOT NULL,
+    base_revision INTEGER,
+    status TEXT NOT NULL,
+    error_code TEXT,
+    request_json TEXT NOT NULL DEFAULT '{}',
+    result_json TEXT,
+    usage_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_agent_runs_session ON agent_runs(study_session_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS agent_run_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL,
+    sequence INTEGER NOT NULL,
+    event_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    UNIQUE(run_id,sequence),
+    FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ui_settings (
+    key TEXT PRIMARY KEY,
+    value_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -312,6 +385,7 @@ def connect(home: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
@@ -373,7 +447,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
         if name not in report_columns:
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
     conn.execute(
-        "INSERT INTO schema_meta(key,value) VALUES('schema_version','5') "
+        "INSERT INTO schema_meta(key,value) VALUES('schema_version','6') "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
     )
 
@@ -382,6 +456,7 @@ def initialise_database(home: Path) -> Path:
     path = db_path(home)
     with connect(home) as conn:
         conn.executescript(SCHEMA)
+        conn.execute("PRAGMA journal_mode = WAL")
         _migrate(conn)
     return path
 
@@ -1056,3 +1131,273 @@ def telemetry_summary(home: Path, days: int = 30) -> list[sqlite3.Row]:
             """,
             (cutoff_iso,),
         ).fetchall()
+
+
+def get_study_draft(home: Path, session_id: str, draft_kind: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT revision,payload_json,updated_at FROM study_drafts WHERE session_id=? AND draft_kind=?",
+            (session_id, draft_kind),
+        ).fetchone()
+    if not row:
+        return None
+    return {
+        "session_id": session_id,
+        "draft_kind": draft_kind,
+        "revision": int(row["revision"]),
+        "payload": json.loads(row["payload_json"]),
+        "updated_at": row["updated_at"],
+    }
+
+
+def save_study_draft(
+    home: Path,
+    session_id: str,
+    draft_kind: str,
+    payload: dict[str, Any],
+    *,
+    expected_revision: int | None = None,
+) -> dict[str, Any]:
+    initialise_database(home)
+    now = _now()
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT revision FROM study_drafts WHERE session_id=? AND draft_kind=?",
+            (session_id, draft_kind),
+        ).fetchone()
+        current = int(row["revision"]) if row else 0
+        if expected_revision is not None and current != expected_revision:
+            from .errors import SessionRevisionConflictError
+
+            raise SessionRevisionConflictError(
+                f"Stale draft revision: expected {expected_revision}, current {current}",
+                details={"expected": expected_revision, "current": current},
+            )
+        revision = current + 1
+        conn.execute(
+            """
+            INSERT INTO study_drafts(session_id,draft_kind,revision,payload_json,updated_at)
+            VALUES(?,?,?,?,?)
+            ON CONFLICT(session_id,draft_kind) DO UPDATE SET
+              revision=excluded.revision,payload_json=excluded.payload_json,updated_at=excluded.updated_at
+            """,
+            (session_id, draft_kind, revision, json.dumps(payload, ensure_ascii=False), now),
+        )
+    return {
+        "session_id": session_id,
+        "draft_kind": draft_kind,
+        "revision": revision,
+        "payload": payload,
+        "updated_at": now,
+    }
+
+
+def get_idempotency_record(home: Path, scope: str, key: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT operation,response_json,created_at FROM idempotency_records WHERE scope=? AND idempotency_key=?",
+            (scope, key),
+        ).fetchone()
+    if not row:
+        return None
+    return {
+        "operation": row["operation"],
+        "response": json.loads(row["response_json"]),
+        "created_at": row["created_at"],
+    }
+
+
+def save_idempotency_record(
+    home: Path, scope: str, key: str, operation: str, response: dict[str, Any]
+) -> None:
+    initialise_database(home)
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO idempotency_records(scope,idempotency_key,operation,response_json,created_at)
+            VALUES(?,?,?,?,?) ON CONFLICT(scope,idempotency_key) DO NOTHING
+            """,
+            (scope, key, operation, json.dumps(response, ensure_ascii=False, default=str), _now()),
+        )
+
+
+def register_media_asset(home: Path, asset: dict[str, Any]) -> dict[str, Any]:
+    initialise_database(home)
+    now = _now()
+    with connect(home) as conn:
+        existing = conn.execute(
+            "SELECT * FROM media_assets WHERE content_hash=? AND mime_type=?",
+            (asset["content_hash"], asset["mime_type"]),
+        ).fetchone()
+        if existing:
+            return _media_row(existing)
+        conn.execute(
+            """
+            INSERT INTO media_assets(
+              media_id,owner_type,owner_id,media_type,mime_type,local_path,content_hash,
+              width,height,alt_text,privacy_status,metadata_json,created_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                asset["media_id"], asset.get("owner_type"), asset.get("owner_id"),
+                asset["media_type"], asset["mime_type"], asset["local_path"],
+                asset["content_hash"], asset.get("width"), asset.get("height"),
+                asset.get("alt_text"), asset.get("privacy_status", "local_only"),
+                json.dumps(asset.get("metadata") or {}, ensure_ascii=False), now,
+            ),
+        )
+        row = conn.execute("SELECT * FROM media_assets WHERE media_id=?", (asset["media_id"],)).fetchone()
+    return _media_row(row)
+
+
+def _media_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "media_id": row["media_id"],
+        "owner_type": row["owner_type"],
+        "owner_id": row["owner_id"],
+        "media_type": row["media_type"],
+        "mime_type": row["mime_type"],
+        "local_path": row["local_path"],
+        "content_hash": row["content_hash"],
+        "width": row["width"],
+        "height": row["height"],
+        "alt_text": row["alt_text"],
+        "privacy_status": row["privacy_status"],
+        "metadata": json.loads(row["metadata_json"]),
+        "created_at": row["created_at"],
+    }
+
+
+def get_media_asset(home: Path, media_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute("SELECT * FROM media_assets WHERE media_id=?", (media_id,)).fetchone()
+    return _media_row(row) if row else None
+
+
+def list_media_assets(home: Path, limit: int = 100) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        rows = conn.execute(
+            "SELECT * FROM media_assets ORDER BY created_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+    return [_media_row(row) for row in rows]
+
+
+def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
+    initialise_database(home)
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO agent_runs(
+              run_id,study_session_id,adapter_id,agent_session_id,action,output_contract,
+              base_revision,status,error_code,request_json,result_json,usage_json,
+              created_at,started_at,completed_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                run["run_id"], run.get("study_session_id"), run["adapter_id"],
+                run.get("agent_session_id"), run["action"], run["output_contract"],
+                run.get("base_revision"), run["status"], run.get("error_code"),
+                json.dumps(run.get("request") or {}, ensure_ascii=False),
+                json.dumps(run.get("result"), ensure_ascii=False) if run.get("result") is not None else None,
+                json.dumps(run.get("usage") or {}, ensure_ascii=False),
+                run.get("created_at") or _now(), run.get("started_at"), run.get("completed_at"),
+            ),
+        )
+    return get_agent_run(home, run["run_id"]) or run
+
+
+def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
+    allowed = {
+        "agent_session_id", "status", "error_code", "result_json", "usage_json",
+        "started_at", "completed_at",
+    }
+    columns: list[str] = []
+    values: list[Any] = []
+    for key, value in changes.items():
+        column = key
+        if key == "result":
+            column, value = "result_json", json.dumps(value, ensure_ascii=False)
+        elif key == "usage":
+            column, value = "usage_json", json.dumps(value, ensure_ascii=False)
+        if column not in allowed:
+            continue
+        columns.append(f"{column}=?")
+        values.append(value)
+    if not columns:
+        return get_agent_run(home, run_id) or {}
+    values.append(run_id)
+    with connect(home) as conn:
+        conn.execute(f"UPDATE agent_runs SET {','.join(columns)} WHERE run_id=?", values)
+    return get_agent_run(home, run_id) or {}
+
+
+def get_agent_run(home: Path, run_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute("SELECT * FROM agent_runs WHERE run_id=?", (run_id,)).fetchone()
+    if not row:
+        return None
+    return {
+        "run_id": row["run_id"],
+        "study_session_id": row["study_session_id"],
+        "adapter_id": row["adapter_id"],
+        "agent_session_id": row["agent_session_id"],
+        "action": row["action"],
+        "output_contract": row["output_contract"],
+        "base_revision": row["base_revision"],
+        "status": row["status"],
+        "error_code": row["error_code"],
+        "request": json.loads(row["request_json"]),
+        "result": json.loads(row["result_json"]) if row["result_json"] else None,
+        "usage": json.loads(row["usage_json"]),
+        "created_at": row["created_at"],
+        "started_at": row["started_at"],
+        "completed_at": row["completed_at"],
+    }
+
+
+def append_agent_run_event(
+    home: Path, run_id: str, event_type: str, payload: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT COALESCE(MAX(sequence),0)+1 AS next_sequence FROM agent_run_events WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        sequence = int(row["next_sequence"])
+        created_at = _now()
+        conn.execute(
+            "INSERT INTO agent_run_events(run_id,sequence,event_type,payload_json,created_at) VALUES(?,?,?,?,?)",
+            (run_id, sequence, event_type, json.dumps(payload or {}, ensure_ascii=False), created_at),
+        )
+    return {
+        "run_id": run_id,
+        "sequence": sequence,
+        "type": event_type,
+        "payload": payload or {},
+        "created_at": created_at,
+    }
+
+
+def list_agent_run_events(home: Path, run_id: str, after: int = 0) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        rows = conn.execute(
+            "SELECT * FROM agent_run_events WHERE run_id=? AND sequence>? ORDER BY sequence",
+            (run_id, after),
+        ).fetchall()
+    return [
+        {
+            "run_id": row["run_id"],
+            "sequence": int(row["sequence"]),
+            "type": row["event_type"],
+            "payload": json.loads(row["payload_json"]),
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]

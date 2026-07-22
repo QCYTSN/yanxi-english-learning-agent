@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V0.6.0 已实现
+## V0.7.0 已实现
 
 ### 六个 Skill
 
@@ -41,12 +41,23 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - 评分校准结果登记与 MAE/±0.5 通过率报告
 - 原创 Starter Corpus：Writing、Speaking，以及 4 篇原创阅读文章和 16 道阅读题
 
+### 本地学习 UI
+
+- `ielts-coach ui start` 启动仅监听 `127.0.0.1` 的浏览器学习界面
+- Today、Writing、Reading、Feedback、Library、History/Progress、Settings
+- React + TypeScript 前端作为 Python wheel 静态资源打包
+- Writing 自动保存、V1/V2、证据定位和 Task 1 注册图片
+- Reading 严格计时/逐级提示、答案锁和结构化复盘
+- MockAdapter 与 ManualAdapter；不解析任何 Agent 的终端展示文本
+- Schema v6 的幂等、revision 冲突、跨进程锁、Media Registry 和 Agent run 状态
+
 ## 明确不包含
 
 - Cambridge IELTS 原题、音频或机构付费题库
 - 盗版资料下载入口
 - 独立模型 API 后端
-- 前端、登录、云同步或多用户系统
+- 登录、云同步或多用户系统
+- OpenCode、Claude、Codex 的可编程进程 Adapter（V0.7 使用 Mock/Manual）
 - 自动语音识别和真实声学发音评分
 - RAG、向量数据库、微调或自主多 Agent 编排
 - 未经校准便冒充官方考官的分数
@@ -57,7 +68,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 cd D:\Github_Ku\ielts-ai-coach
 conda create -n ielts-coach python=3.12 -y
 conda activate ielts-coach
-python -m pip install -e .
+python -m pip install -e ".[ui]"
 
 [Environment]::SetEnvironmentVariable("IELTS_HOME", "D:\IELTS_AI\data", "User")
 ```
@@ -95,6 +106,15 @@ $ielts 读取我的目标和最近记录，开始今天的训练。
 ```
 
 OpenCode：从项目根目录启动后，让 Agent 加载 `ielts` skill。
+
+启动本地学习 UI（也可由能运行本地命令的 Agent 执行）：
+
+```powershell
+ielts-coach ui start
+```
+
+“Agent 能启动 UI”和“UI 能反向控制当前 Agent 对话”是两种能力。V0.7
+提供 MockAdapter 和 ManualAdapter；真实进程 Adapter 需要单独完成安全与能力验收。
 
 ## 常用命令
 
@@ -172,6 +192,9 @@ ielts-coach calibration report
 - [Academic 摸底、严格阅读与评分校准](docs/ACADEMIC_DIAGNOSTIC_AND_CALIBRATION.md)
 - [隐私与版权](docs/PRIVACY_AND_COPYRIGHT.md)
 - [路线图](docs/ROADMAP.md)
+- [UI 产品与架构规格](docs/UI_PRODUCT_SPEC.md)
+- [UI 工程架构](docs/UI_ENGINEERING_ARCHITECTURE.md)
+- [UI 实现交接](docs/UI_IMPLEMENTATION_HANDOFF.md)
 
 ## 许可证
 

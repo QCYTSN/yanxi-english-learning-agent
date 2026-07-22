@@ -1,3 +1,34 @@
+# IELTS AI Coach v0.7.0
+
+## Local companion UI and Agent boundary
+
+### Added
+
+- packaged React + TypeScript learning UI served by optional FastAPI dependencies
+- tokenised loopback launch through `ielts-coach ui start`
+- Today, Writing, Reading, evidence feedback, Library, History/Progress and Settings
+- Writing/Reading draft autosave, revision conflicts and idempotent mutations
+- TextAnchor evidence locations and a hash-validated Media Registry for Task 1 images
+- MockAdapter, ManualAdapter, Agent run persistence, cancellation and SSE status
+- schema v6 tables for UI drafts, idempotency, media and Agent infrastructure
+- cross-process Session locks and stable local API error contracts
+
+### Security and integrity
+
+- the browser exchanges a one-time URL fragment token for a SameSite HttpOnly cookie
+- service binding and host/origin checks remain loopback-only
+- registered media IDs replace arbitrary local-path access
+- validated Agent output is required before canonical Session persistence
+- Writing active revision, Reading answer locks and private-source consent remain enforced
+
+### Deliberately deferred
+
+- OpenCode, Claude and Codex process adapters pending isolated security tests
+- Speaking/audio UI, final visual design, dark mode and desktop packaging
+- direct model-provider APIs, cloud sync and multi-user accounts
+
+---
+
 # IELTS AI Coach v0.6.0
 
 ## Reliable study runtime and teaching contracts

@@ -11,6 +11,8 @@ from .session_io import load_session_file
 from .session_manager import PREFIXES, persist_session_atomic
 from .storage import connect, get_session, initialise_database, record_runtime_event
 from .validation import validate_data
+from .errors import AnswerRevealLockedError, SessionRevisionConflictError
+from .locking import runtime_lock
 
 
 TERMINAL_STATUSES = {"completed", "cancelled"}
@@ -36,16 +38,17 @@ def _db_payload(home: Path, session_id: str) -> dict[str, Any] | None:
 
 def reconcile_session(home: Path, session_id: str) -> dict[str, Any]:
     """Repair a stale file/DB mirror by keeping the highest validated revision."""
-    db_data = _db_payload(home, session_id)
-    module = str(db_data["module"]) if db_data else None
-    path = session_path(home, session_id, module)
-    file_data = load_session_file(path)
-    file_revision = int(file_data.get("revision", 0))
-    db_revision = int((db_data or {}).get("revision", 0))
-    if not db_data or file_revision >= db_revision:
-        return persist_session_atomic(home, path, file_data)
-    body = str(file_data.get("document_body", ""))
-    return persist_session_atomic(home, path, db_data, body=body)
+    with runtime_lock(home, f"session:{session_id}"):
+        db_data = _db_payload(home, session_id)
+        module = str(db_data["module"]) if db_data else None
+        path = session_path(home, session_id, module)
+        file_data = load_session_file(path)
+        file_revision = int(file_data.get("revision", 0))
+        db_revision = int((db_data or {}).get("revision", 0))
+        if not db_data or file_revision >= db_revision:
+            return persist_session_atomic(home, path, file_data)
+        body = str(file_data.get("document_body", ""))
+        return persist_session_atomic(home, path, db_data, body=body)
 
 
 def resume_session(home: Path, module: str | None = None) -> dict[str, Any] | None:
@@ -72,28 +75,47 @@ def _mutate(
     mutator: Callable[[dict[str, Any]], None],
     *,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     path = session_path(home, session_id)
-    data = load_session_file(path)
-    current = int(data.get("revision", 0))
-    if expected_revision is not None and current != expected_revision:
-        raise ValueError(f"Stale Session revision: expected {expected_revision}, current {current}")
-    if data.get("status") in TERMINAL_STATUSES:
-        raise ValueError(f"Cannot modify a {data.get('status')} Session")
-    mutator(data)
-    data["revision"] = current + 1
-    saved = persist_session_atomic(home, path, data)
-    record_runtime_event(
-        home,
-        event_id=f"{session_id}:{saved['revision']}:{event_type}",
-        event_type=event_type,
-        session_id=session_id,
-        module=str(saved["module"]),
-        revision=int(saved["revision"]),
-        payload={"status": saved.get("status")},
-    )
-    saved.pop("document_body", None)
-    return saved
+    with runtime_lock(home, f"session:{session_id}"):
+        data = load_session_file(path)
+        applied = list(data.get("applied_operations") or [])
+        if idempotency_key:
+            replay = next(
+                (item for item in reversed(applied) if item.get("key") == idempotency_key),
+                None,
+            )
+            if replay:
+                data.pop("document_body", None)
+                return data
+        current = int(data.get("revision", 0))
+        if expected_revision is not None and current != expected_revision:
+            raise SessionRevisionConflictError(
+                f"Stale Session revision: expected {expected_revision}, current {current}",
+                details={"expected": expected_revision, "current": current},
+            )
+        if data.get("status") in TERMINAL_STATUSES:
+            raise ValueError(f"Cannot modify a {data.get('status')} Session")
+        mutator(data)
+        data["revision"] = current + 1
+        if idempotency_key:
+            applied.append(
+                {"key": idempotency_key, "operation": event_type, "revision": data["revision"]}
+            )
+            data["applied_operations"] = applied[-50:]
+        saved = persist_session_atomic(home, path, data)
+        record_runtime_event(
+            home,
+            event_id=f"{session_id}:{saved['revision']}:{event_type}",
+            event_type=event_type,
+            session_id=session_id,
+            module=str(saved["module"]),
+            revision=int(saved["revision"]),
+            payload={"status": saved.get("status")},
+        )
+        saved.pop("document_body", None)
+        return saved
 
 
 def submit_writing_version(
@@ -103,6 +125,7 @@ def submit_writing_version(
     label: str,
     content: str,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     label = label.lower()
     if label not in {"v1", "v2", "final"}:
@@ -124,7 +147,8 @@ def submit_writing_version(
         data["submitted_at"] = _now()
 
     return _mutate(
-        home, session_id, f"writing_version_{label}", apply, expected_revision=expected_revision
+        home, session_id, f"writing_version_{label}", apply,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
     )
 
 
@@ -134,6 +158,7 @@ def apply_writing_review(
     review: dict[str, Any],
     *,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     review = validate_data(review, "writing-review")
     if review["session_id"] != session_id:
@@ -189,7 +214,10 @@ def apply_writing_review(
         data["writing_review"] = review
         data["status"] = "awaiting_revision"
 
-    return _mutate(home, session_id, "writing_review", apply, expected_revision=expected_revision)
+    return _mutate(
+        home, session_id, "writing_review", apply,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
+    )
 
 
 def record_reading_hint(
@@ -198,6 +226,7 @@ def record_reading_hint(
     *,
     level: int | None = None,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     def apply(data: dict[str, Any]) -> None:
         if data["module"] != "reading":
@@ -211,7 +240,10 @@ def record_reading_hint(
         data["hints_used"] = next_level
         data["status"] = "learner_working"
 
-    return _mutate(home, session_id, "reading_hint", apply, expected_revision=expected_revision)
+    return _mutate(
+        home, session_id, "reading_hint", apply,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
+    )
 
 
 def submit_reading_answers(
@@ -220,6 +252,7 @@ def submit_reading_answers(
     answers: list[dict[str, Any]],
     *,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     if not answers:
         raise ValueError("At least one Reading answer is required")
@@ -245,7 +278,10 @@ def submit_reading_answers(
         data["submitted_at"] = _now()
         data["status"] = "awaiting_feedback"
 
-    return _mutate(home, session_id, "reading_submission", apply, expected_revision=expected_revision)
+    return _mutate(
+        home, session_id, "reading_submission", apply,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
+    )
 
 
 def apply_reading_review(
@@ -254,6 +290,7 @@ def apply_reading_review(
     review: dict[str, Any],
     *,
     expected_revision: int | None = None,
+    idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     review = validate_data(review, "reading-review")
     if review["session_id"] != session_id:
@@ -270,7 +307,9 @@ def apply_reading_review(
             data["status"] = "learner_working"
             return
         if review["answer_revealed"] and not data.get("submitted_at"):
-            raise ValueError("Reading answers cannot be revealed before learner submission")
+            raise AnswerRevealLockedError(
+                "Reading answers cannot be revealed before learner submission"
+            )
         submitted = {str(item.get("question_id") or item.get("question_number")): item for item in data.get("questions") or []}
         merged_by_key = {key: dict(value) for key, value in submitted.items()}
         errors: list[dict[str, Any]] = []
@@ -292,4 +331,7 @@ def apply_reading_review(
         data["score"] = {"correct": correct, "total": scored} if scored else data.get("score")
         data["status"] = "awaiting_revision"
 
-    return _mutate(home, session_id, "reading_review", apply, expected_revision=expected_revision)
+    return _mutate(
+        home, session_id, "reading_review", apply,
+        expected_revision=expected_revision, idempotency_key=idempotency_key,
+    )

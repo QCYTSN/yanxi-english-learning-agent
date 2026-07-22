@@ -68,6 +68,7 @@ teaching_app = typer.Typer(no_args_is_help=True, help="Validate structured teach
 rubric_app = typer.Typer(no_args_is_help=True, help="Manage official scoring rubric references")
 privacy_app = typer.Typer(no_args_is_help=True, help="Check whether material may be sent for remote processing")
 telemetry_app = typer.Typer(no_args_is_help=True, help="Record metadata-only cost and latency observations")
+ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser study desk")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -81,6 +82,26 @@ app.add_typer(teaching_app, name="teaching")
 app.add_typer(rubric_app, name="rubric")
 app.add_typer(privacy_app, name="privacy")
 app.add_typer(telemetry_app, name="telemetry")
+app.add_typer(ui_app, name="ui")
+
+
+@ui_app.command("start")
+def ui_start(
+    home: Optional[Path] = typer.Option(None),
+    port: int = typer.Option(0, min=0, max=65535),
+    no_open: bool = typer.Option(False, help="Print the URL without opening a browser"),
+) -> None:
+    """Start the token-protected local Study Desk on 127.0.0.1."""
+    try:
+        from .web.server import serve_ui
+    except ImportError as exc:
+        typer.echo('UI dependencies are missing. Install with: pip install -e ".[ui]"', err=True)
+        raise typer.Exit(code=1) from exc
+    try:
+        serve_ui(resolve_home(home), port=port, open_browser=not no_open)
+    except RuntimeError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
 
 
 @app.command()
@@ -133,6 +154,8 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "criterion_scores", "speaking_reports", "allocation_history", "calibration_results",
         "calibration_cases", "diagnostic_runs", "schema_meta",
         "rubric_registry", "runtime_events", "runtime_telemetry",
+        "study_drafts", "idempotency_records", "media_assets", "agent_runs",
+        "agent_run_events", "ui_settings",
     }
     if db_path(target).exists():
         with connect(target) as conn:
@@ -155,10 +178,10 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
                 "SELECT value FROM schema_meta WHERE key='schema_version'"
             ).fetchone() if "schema_meta" in tables else None
             rubric_count = int(conn.execute("SELECT COUNT(*) FROM rubric_registry").fetchone()[0])
-        checks["database schema v5"] = (
+        checks["database schema v6"] = (
             required_tables.issubset(tables)
             and schema_row is not None
-            and schema_row["value"] == "5"
+            and schema_row["value"] == "6"
         )
         checks["official rubric references registered"] = rubric_count >= 2
         checks["starter corpus indexed (41 questions)"] = starter_questions == 41

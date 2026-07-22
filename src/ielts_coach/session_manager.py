@@ -10,8 +10,16 @@ from typing import Any
 import yaml
 
 from .session_io import load_session_file
-from .storage import connect, get_session, record_session
+from .storage import (
+    connect,
+    get_idempotency_record,
+    get_session,
+    record_session,
+    save_idempotency_record,
+)
 from .validation import validate_data
+from .errors import InvalidSessionTransitionError
+from .locking import runtime_lock
 
 PREFIXES = {"listening": "L", "reading": "R", "writing": "W", "speaking": "S"}
 SESSION_TRANSITIONS = {
@@ -78,6 +86,40 @@ def _module_fields(module: str) -> dict[str, Any]:
 
 
 def start_session(
+    home: Path,
+    module: str,
+    *,
+    question_id: str | None = None,
+    source_id: str | None = None,
+    passage_id: str | None = None,
+    mode: str | None = None,
+    time_limit_minutes: float | None = None,
+    idempotency_key: str | None = None,
+) -> Path:
+    module = module.lower()
+    scope = f"session-create:{module}"
+    with runtime_lock(home, scope):
+        if idempotency_key:
+            replay = get_idempotency_record(home, scope, idempotency_key)
+            if replay:
+                return Path(str(replay["response"]["path"]))
+        path = _start_session_unlocked(
+            home,
+            module,
+            question_id=question_id,
+            source_id=source_id,
+            passage_id=passage_id,
+            mode=mode,
+            time_limit_minutes=time_limit_minutes,
+        )
+        if idempotency_key:
+            save_idempotency_record(
+                home, scope, idempotency_key, "session_create", {"path": str(path)}
+            )
+        return path
+
+
+def _start_session_unlocked(
     home: Path,
     module: str,
     *,
@@ -181,20 +223,28 @@ def persist_session_atomic(
 
 
 def transition_session(home: Path, path: Path, new_status: str) -> dict[str, Any]:
-    data = load_session_file(path)
-    old_status = str(data.get("status", "draft"))
-    new_status = new_status.lower()
-    if new_status == "completed":
-        return finish_session(home, path)
-    if new_status not in SESSION_TRANSITIONS.get(old_status, set()):
-        raise ValueError(f"Invalid session transition: {old_status} -> {new_status}")
-    data["status"] = new_status
-    data["revision"] = int(data.get("revision", 0)) + 1
-    return persist_session_atomic(home, path, data)
+    with runtime_lock(home, f"session:{path.stem}"):
+        data = load_session_file(path)
+        old_status = str(data.get("status", "draft"))
+        new_status = new_status.lower()
+        if new_status == "completed":
+            return _finish_session_unlocked(home, path, data)
+        if new_status not in SESSION_TRANSITIONS.get(old_status, set()):
+            raise InvalidSessionTransitionError(
+                f"Invalid session transition: {old_status} -> {new_status}",
+                details={"from": old_status, "to": new_status},
+            )
+        data["status"] = new_status
+        data["revision"] = int(data.get("revision", 0)) + 1
+        return persist_session_atomic(home, path, data)
 
 
 def finish_session(home: Path, path: Path) -> dict[str, Any]:
-    data = load_session_file(path)
+    with runtime_lock(home, f"session:{path.stem}"):
+        return _finish_session_unlocked(home, path, load_session_file(path))
+
+
+def _finish_session_unlocked(home: Path, path: Path, data: dict[str, Any]) -> dict[str, Any]:
     data["status"] = "completed"
     data["revision"] = int(data.get("revision", 0)) + 1
     return persist_session_atomic(home, path, data)

@@ -9,6 +9,10 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+frontend/node_modules/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
 
 # User data and private corpora
 data/

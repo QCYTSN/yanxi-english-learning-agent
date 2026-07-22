@@ -1,5 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "textAnchor": {
+      "type": "object",
+      "required": ["anchor_version", "document_kind", "document_id", "quote", "start", "end", "offset_encoding", "occurrence", "document_hash"],
+      "properties": {
+        "anchor_version": {"const": 1},
+        "document_kind": {"type": "string", "minLength": 1},
+        "document_id": {"type": "string", "minLength": 1},
+        "quote": {"type": "string", "minLength": 1},
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 0},
+        "offset_encoding": {"const": "unicode_code_points"},
+        "occurrence": {"type": "integer", "minimum": 1},
+        "document_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "status": {"enum": ["resolved", "stale", "ambiguous"]}
+      },
+      "additionalProperties": false
+    }
+  },
   "type": "object",
   "required": ["review_version", "session_id", "mode", "answer_revealed", "items"],
   "properties": {
@@ -24,7 +43,8 @@
           "reasoning": {"type": ["string", "null"]},
           "distractors": {"type": "array", "items": {"type": "object"}},
           "error_tags": {"type": "array", "items": {"type": "string"}},
-          "next_rule": {"type": ["string", "null"]}
+          "next_rule": {"type": ["string", "null"]},
+          "anchor": {"$ref": "#/$defs/textAnchor"}
         },
         "additionalProperties": true
       }
