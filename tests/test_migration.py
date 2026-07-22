@@ -32,10 +32,18 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
     with sqlite3.connect(path) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
         assert {
-            "question_id", "status", "updated_at", "score_kind", "rubric_json",
-            "answer_key_source", "band_conversion_source",
+            "question_id", "passage_id", "mode", "status", "updated_at",
+            "score_kind", "rubric_json", "answer_key_source",
+            "band_conversion_source", "time_limit_minutes", "started_at",
+            "submitted_at", "answer_revealed_at", "hints_used",
         }.issubset(columns)
         assert conn.execute("SELECT band,status FROM sessions WHERE session_id='W-OLD'").fetchone() == (6.0, "completed")
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("3",)
+        ).fetchone() == ("4",)
+        assert conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='diagnostic_runs'"
+        ).fetchone() == ("diagnostic_runs",)
+        assert conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='calibration_cases'"
+        ).fetchone() == ("calibration_cases",)

@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     occurred_at TEXT NOT NULL,
     source_id TEXT,
     question_id TEXT,
+    passage_id TEXT,
+    mode TEXT,
     status TEXT NOT NULL DEFAULT 'completed',
     raw_score REAL,
     band REAL,
@@ -26,6 +28,11 @@ CREATE TABLE IF NOT EXISTS sessions (
     answer_key_source TEXT,
     band_conversion_source TEXT,
     rubric_json TEXT NOT NULL DEFAULT '{}',
+    time_limit_minutes REAL,
+    started_at TEXT,
+    submitted_at TEXT,
+    answer_revealed_at TEXT,
+    hints_used INTEGER NOT NULL DEFAULT 0,
     duration_minutes REAL,
     payload_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
@@ -212,6 +219,32 @@ CREATE TABLE IF NOT EXISTS calibration_results (
     UNIQUE(case_id,model,criterion)
 );
 
+CREATE TABLE IF NOT EXISTS calibration_cases (
+    case_id TEXT PRIMARY KEY,
+    module TEXT NOT NULL CHECK(module IN ('writing','speaking')),
+    task TEXT,
+    criterion TEXT NOT NULL DEFAULT 'overall',
+    official_score REAL NOT NULL,
+    source_reference TEXT NOT NULL,
+    input_path TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    permissions_json TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    imported_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS diagnostic_runs (
+    diagnostic_id TEXT PRIMARY KEY,
+    mode TEXT NOT NULL CHECK(mode IN ('quick','full')),
+    status TEXT NOT NULL CHECK(status IN ('active','completed','cancelled')),
+    exam_type TEXT NOT NULL DEFAULT 'academic',
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    session_ids_json TEXT NOT NULL DEFAULT '[]',
+    plan_json TEXT NOT NULL,
+    result_json TEXT NOT NULL DEFAULT '{}'
+);
+
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -247,6 +280,8 @@ def _migrate(conn: sqlite3.Connection) -> None:
     session_columns = _columns(conn, "sessions")
     additions = {
         "question_id": "TEXT",
+        "passage_id": "TEXT",
+        "mode": "TEXT",
         "status": "TEXT NOT NULL DEFAULT 'completed'",
         "updated_at": "TEXT",
         "score_kind": "TEXT",
@@ -254,6 +289,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
         "answer_key_source": "TEXT",
         "band_conversion_source": "TEXT",
         "rubric_json": "TEXT NOT NULL DEFAULT '{}'",
+        "time_limit_minutes": "REAL",
+        "started_at": "TEXT",
+        "submitted_at": "TEXT",
+        "answer_revealed_at": "TEXT",
+        "hints_used": "INTEGER NOT NULL DEFAULT 0",
     }
     for name, declaration in additions.items():
         if name not in session_columns:
@@ -289,7 +329,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
         if name not in report_columns:
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
     conn.execute(
-        "INSERT INTO schema_meta(key,value) VALUES('schema_version','3') "
+        "INSERT INTO schema_meta(key,value) VALUES('schema_version','4') "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
     )
 
@@ -339,28 +379,35 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
         conn.execute(
             """
             INSERT INTO sessions(
-              session_id,module,occurred_at,source_id,question_id,status,raw_score,band,
+              session_id,module,occurred_at,source_id,question_id,passage_id,mode,status,raw_score,band,
               score_kind,score_confidence,answer_key_source,band_conversion_source,
-              rubric_json,duration_minutes,payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              rubric_json,time_limit_minutes,started_at,submitted_at,answer_revealed_at,hints_used,
+              duration_minutes,payload_json,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(session_id) DO UPDATE SET
               module=excluded.module,occurred_at=excluded.occurred_at,
               source_id=excluded.source_id,question_id=excluded.question_id,
+              passage_id=excluded.passage_id,mode=excluded.mode,
               status=excluded.status,raw_score=excluded.raw_score,band=excluded.band,
               score_kind=excluded.score_kind,score_confidence=excluded.score_confidence,
               answer_key_source=excluded.answer_key_source,
               band_conversion_source=excluded.band_conversion_source,
               rubric_json=excluded.rubric_json,
+              time_limit_minutes=excluded.time_limit_minutes,started_at=excluded.started_at,
+              submitted_at=excluded.submitted_at,answer_revealed_at=excluded.answer_revealed_at,
+              hints_used=excluded.hints_used,
               duration_minutes=excluded.duration_minutes,payload_json=excluded.payload_json,
               updated_at=excluded.updated_at
             """,
             (
                 session_id, module, occurred_at, data.get("source_id"), data.get("question_id"),
-                data.get("status", "completed"), raw_score,
+                data.get("passage_id"), data.get("mode"), data.get("status", "completed"), raw_score,
                 data.get("band", data.get("estimated_overall")), data.get("score_kind"),
                 data.get("score_confidence"),
                 data.get("answer_key_source"), data.get("band_conversion_source"),
                 json.dumps(data.get("rubric", {}), ensure_ascii=False, default=str),
+                data.get("time_limit_minutes"), data.get("started_at"), data.get("submitted_at"),
+                data.get("answer_revealed_at"), int(data.get("hints_used") or 0),
                 data.get("duration_minutes"),
                 json.dumps(data, ensure_ascii=False, default=str), created_at, created_at,
             ),
@@ -494,8 +541,8 @@ def get_session(home: Path, session_id: str) -> sqlite3.Row | None:
 def list_sessions(home: Path, module: str | None = None, limit: int = 50) -> list[sqlite3.Row]:
     initialise_database(home)
     sql = (
-        "SELECT session_id,module,occurred_at,status,band,score_kind,score_confidence,"
-        "duration_minutes,question_id FROM sessions"
+        "SELECT session_id,module,occurred_at,status,mode,band,score_kind,score_confidence,"
+        "duration_minutes,question_id,passage_id FROM sessions"
     )
     params: list[Any] = []
     if module:
@@ -721,7 +768,8 @@ def list_questions(
     home: Path,
     *, query: str | None = None, module: str | None = None, task: str | None = None,
     question_type: str | None = None, topic: str | None = None, source_type: str | None = None,
-    corpus_id: str | None = None, exclude_completed: bool = False, limit: int = 50,
+    corpus_id: str | None = None, passage_id: str | None = None,
+    exclude_completed: bool = False, limit: int = 50,
 ) -> list[sqlite3.Row]:
     initialise_database(home)
     clauses: list[str] = []
@@ -729,6 +777,7 @@ def list_questions(
     for column, value in (
         ("q.module", module), ("q.task", task), ("q.question_type", question_type),
         ("q.source_type", source_type), ("q.corpus_id", corpus_id),
+        ("q.passage_id", passage_id),
     ):
         if value:
             clauses.append(f"{column}=?")
@@ -759,6 +808,21 @@ def get_question(home: Path, question_id: str, include_answer: bool = False) -> 
         row = conn.execute("SELECT * FROM questions WHERE question_id=?", (question_id,)).fetchone()
         if not row:
             return None
+        if include_answer and row["passage_id"]:
+            active_timed = conn.execute(
+                """
+                SELECT 1 FROM sessions
+                WHERE module='reading' AND mode='timed-practice'
+                  AND passage_id=? AND status NOT IN ('completed','cancelled')
+                  AND submitted_at IS NULL
+                LIMIT 1
+                """,
+                (row["passage_id"],),
+            ).fetchone()
+            if active_timed:
+                raise ValueError(
+                    "Reading answers are locked until the active timed-practice Session is submitted"
+                )
         data = json.loads(row["payload_json"])
         if row["passage_id"]:
             passage = conn.execute("SELECT passage_id,title,body FROM question_passages WHERE passage_id=?", (row["passage_id"],)).fetchone()

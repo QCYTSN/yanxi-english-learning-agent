@@ -4,7 +4,7 @@ description: IELTS Speaking coach for personal story banks, Part 1-3 mocks, Chat
 license: MIT
 compatibility: Voice may occur in ChatGPT Voice or another voice-capable client; this skill prepares sessions and imports structured reports locally.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # IELTS Speaking coach

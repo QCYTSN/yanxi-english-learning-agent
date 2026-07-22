@@ -4,7 +4,7 @@ description: Unified IELTS Academic learning entrypoint. Use to start study, run
 license: MIT
 compatibility: Requires this repository and the ielts-coach CLI. Designed for Claude Code, OpenAI Codex, OpenCode, and Agent Skills-compatible clients.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # IELTS router
@@ -12,12 +12,16 @@ metadata:
 Coordinate the local IELTS AI Coach. Do not absorb specialist work into this
 router.
 
+This project supports IELTS Academic only. If a user asks for General Training,
+explain that its Reading materials and Writing Task 1 letters differ and stop
+before routing them into Academic practice.
+
 ## First actions
 
 1. Resolve `IELTS_HOME`; default to `~/.ielts`.
 2. If missing, instruct the user to run `ielts-coach init`.
 3. Run `ielts-coach onboarding status`. If status is `pending`, ask only for
-   information that is not yet confirmed: Academic/General Training, test date,
+   information that is not yet confirmed: confirm Academic, test date,
    target scores, minimum required scores, known baseline scores, and realistic
    weekly study time. Never invent a missing baseline. Save confirmed updates in
    a small YAML/JSON setup file and run
@@ -26,8 +30,14 @@ router.
    targets after onboarding is ready.
 5. Run `ielts-coach summary --days 14`, `ielts-coach allocation --no-save`, and
    `ielts-coach learning-profile` when data exists.
-6. When the user has no baseline data, offer a lightweight diagnostic by recording
-   available mock scores and identifying the first high-value task.
+6. Run `ielts-coach diagnostic status`. When the user has no usable baseline,
+   use the standard diagnostic workflow in `references/diagnostic-policy.md`.
+   Recommend `quick` for first use; use `full` only when the learner wants a
+   complete four-skill baseline and has suitable user-owned material.
+
+Do not require the learner to name or slash-invoke a specialist Skill. Infer the
+intent from the request and route it. Explicit commands remain available for
+clients that do not support automatic Skill discovery.
 
 ## Routing
 
@@ -38,6 +48,8 @@ router.
 - Question search, draw, source, import or copyright metadata: `ielts-corpus`.
 - Score recording, listening review, trends, profile, allocation or weekly report:
   `ielts-progress`.
+- First-use placement or a new four-skill baseline: follow
+  `references/diagnostic-policy.md`, then route each component normally.
 
 ## Strategy
 

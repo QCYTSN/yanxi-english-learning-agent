@@ -1,0 +1,12 @@
+case_id: MY-WRITING-T2-001
+module: writing
+task: task2
+criterion: overall
+official_score: 6.5
+reference_kind: official_scored_sample
+source_reference: User-authorised official scored sample reference
+input_path: D:\IELTS_AI\data\calibration\inputs\sample-001.md
+permissions:
+  user_confirms_legal_use: true
+  redistribution_allowed: false
+notes: Keep the input filename neutral so it does not reveal the official score.

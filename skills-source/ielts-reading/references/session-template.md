@@ -7,7 +7,14 @@ status: completed
 occurred_at: 2026-07-22T10:00:00+08:00
 source_id: optional-corpus-or-test-id
 question_id: optional-primary-question-id
+passage_id: START-RP-001
 duration_minutes: 22
+mode: timed-practice
+time_limit_minutes: 20
+started_at: 2026-07-22T09:00:00+08:00
+submitted_at: 2026-07-22T09:20:00+08:00
+answer_revealed_at: 2026-07-22T09:20:05+08:00
+hints_used: 0
 band: null
 score_kind: answer_key_estimate
 answer_key_source: user-owned Cambridge IELTS 20 Test 2 answer key

@@ -1,6 +1,6 @@
 # Roadmap
 
-## Delivered through V0.3
+## Delivered through V0.4
 
 - six-Skill architecture
 - independent Reading coach
@@ -25,6 +25,10 @@
 - evidence-aware partial Speaking profiles and equal-weight score checks
 - official-standard Writing task score validation
 - verified-only Reading accuracy and provenance-aware planning
+- IELTS Academic-only Profile and onboarding guard
+- strict timed Reading with submission-before-answer enforcement
+- standard quick/full Academic diagnostic runs
+- blind authorised-sample calibration workflow with input hashing
 
 ## Next decision points
 

@@ -9,14 +9,28 @@ import typer
 
 from .allocation import recommend_allocation
 from . import __version__
-from .calibration import calibration_report, record_calibration
+from .calibration import (
+    calibration_report,
+    import_calibration_case,
+    import_calibration_run,
+    list_calibration_cases,
+    prepare_calibration_run,
+    record_calibration,
+)
 from .config import load_profile
 from .corpus import corpus_stats, import_manifest, reindex_corpus
+from .diagnostics import (
+    attach_diagnostic_session,
+    cancel_diagnostic,
+    complete_diagnostic,
+    diagnostic_status,
+    start_diagnostic,
+)
 from .init_home import initialise_home
 from .onboarding import complete_onboarding, onboarding_status
 from .paths import find_project_root, resolve_home
 from .profiles import build_learning_profile
-from .question_bank import draw_question, search_questions, show_question
+from .question_bank import draw_question, search_questions, show_question, show_reading_set
 from .reports import build_summary, build_trend_report, build_weekly_report
 from .session_io import load_data_file, load_session_file
 from .session_manager import finish_session, show_session, start_session, transition_session
@@ -34,6 +48,7 @@ calibration_app = typer.Typer(no_args_is_help=True, help="Track model score cali
 error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring error status")
 story_app = typer.Typer(no_args_is_help=True, help="Manage reusable personal Speaking stories")
 onboarding_app = typer.Typer(no_args_is_help=True, help="Inspect and complete first-use setup")
+diagnostic_app = typer.Typer(no_args_is_help=True, help="Run a standardised Academic baseline diagnostic")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -42,6 +57,7 @@ app.add_typer(calibration_app, name="calibration")
 app.add_typer(error_app, name="error")
 app.add_typer(story_app, name="story")
 app.add_typer(onboarding_app, name="onboarding")
+app.add_typer(diagnostic_app, name="diagnostic")
 
 
 @app.command()
@@ -92,7 +108,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "sessions", "errors", "corpora", "question_passages", "questions",
         "question_options", "question_attempts", "reading_answers", "writing_versions",
         "criterion_scores", "speaking_reports", "allocation_history", "calibration_results",
-        "schema_meta",
+        "calibration_cases", "diagnostic_runs", "schema_meta",
     }
     if db_path(target).exists():
         with connect(target) as conn:
@@ -114,10 +130,10 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             schema_row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key='schema_version'"
             ).fetchone() if "schema_meta" in tables else None
-        checks["V0.3 database schema"] = (
+        checks["V0.4 database schema"] = (
             required_tables.issubset(tables)
             and schema_row is not None
-            and schema_row["value"] == "3"
+            and schema_row["value"] == "4"
         )
         checks["starter corpus indexed (41 questions)"] = starter_questions == 41
         checks["starter Reading indexed (4 passages / 16 questions)"] = (
@@ -244,12 +260,14 @@ def question_list(
     module: Optional[str] = typer.Option(None), task: Optional[str] = typer.Option(None),
     question_type: Optional[str] = typer.Option(None, "--type"), topic: Optional[str] = typer.Option(None),
     source_type: Optional[str] = typer.Option(None), corpus_id: Optional[str] = typer.Option(None),
+    passage_id: Optional[str] = typer.Option(None),
     exclude_completed: bool = typer.Option(False), limit: int = typer.Option(50, min=1, max=1000),
     home: Optional[Path] = typer.Option(None),
 ) -> None:
     rows = search_questions(
         resolve_home(home), module=module, task=task, question_type=question_type, topic=topic,
-        source_type=source_type, corpus_id=corpus_id, exclude_completed=exclude_completed, limit=limit,
+        source_type=source_type, corpus_id=corpus_id, passage_id=passage_id,
+        exclude_completed=exclude_completed, limit=limit,
     )
     for row in rows:
         typer.echo(f"- {row['question_id']} | {row['module']} | {row.get('question_type') or '-'} | {row['content'][:100]}")
@@ -277,6 +295,18 @@ def question_show(question_id: str = typer.Argument(...), with_answer: bool = ty
     typer.echo(json.dumps(question, ensure_ascii=False, indent=2))
 
 
+@question_app.command("set")
+def question_set(
+    passage_id: str = typer.Argument(...),
+    with_answers: bool = typer.Option(False),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = show_reading_set(resolve_home(home), passage_id, include_answers=with_answers)
+    if not result:
+        raise typer.BadParameter(f"Unknown Reading passage or no indexed questions: {passage_id}")
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
 @question_app.command("draw")
 def question_draw(
     module: Optional[str] = typer.Option(None), task: Optional[str] = typer.Option(None),
@@ -298,10 +328,15 @@ def question_draw(
 @session_app.command("start")
 def session_start(
     module: str = typer.Argument(...), question_id: Optional[str] = typer.Option(None),
-    source_id: Optional[str] = typer.Option(None), mode: Optional[str] = typer.Option(None),
+    source_id: Optional[str] = typer.Option(None), passage_id: Optional[str] = typer.Option(None),
+    mode: Optional[str] = typer.Option(None),
+    time_limit_minutes: Optional[float] = typer.Option(None, min=1),
     home: Optional[Path] = typer.Option(None),
 ) -> None:
-    path = start_session(resolve_home(home), module, question_id=question_id, source_id=source_id, mode=mode)
+    path = start_session(
+        resolve_home(home), module, question_id=question_id, source_id=source_id,
+        passage_id=passage_id, mode=mode, time_limit_minutes=time_limit_minutes,
+    )
     typer.echo(f"Created draft: {path}")
 
 
@@ -363,10 +398,100 @@ def onboarding_complete_command(
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@diagnostic_app.command("start")
+def diagnostic_start_command(
+    mode: str = typer.Option("quick", help="quick or full"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    typer.echo(json.dumps(start_diagnostic(resolve_home(home), mode), ensure_ascii=False, indent=2))
+
+
+@diagnostic_app.command("attach")
+def diagnostic_attach_command(
+    diagnostic_id: str = typer.Argument(...),
+    session_id: str = typer.Argument(...),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = attach_diagnostic_session(resolve_home(home), diagnostic_id, session_id)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@diagnostic_app.command("status")
+def diagnostic_status_command(
+    diagnostic_id: Optional[str] = typer.Argument(None),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    typer.echo(json.dumps(diagnostic_status(resolve_home(home), diagnostic_id), ensure_ascii=False, indent=2))
+
+
+@diagnostic_app.command("complete")
+def diagnostic_complete_command(
+    diagnostic_id: str = typer.Argument(...),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = complete_diagnostic(resolve_home(home), diagnostic_id)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@diagnostic_app.command("cancel")
+def diagnostic_cancel_command(
+    diagnostic_id: str = typer.Argument(...),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = cancel_diagnostic(resolve_home(home), diagnostic_id)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
 @calibration_app.command("record")
 def calibration_record(record_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
     record_calibration(resolve_home(home), load_data_file(record_file))
     typer.echo(f"Recorded calibration case from: {record_file}")
+
+
+@calibration_app.command("case-import")
+def calibration_case_import(
+    case_file: Path = typer.Argument(..., exists=True, readable=True),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    result = import_calibration_case(
+        resolve_home(home), load_data_file(case_file), base_path=case_file.parent
+    )
+    typer.echo(f"Imported calibration case: {result['case_id']}")
+
+
+@calibration_app.command("case-list")
+def calibration_case_list(home: Optional[Path] = typer.Option(None)) -> None:
+    rows = list_calibration_cases(resolve_home(home))
+    if not rows:
+        typer.echo("No calibration cases registered.")
+        return
+    for row in rows:
+        typer.echo(
+            f"- {row['case_id']} | {row['module']} | {row.get('task') or '-'} | "
+            f"{row['criterion']} | {row['input_path']}"
+        )
+
+
+@calibration_app.command("prepare")
+def calibration_prepare(
+    model: str = typer.Option(..., help="Model/client label used for this blind run"),
+    output: Path = typer.Option(..., help="Write a blind scoring worksheet here"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    run = prepare_calibration_run(resolve_home(home), model, output)
+    typer.echo(f"Prepared {len(run['predictions'])} blind calibration cases: {output}")
+
+
+@calibration_app.command("import-run")
+def calibration_import_run(
+    run_file: Path = typer.Argument(..., exists=True, readable=True),
+    tolerance: float = typer.Option(0.5, min=0.0, max=2.0),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    count = import_calibration_run(
+        resolve_home(home), load_data_file(run_file), tolerance=tolerance
+    )
+    typer.echo(f"Imported {count} calibration predictions from: {run_file}")
 
 
 @calibration_app.command("report")

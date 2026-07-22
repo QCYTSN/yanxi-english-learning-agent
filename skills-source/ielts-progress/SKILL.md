@@ -4,7 +4,7 @@ description: Record and analyse IELTS Listening, Reading, Writing and Speaking s
 license: MIT
 compatibility: Requires IELTS_HOME and the ielts-coach CLI.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # IELTS progress manager
@@ -22,10 +22,14 @@ ielts-coach summary --days 14
 ielts-coach learning-profile
 ielts-coach allocation
 ielts-coach weekly-report
+ielts-coach diagnostic status
+ielts-coach calibration report
 ```
 
 Read `references/allocation-policy.md` before changing study ratios and
-`references/error-taxonomy.md` for Listening and cross-module tags.
+`references/error-taxonomy.md` for Listening and cross-module tags. Read
+`references/calibration-policy.md` before claiming a model's estimates are
+well-calibrated.
 
 ## Responsibilities
 

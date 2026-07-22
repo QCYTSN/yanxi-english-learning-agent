@@ -1,10 +1,10 @@
 ---
 name: ielts-reading
-description: IELTS Academic Reading coach for guided problem solving, wrong-answer explanation, question-type drills, passage close reading, and context-sensitive word or sentence analysis. Use when the user provides a passage, question, options, answers, or asks why an answer is correct or incorrect.
+description: IELTS Academic Reading coach for strict timed practice, guided problem solving, wrong-answer explanation, question-type drills, passage close reading, and context-sensitive word or sentence analysis. Use when the user asks to take a Reading mock or timed passage, provides a passage/question/options/answers, or asks why an answer is correct or incorrect.
 license: MIT
 compatibility: Requires access to user-provided text or an indexed question in IELTS_HOME. Designed for Claude Code, Codex, OpenCode, and Agent Skills-compatible clients.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # IELTS Reading coach
@@ -23,9 +23,11 @@ Read when needed:
 - `references/close-reading.md` for paragraph, sentence, and vocabulary analysis;
 - `references/error-taxonomy.md` for reusable error tags;
 - `references/session-template.md` before saving a reading session.
+- `references/timed-practice.md` for no-hint exam conditions.
 
 ## Modes
 
+- `timed-practice`: strict no-hint work before submission;
 - `guided-solving`: the learner has not submitted an answer;
 - `wrong-answer-review`: passage, question, learner answer and correct answer exist;
 - `question-type-drill`: focus on one IELTS Reading type;
@@ -41,6 +43,14 @@ Do not reveal the answer immediately. Use progressive hints:
 3. Level 3: explain the decisive logical relationship without naming the answer.
 
 After the learner answers, switch to `wrong-answer-review`.
+
+## Timed-practice integrity
+
+When the learner requests a mock, test, timed passage, or exam conditions, use
+`timed-practice`, not guided solving. Show the complete selected set without
+answers, start one Session, and give no hints, correctness signals, paraphrase
+help or partial marking until all answers are submitted or the learner explicitly
+abandons exam mode. Read `references/timed-practice.md` before starting.
 
 ## Wrong-answer review output
 

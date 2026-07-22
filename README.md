@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V0.3.0 已实现
+## V0.4.0 已实现
 
 ### 六个 Skill
 
@@ -112,6 +112,14 @@ ielts-coach session list
 ielts-coach onboarding status
 ielts-coach onboarding complete --setup-file onboarding.yaml
 
+# Academic 摸底
+ielts-coach diagnostic start --mode quick
+ielts-coach diagnostic status
+
+# Reading 严格计时（先创建 Session，再展示无答案题目）
+ielts-coach session start reading --passage-id START-RP-001 --mode timed-practice --time-limit-minutes 20
+ielts-coach question set START-RP-001
+
 # 分析
 ielts-coach summary --days 14
 ielts-coach learning-profile
@@ -125,6 +133,9 @@ ielts-coach error set-status GRA_ARTICLE resolved
 ielts-coach story add story.yaml
 ielts-coach speaking import-report voice-report.md
 ielts-coach calibration record calibration.yaml
+ielts-coach calibration case-import calibration-case.yaml
+ielts-coach calibration prepare --model model-label --output blind-run.yaml
+ielts-coach calibration import-run blind-run.yaml
 ielts-coach calibration report
 ```
 
@@ -144,6 +155,7 @@ ielts-coach calibration report
 - [资料导入](docs/CORPUS_IMPORT.md)
 - [使用工作流](docs/USAGE_WORKFLOWS.md)
 - [评分完整性与官方标准](docs/SCORING_INTEGRITY.md)
+- [Academic 摸底、严格阅读与评分校准](docs/ACADEMIC_DIAGNOSTIC_AND_CALIBRATION.md)
 - [隐私与版权](docs/PRIVACY_AND_COPYRIGHT.md)
 - [路线图](docs/ROADMAP.md)
 

@@ -81,18 +81,29 @@ def start_session(
     *,
     question_id: str | None = None,
     source_id: str | None = None,
+    passage_id: str | None = None,
     mode: str | None = None,
+    time_limit_minutes: float | None = None,
 ) -> Path:
     module = module.lower()
     session_id = generate_session_id(home, module)
+    now = datetime.now(timezone.utc).isoformat()
+    if module == "reading" and mode == "timed-practice" and time_limit_minutes is None:
+        time_limit_minutes = 20.0
     data: dict[str, Any] = {
         "session_id": session_id,
         "module": module,
         "status": "draft",
-        "occurred_at": datetime.now(timezone.utc).isoformat(),
+        "occurred_at": now,
         "question_id": question_id,
+        "passage_id": passage_id,
         "source_id": source_id,
         "mode": mode,
+        "time_limit_minutes": time_limit_minutes,
+        "started_at": now if mode == "timed-practice" else None,
+        "submitted_at": None,
+        "answer_revealed_at": None,
+        "hints_used": 0,
         "duration_minutes": None,
         "band": None,
     }

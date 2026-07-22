@@ -1,10 +1,12 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from ielts_coach.init_home import initialise_home
 from ielts_coach.profiles import build_learning_profile
 from ielts_coach.session_manager import finish_session, start_session
+from ielts_coach.session_io import load_session_file
 from ielts_coach.storage import connect, record_session
 
 
@@ -76,3 +78,33 @@ def test_strict_session_validation_rejects_invalid_band(tmp_path: Path):
     initialise_home(home)
     with pytest.raises(Exception):
         record_session(home, {"session_id": "W-1", "module": "writing", "band": 6.3})
+
+
+def test_timed_reading_requires_submission_and_forbids_hints(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    path = start_session(
+        home, "reading", passage_id="START-RP-001",
+        mode="timed-practice", time_limit_minutes=20,
+    )
+    data = load_session_file(path)
+    data["status"] = "completed"
+    data["questions"] = [{"question_type": "multiple_choice", "user_answer": "B"}]
+
+    def write(data_to_write: dict) -> None:
+        frontmatter = {k: v for k, v in data_to_write.items() if k != "document_body"}
+        path.write_text(
+            "---\n" + yaml.safe_dump(frontmatter, sort_keys=False)
+            + "---\n\nTimed work\n",
+            encoding="utf-8",
+        )
+
+    write(data)
+    with pytest.raises(ValueError, match="submitted_at"):
+        finish_session(home, path)
+
+    data["submitted_at"] = "2026-07-22T10:20:00+00:00"
+    data["hints_used"] = 1
+    write(data)
+    with pytest.raises(ValueError, match="cannot use progressive hints"):
+        finish_session(home, path)

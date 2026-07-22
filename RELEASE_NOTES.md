@@ -1,3 +1,37 @@
+# IELTS AI Coach v0.4.0
+
+## Academic diagnostic and calibration foundation
+
+### Added
+
+- explicit IELTS Academic-only validation in Profile and onboarding
+- strict Reading `timed-practice` Sessions with passage scope, timing metadata,
+  zero-hint enforcement and data-layer answer locking before submission
+- standard `quick` and `full` Academic diagnostic runs with requirement tracking
+  and conservative baseline updates
+- authorised calibration-case registry, blind scoring worksheets, input hashing,
+  run import and MAE/tolerance reporting
+- automatic router guidance for first-use diagnostics and intent-based specialist
+  Skill activation
+
+### Integrity
+
+- General Training profiles are rejected instead of being silently routed into
+  Academic Reading or Writing tasks
+- diagnostic coverage no longer accepts arbitrary completed Sessions: it checks
+  verified Listening evidence, timed Reading, required Writing tasks and all
+  three Speaking parts
+- active timed Reading Sessions block answer-bearing question views until the
+  learner has submitted
+- official calibration scores remain outside blind model worksheets
+
+### Migration
+
+- database schema version 4 adds timed Session fields, `diagnostic_runs` and
+  `calibration_cases` without deleting V0.1-V0.3 user data
+
+---
+
 # IELTS AI Coach v0.3.0
 
 ## Scoring-integrity and workflow foundation

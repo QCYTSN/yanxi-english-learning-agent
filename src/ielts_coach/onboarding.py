@@ -47,6 +47,12 @@ def complete_onboarding(home: Path, updates: dict[str, Any] | None = None) -> di
     unsupported = set(supplied) - ONBOARDING_FIELDS
     if unsupported:
         raise ValueError(f"Unsupported onboarding fields: {', '.join(sorted(unsupported))}")
+    requested_exam = (supplied.get("exam") or {}).get("type")
+    if requested_exam and requested_exam != "academic":
+        raise ValueError(
+            "IELTS AI Coach currently supports IELTS Academic only; "
+            "General Training Reading and Writing tasks are not implemented"
+        )
     profile = _merge_mapping(profile, supplied)
     profile["onboarding"] = {
         **(profile.get("onboarding") or {}),

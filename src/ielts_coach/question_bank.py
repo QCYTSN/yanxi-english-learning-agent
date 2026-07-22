@@ -195,6 +195,7 @@ def search_questions(
     topic: str | None = None,
     source_type: str | None = None,
     corpus_id: str | None = None,
+    passage_id: str | None = None,
     exclude_completed: bool = False,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
@@ -207,6 +208,7 @@ def search_questions(
         topic=topic,
         source_type=source_type,
         corpus_id=corpus_id,
+        passage_id=passage_id,
         exclude_completed=exclude_completed,
         limit=limit,
     )
@@ -225,3 +227,21 @@ def draw_question(home: Path, *, seed: int | None = None, **filters: Any) -> dic
 
 def show_question(home: Path, question_id: str, include_answer: bool = False) -> dict[str, Any] | None:
     return get_question(home, question_id, include_answer=include_answer)
+
+
+def show_reading_set(home: Path, passage_id: str, include_answers: bool = False) -> dict[str, Any] | None:
+    rows = search_questions(home, module="reading", passage_id=passage_id, limit=1000)
+    if not rows:
+        return None
+    questions: list[dict[str, Any]] = []
+    passage: dict[str, Any] | None = None
+    for row in rows:
+        item = get_question(home, str(row["question_id"]), include_answer=include_answers)
+        if item is None:
+            continue
+        if passage is None and isinstance(item.get("passage"), dict):
+            passage = item.pop("passage")
+        else:
+            item.pop("passage", None)
+        questions.append(item)
+    return {"passage": passage, "questions": questions}

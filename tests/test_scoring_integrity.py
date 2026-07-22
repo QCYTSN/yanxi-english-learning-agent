@@ -217,3 +217,5 @@ def test_onboarding_state_is_persisted_without_inventing_baseline(tmp_path: Path
 
     with pytest.raises(ValueError, match="Unsupported onboarding fields"):
         complete_onboarding(home, {"private_unknown_field": True})
+    with pytest.raises(ValueError, match="Academic only"):
+        complete_onboarding(home, {"exam": {"type": "general_training"}})

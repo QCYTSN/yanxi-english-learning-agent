@@ -4,7 +4,7 @@ description: IELTS Academic Writing coach for Task 1 and Task 2. Use for questio
 license: MIT
 compatibility: Requires IELTS_HOME and the ielts-coach CLI. Supports text questions, structured Task 1 data, and user-provided images where the client can inspect images.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # IELTS Writing coach

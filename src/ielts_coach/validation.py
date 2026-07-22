@@ -161,6 +161,28 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
     if data.get("score_kind") == "ai_training_estimate" and module not in {"writing", "speaking"}:
         raise ValueError("ai_training_estimate is only valid for Writing or Speaking")
 
+    if module == "reading" and data.get("mode") == "timed-practice":
+        if not data.get("time_limit_minutes"):
+            raise ValueError("Timed Reading practice requires time_limit_minutes")
+        if not data.get("started_at"):
+            raise ValueError("Timed Reading practice requires started_at")
+        if int(data.get("hints_used") or 0) != 0:
+            raise ValueError("Timed Reading practice cannot use progressive hints")
+        if data.get("status", "completed") == "completed":
+            if not data.get("submitted_at"):
+                raise ValueError("Completed timed Reading practice requires submitted_at")
+            if not data.get("questions"):
+                raise ValueError("Completed timed Reading practice requires submitted answers")
+            started = datetime.fromisoformat(str(data["started_at"]).replace("Z", "+00:00"))
+            submitted = datetime.fromisoformat(str(data["submitted_at"]).replace("Z", "+00:00"))
+            if submitted < started:
+                raise ValueError("Reading submission cannot precede the timed Session start")
+            revealed_at = data.get("answer_revealed_at")
+            if revealed_at:
+                revealed = datetime.fromisoformat(str(revealed_at).replace("Z", "+00:00"))
+                if revealed < submitted:
+                    raise ValueError("Reading answers cannot be revealed before submission")
+
     if data.get("status", "completed") != "completed":
         return
     common_score = any(data.get(key) is not None for key in ("raw_score", "band", "estimated_overall"))
@@ -184,6 +206,8 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
 
 
 def _validate_profile_semantics(data: dict[str, Any]) -> None:
+    if (data.get("exam") or {}).get("type") != "academic":
+        raise ValueError("IELTS AI Coach supports IELTS Academic only")
     allocation = data["base_allocation"]
     if abs(sum(float(value) for value in allocation.values()) - 1.0) > 1e-6:
         raise ValueError("base_allocation values must sum to 1.0")
