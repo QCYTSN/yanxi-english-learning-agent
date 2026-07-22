@@ -4,7 +4,7 @@ description: Manage the local IELTS question bank and corpus provenance. Use to 
 license: MIT
 compatibility: Requires IELTS_HOME and the ielts-coach CLI. Does not parse or distribute copyrighted books automatically.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # IELTS Corpus manager

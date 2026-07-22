@@ -1,3 +1,42 @@
+# IELTS AI Coach v0.3.0
+
+## Scoring-integrity and workflow foundation
+
+### Added
+
+- persistent first-use onboarding state and a validated setup-file workflow
+- explicit Session lifecycle states for future UI and cross-client orchestration
+- score provenance: official result, verified answer-key estimate, AI training
+  estimate, partial profile, and legacy/unspecified data
+- database schema version metadata and backward-compatible migrations
+- layered Speaking reports: source observations, source-model provisional
+  estimate, and independent local IELTS-rubric evaluation
+
+### Fixed
+
+- Voice/Live provisional Speaking scores are no longer stored as the system's
+  final Speaking band
+- text-only Speaking review cannot invent Pronunciation or a four-criterion overall
+- completed Speaking overall estimates are equally weighted across FC, LR, GRA
+  and Pronunciation
+- numeric Writing estimates require the official IELTS Writing Band Descriptors,
+  the correct TA/TR criterion, four exact criteria, and consistent equal weighting
+- Task 1 TA and Task 2 TR can no longer be mixed in one scored version
+- unverified Reading answers are excluded from accuracy denominators rather than
+  counted as wrong
+- allocation and trend reports exclude partial profiles, low-confidence AI scores,
+  and source-model criterion estimates
+- UTF-8 and known-mojibake regression coverage was added for user-facing text
+
+### Preserved
+
+- V0.1/V0.2 data remains readable; legacy scores without provenance are retained
+  as unspecified rather than silently reclassified
+- six-Skill architecture, active Writing revision, progressive Reading hints,
+  uninterrupted Speaking mocks, local-first data and BYOC boundaries
+
+---
+
 # IELTS AI Coach v0.2.1
 
 ## Maintenance release

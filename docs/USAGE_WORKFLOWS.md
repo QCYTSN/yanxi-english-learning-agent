@@ -45,11 +45,21 @@ Create a handoff ID:
 ielts-coach session start speaking
 ```
 
-After Voice, save the structured report and run:
+Voice/Live performs the uninterrupted interaction and returns structured
+observations. Any score it gives is explicitly provisional. Save the report and
+run:
 
 ```powershell
 ielts-coach speaking import-report voice-report.md
 ```
+
+The local Agent then evaluates only criteria supported by the evidence against
+the official IELTS Speaking Band Descriptors. A transcript can support FC, LR
+and GRA, but it cannot support Pronunciation or a full overall score. A full
+four-criterion estimate requires audio access or explicit Voice-model
+pronunciation observations. Content is not a fifth criterion: relevance,
+development and logical sequencing are considered within FC, and appropriacy
+and flexibility within LR.
 
 ## Listening review
 

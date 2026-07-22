@@ -4,7 +4,7 @@ description: Record and analyse IELTS Listening, Reading, Writing and Speaking s
 license: MIT
 compatibility: Requires IELTS_HOME and the ielts-coach CLI.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # IELTS progress manager
@@ -37,6 +37,25 @@ Read `references/allocation-policy.md` before changing study ratios and
 - respect the maximum per-period allocation shift;
 - recommend one operational next task.
 
+## Score provenance
+
+Never merge unlike scores as if they had the same evidential status.
+
+- `official_result`: a score reported by an authorised IELTS test result;
+- `answer_key_estimate`: Listening/Reading result calculated from a verified key;
+- `ai_training_estimate`: Writing/Speaking estimate produced locally against the
+  official IELTS descriptors, with a confidence label;
+- `partial_profile`: criterion evidence is incomplete, so no full overall score;
+- `unspecified`: legacy data whose provenance is not yet known.
+
+A Voice/Live model's provisional opinion is source evidence, not the stored
+Speaking result. Low-confidence AI estimates and partial profiles must not drive
+the automatic allocation. Do not call any AI estimate an examiner score.
+
+For `answer_key_estimate`, record `answer_key_source`. If a Band is derived from
+the raw score, also record `band_conversion_source`; otherwise keep the raw score
+without inventing a Band conversion.
+
 ## Listening-review mode
 
 When transcript, question, answer and key are supplied, explain the local
@@ -48,3 +67,5 @@ claim to diagnose pronunciation, acoustic confusion or exact time position.
 - Full Reading explanation belongs to `ielts-reading`.
 - Question selection and source management belong to `ielts-corpus`.
 - Writing/Speaking estimates remain uncertain until calibrated.
+- Numeric Writing/Speaking feedback must cite the applicable official IELTS
+  Band Descriptors; otherwise keep the feedback qualitative.

@@ -40,6 +40,10 @@ Check:
 4. whether the answer must be copied exactly;
 5. semantic fit in both the passage and completed sentence.
 
+Do not silently normalise spelling, singular/plural, extra words or a violated
+word limit into a correct answer. Use accepted variants only when the authorised
+answer key explicitly permits them.
+
 ## Short Answer
 
 Answer the exact wh-question, respect the word limit, and avoid adding

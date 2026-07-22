@@ -4,7 +4,7 @@ description: Unified IELTS Academic learning entrypoint. Use to start study, run
 license: MIT
 compatibility: Requires this repository and the ielts-coach CLI. Designed for Claude Code, OpenAI Codex, OpenCode, and Agent Skills-compatible clients.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # IELTS router
@@ -16,11 +16,17 @@ router.
 
 1. Resolve `IELTS_HOME`; default to `~/.ielts`.
 2. If missing, instruct the user to run `ielts-coach init`.
-3. Read `IELTS_HOME/config/profile.yaml` and do not repeatedly ask for stored
-   targets.
-4. Run `ielts-coach summary --days 14`, `ielts-coach allocation --no-save`, and
+3. Run `ielts-coach onboarding status`. If status is `pending`, ask only for
+   information that is not yet confirmed: Academic/General Training, test date,
+   target scores, minimum required scores, known baseline scores, and realistic
+   weekly study time. Never invent a missing baseline. Save confirmed updates in
+   a small YAML/JSON setup file and run
+   `ielts-coach onboarding complete --setup-file <file>`.
+4. Read `IELTS_HOME/config/profile.yaml` and do not repeatedly ask for stored
+   targets after onboarding is ready.
+5. Run `ielts-coach summary --days 14`, `ielts-coach allocation --no-save`, and
    `ielts-coach learning-profile` when data exists.
-5. When the user has no baseline data, run a lightweight diagnostic by recording
+6. When the user has no baseline data, offer a lightweight diagnostic by recording
    available mock scores and identifying the first high-value task.
 
 ## Routing

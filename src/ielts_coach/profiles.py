@@ -11,7 +11,11 @@ from .storage import connect
 def build_learning_profile(home: Path) -> str:
     with connect(home) as conn:
         sessions = conn.execute(
-            "SELECT module,occurred_at,band,duration_minutes FROM sessions WHERE status='completed' ORDER BY occurred_at"
+            """
+            SELECT module,occurred_at,band,score_kind,score_confidence,duration_minutes FROM sessions
+            WHERE status='completed'
+            ORDER BY occurred_at
+            """
         ).fetchall()
         errors = conn.execute(
             """
@@ -26,11 +30,23 @@ def build_learning_profile(home: Path) -> str:
                    AVG(COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0)) avg_score,
                    COUNT(*) samples
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
+            WHERE s.status='completed'
+              AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
+              AND COALESCE(cs.confidence,'medium') IN ('medium','high')
             GROUP BY s.module,cs.criterion ORDER BY s.module,cs.criterion
             """
         ).fetchall()
         reading = conn.execute(
-            "SELECT question_type,COUNT(*) total,SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct,AVG(duration_seconds) avg_seconds FROM reading_answers GROUP BY question_type ORDER BY total DESC"
+            """
+            SELECT question_type,
+                   SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) total,
+                   SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct,
+                   AVG(CASE WHEN is_correct IS NOT NULL THEN duration_seconds END) avg_seconds
+            FROM reading_answers
+            GROUP BY question_type
+            HAVING SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) > 0
+            ORDER BY total DESC
+            """
         ).fetchall()
 
     lines = ["# IELTS 学习画像", "", "## 1. 错误画像"]
@@ -43,7 +59,14 @@ def build_learning_profile(home: Path) -> str:
     lines.extend(["", "## 2. 能力画像"])
     by_module: dict[str, list[float]] = defaultdict(list)
     for row in sessions:
-        if row["band"] is not None:
+        usable_score = (
+            row["score_kind"] != "partial_profile"
+            and (
+                row["score_kind"] != "ai_training_estimate"
+                or row["score_confidence"] in (None, "medium", "high")
+            )
+        )
+        if row["band"] is not None and usable_score:
             by_module[row["module"]].append(float(row["band"]))
     for module in ("listening", "reading", "writing", "speaking"):
         values = by_module[module]

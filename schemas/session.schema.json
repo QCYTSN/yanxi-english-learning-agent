@@ -5,14 +5,30 @@
   "properties": {
     "session_id": {"type": "string", "pattern": "^[LRSW]-[0-9]{8}-[0-9]{3}$|^[A-Za-z0-9][A-Za-z0-9._-]*$"},
     "module": {"enum": ["listening", "reading", "writing", "speaking"]},
-    "status": {"enum": ["draft", "completed", "cancelled"]},
+    "status": {"enum": ["draft", "question_presented", "learner_working", "awaiting_feedback", "awaiting_revision", "completed", "cancelled"]},
     "occurred_at": {"type": ["string", "null"]},
     "source_id": {"type": ["string", "null"]},
     "question_id": {"type": ["string", "null"]},
     "mode": {"type": ["string", "null"]},
+    "task": {"enum": ["task1", "task2", null]},
+    "scored_version": {"type": ["string", "null"]},
     "raw_score": {"type": ["number", "null"], "minimum": 0},
     "band": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
     "estimated_overall": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+    "score_kind": {"enum": ["official_result", "answer_key_estimate", "ai_training_estimate", "partial_profile", "unspecified", null]},
+    "score_confidence": {"enum": ["low", "medium", "high", null]},
+    "answer_key_source": {"type": ["string", "null"]},
+    "band_conversion_source": {"type": ["string", "null"]},
+    "rubric": {
+      "type": "object",
+      "properties": {
+        "publisher": {"type": "string"},
+        "standard": {"type": "string"},
+        "version": {"type": ["string", "null"]},
+        "source_reference": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
     "duration_minutes": {"type": ["number", "null"], "minimum": 0},
     "score": {
       "type": "object",
@@ -43,11 +59,13 @@
         "properties": {
           "criterion": {"type": "string"},
           "version": {"type": "string"},
-          "score": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
-          "score_low": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
-          "score_high": {"type": ["number", "null"], "minimum": 0, "maximum": 9},
+          "score": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+          "score_low": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+          "score_high": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
           "confidence": {"enum": ["low", "medium", "high", null]},
-          "evidence": {"type": ["array", "string", "null"]}
+          "evidence": {"type": ["array", "string", "null"]},
+          "assessment_role": {"enum": ["local_rubric", "source_model", null]},
+          "evidence_source": {"enum": ["text", "transcript", "timing", "audio", "voice_model_observation", "mixed", "unspecified", null]}
         },
         "additionalProperties": true
       }

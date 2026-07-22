@@ -20,6 +20,22 @@ Initialisation creates configuration, SQLite, corpus directories, Session
 folders, story bank, reports, backups and calibration folders. It indexes the
 original starter corpus.
 
+## Confirm first-use goals
+
+Run:
+
+```powershell
+ielts-coach onboarding status
+```
+
+The `ielts` Skill asks only for unconfirmed exam type/date, target scores,
+minimum requirements and any known baseline. It must not invent missing baseline
+scores. It saves confirmed changes to a small YAML/JSON file and runs:
+
+```powershell
+ielts-coach onboarding complete --setup-file onboarding.yaml
+```
+
 ## Verify the question bank
 
 ```powershell

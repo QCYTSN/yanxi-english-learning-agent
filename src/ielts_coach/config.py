@@ -9,7 +9,8 @@ import yaml
 from .validation import validate_data
 
 DEFAULT_PROFILE: dict[str, Any] = {
-    "profile_version": 2,
+    "profile_version": 3,
+    "onboarding": {"status": "pending", "completed_at": None},
     "exam": {"type": "academic", "test_date": None},
     "target": {"overall": 7.0, "listening": 8.0, "reading": 8.0, "writing": 6.5, "speaking": 6.0},
     "minimum_required": {"overall": 6.5, "listening": 6.0, "reading": 6.0, "writing": 6.5, "speaking": 5.5},

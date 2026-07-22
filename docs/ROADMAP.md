@@ -1,6 +1,6 @@
 # Roadmap
 
-## Delivered in V0.2
+## Delivered through V0.3
 
 - six-Skill architecture
 - independent Reading coach
@@ -19,6 +19,12 @@
 - calibration-result framework
 - Claude Code, Codex and OpenCode sync
 - infrastructure and static Skill workflow tests
+- first-use onboarding state and Session lifecycle foundation
+- score provenance, confidence and official-rubric metadata
+- independent local Speaking evaluation separated from Voice/Live provisional scores
+- evidence-aware partial Speaking profiles and equal-weight score checks
+- official-standard Writing task score validation
+- verified-only Reading accuracy and provenance-aware planning
 
 ## Next decision points
 

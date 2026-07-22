@@ -31,5 +31,11 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
     initialise_database(home)
     with sqlite3.connect(path) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
-        assert {"question_id", "status", "updated_at"}.issubset(columns)
+        assert {
+            "question_id", "status", "updated_at", "score_kind", "rubric_json",
+            "answer_key_source", "band_conversion_source",
+        }.issubset(columns)
         assert conn.execute("SELECT band,status FROM sessions WHERE session_id='W-OLD'").fetchone() == (6.0, "completed")
+        assert conn.execute(
+            "SELECT value FROM schema_meta WHERE key='schema_version'"
+        ).fetchone() == ("3",)

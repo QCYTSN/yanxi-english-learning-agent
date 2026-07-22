@@ -4,13 +4,18 @@ description: IELTS Academic Reading coach for guided problem solving, wrong-answ
 license: MIT
 compatibility: Requires access to user-provided text or an indexed question in IELTS_HOME. Designed for Claude Code, Codex, OpenCode, and Agent Skills-compatible clients.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # IELTS Reading coach
 
 Ground every explanation in the supplied or indexed passage. Never invent a line,
 answer key, paragraph location, or source.
+
+Do not mark an answer correct from simple string similarity. Require an
+authoritative answer key plus the task's word limit and accepted variants. When
+those are missing, record the result as `unverified` and provide no raw-score or
+Band claim.
 
 Read when needed:
 
@@ -72,4 +77,5 @@ ielts-coach session finish <session-file>
 ```
 
 Store question-level attempts, evidence locations, durations and error tags.
+Set `is_correct` explicitly only after answer-key and response-format checks.
 Do not copy a whole private book into the session record.

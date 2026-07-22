@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime
+from decimal import Decimal, ROUND_HALF_UP
 from importlib import resources
 from pathlib import Path
 from typing import Any
 
 import jsonschema
 from jsonschema import FormatChecker
+
+from .speaking_evaluation import validate_speaking_report_semantics
 
 
 def normalise_json_value(value: Any) -> Any:
@@ -39,6 +42,8 @@ def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
         low, high = normalised.get("predicted_low"), normalised.get("predicted_high")
         if low is not None and high is not None and float(low) > float(high):
             raise ValueError("predicted_low must not exceed predicted_high")
+    elif schema_name == "speaking-report":
+        validate_speaking_report_semantics(normalised)
     return normalised
 
 
@@ -61,6 +66,100 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
         if module in allowed_criteria and criterion not in allowed_criteria[module]:
             expected = ", ".join(sorted(allowed_criteria[module]))
             raise ValueError(f"Unsupported {module} criterion {criterion!r}; expected one of {expected}")
+
+    if module == "writing":
+        by_version: dict[str, set[str]] = {}
+        for item in data.get("criterion_scores", []) or []:
+            label = str(item.get("version", item.get("version_label", "final")))
+            by_version.setdefault(label, set()).add(str(item.get("criterion", "")))
+        if any({"TA", "TR"}.issubset(criteria) for criteria in by_version.values()):
+            raise ValueError("A Writing version cannot use both Task Achievement and Task Response")
+        task = data.get("task")
+        all_criteria = set().union(*by_version.values()) if by_version else set()
+        if task == "task1" and "TR" in all_criteria:
+            raise ValueError("Academic Writing Task 1 must use Task Achievement, not Task Response")
+        if task == "task2" and "TA" in all_criteria:
+            raise ValueError("Academic Writing Task 2 must use Task Response, not Task Achievement")
+
+    explicit_local_writing_estimate = (
+        data.get("score_kind") == "ai_training_estimate"
+        or bool(data.get("rubric"))
+        or any(
+            item.get("assessment_role") == "local_rubric"
+            for item in (data.get("criterion_scores") or [])
+        )
+    )
+    if module == "writing" and explicit_local_writing_estimate:
+        rubric = data.get("rubric") or {}
+        if rubric.get("publisher") != "IELTS" or rubric.get("standard") != "IELTS Writing Band Descriptors":
+            raise ValueError("Writing estimates must cite the official IELTS Writing Band Descriptors")
+        if not rubric.get("source_reference"):
+            raise ValueError("Writing estimates require an official rubric source_reference")
+        if data.get("band") is not None:
+            task = data.get("task")
+            scored_version = data.get("scored_version")
+            if task not in {"task1", "task2"} or not scored_version:
+                raise ValueError("A numeric Writing task estimate requires task and scored_version")
+            expected_criteria = {"TA", "CC", "LR", "GRA"} if task == "task1" else {"TR", "CC", "LR", "GRA"}
+            scored_items = [
+                item for item in (data.get("criterion_scores") or [])
+                if str(item.get("version", item.get("version_label", "final"))) == str(scored_version)
+            ]
+            exact = {str(item.get("criterion")): item.get("score") for item in scored_items}
+            if set(exact) != expected_criteria or any(value is None for value in exact.values()):
+                raise ValueError(
+                    "A numeric Writing task estimate requires four exact official criterion scores for scored_version"
+                )
+            mean_score = sum(Decimal(str(value)) for value in exact.values()) / Decimal("4")
+            expected_band = float((mean_score * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2)
+            if float(data["band"]) != expected_band:
+                raise ValueError(
+                    f"Writing task band must be the equally weighted four-criterion result ({expected_band})"
+                )
+
+    if module == "speaking":
+        score_kind = data.get("score_kind")
+        if score_kind == "partial_profile" and data.get("band") is not None:
+            raise ValueError("A partial Speaking profile must not contain an overall band")
+        if score_kind == "ai_training_estimate":
+            rubric = data.get("rubric") or {}
+            if rubric.get("publisher") != "IELTS" or rubric.get("standard") != "IELTS Speaking Band Descriptors":
+                raise ValueError("Speaking estimates must cite the official IELTS Speaking Band Descriptors")
+            if not rubric.get("source_reference"):
+                raise ValueError("Speaking estimates require an official rubric source_reference")
+            local_items = [
+                item for item in (data.get("criterion_scores") or [])
+                if item.get("assessment_role", "local_rubric") == "local_rubric"
+            ]
+            exact = {str(item.get("criterion")): item.get("score") for item in local_items}
+            required = {"FC", "LR", "GRA", "PRON"}
+            if data.get("band") is not None:
+                if set(exact) != required or any(value is None for value in exact.values()):
+                    raise ValueError("A complete Speaking estimate requires four exact local criterion scores")
+                pron_item = next(item for item in local_items if item.get("criterion") == "PRON")
+                if pron_item.get("evidence_source") not in {"audio", "voice_model_observation", "mixed"}:
+                    raise ValueError("A complete Speaking estimate requires audio-based Pronunciation evidence")
+                mean_score = sum(Decimal(str(value)) for value in exact.values()) / Decimal("4")
+                expected_band = float((mean_score * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2)
+                if float(data["band"]) != expected_band:
+                    raise ValueError(
+                        f"Speaking band must be the equally weighted four-criterion result ({expected_band})"
+                    )
+
+    if data.get("score_kind") == "answer_key_estimate":
+        if module not in {"listening", "reading"}:
+            raise ValueError("answer_key_estimate is only valid for Listening or Reading")
+        has_raw_result = data.get("raw_score") is not None or (
+            isinstance(score, dict)
+            and score.get("correct") is not None
+            and score.get("total") is not None
+        )
+        if not has_raw_result or not data.get("answer_key_source"):
+            raise ValueError("An answer-key estimate requires a raw result and answer_key_source")
+        if data.get("band") is not None and not data.get("band_conversion_source"):
+            raise ValueError("A derived Listening/Reading band requires band_conversion_source")
+    if data.get("score_kind") == "ai_training_estimate" and module not in {"writing", "speaking"}:
+        raise ValueError("ai_training_estimate is only valid for Writing or Speaking")
 
     if data.get("status", "completed") != "completed":
         return

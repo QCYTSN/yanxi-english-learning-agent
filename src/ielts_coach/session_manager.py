@@ -12,6 +12,15 @@ from .storage import connect, get_session, record_session
 from .validation import validate_data
 
 PREFIXES = {"listening": "L", "reading": "R", "writing": "W", "speaking": "S"}
+SESSION_TRANSITIONS = {
+    "draft": {"question_presented", "learner_working", "cancelled"},
+    "question_presented": {"learner_working", "cancelled"},
+    "learner_working": {"awaiting_feedback", "completed", "cancelled"},
+    "awaiting_feedback": {"awaiting_revision", "completed", "cancelled"},
+    "awaiting_revision": {"learner_working", "awaiting_feedback", "completed", "cancelled"},
+    "completed": set(),
+    "cancelled": set(),
+}
 
 
 def generate_session_id(home: Path, module: str) -> str:
@@ -53,7 +62,13 @@ def _module_fields(module: str) -> dict[str, Any]:
         }
     if module == "speaking":
         return {
-            "speaking_report": {"mode": "full_mock", "parts": [], "feedback": {}},
+            "speaking_report": {
+                "report_version": 2,
+                "mode": "full_mock",
+                "source_observations": {"evidence_types": [], "parts": []},
+                "source_model_estimate": {"criterion_scores": []},
+                "local_evaluation": {"status": "pending", "criterion_scores": []},
+            },
             "criterion_scores": [],
             "errors": [],
         }
@@ -92,7 +107,25 @@ def start_session(
     }[module]
     frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
     path.write_text(f"---\n{frontmatter}\n---\n\n{body}", encoding="utf-8")
+    record_session(home, data)
     return path
+
+
+def transition_session(home: Path, path: Path, new_status: str) -> dict[str, Any]:
+    data = load_session_file(path)
+    old_status = str(data.get("status", "draft"))
+    new_status = new_status.lower()
+    if new_status == "completed":
+        return finish_session(home, path)
+    if new_status not in SESSION_TRANSITIONS.get(old_status, set()):
+        raise ValueError(f"Invalid session transition: {old_status} -> {new_status}")
+    data["status"] = new_status
+    data = validate_data(data, "session")
+    body = data.pop("document_body", "")
+    frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
+    path.write_text(f"---\n{frontmatter}\n---\n\n{body}\n", encoding="utf-8")
+    record_session(home, data)
+    return data
 
 
 def finish_session(home: Path, path: Path) -> dict[str, Any]:

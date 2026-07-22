@@ -1,4 +1,4 @@
-# Frozen product scope — V0.2
+# Current core scope — V0.3
 
 ## Identity
 
@@ -51,9 +51,10 @@ rule → question-level archive.
 
 ### Speaking
 
-Question selection → uninterrupted mock → structured feedback → Voice report or
-transcript import → error archive → targeted drill. Personal experiences replace
-fixed universal scripts.
+Question selection → uninterrupted Voice/Live mock → source observations and
+optional provisional source score → independent local official-rubric review →
+partial or complete evidence-labelled profile → error archive → targeted drill.
+Personal experiences replace fixed universal scripts.
 
 ### Listening
 

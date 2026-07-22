@@ -9,6 +9,9 @@ source_id: optional-corpus-or-test-id
 question_id: optional-primary-question-id
 duration_minutes: 22
 band: null
+score_kind: answer_key_estimate
+answer_key_source: user-owned Cambridge IELTS 20 Test 2 answer key
+band_conversion_source: null
 score:
   correct: 9
   total: 13

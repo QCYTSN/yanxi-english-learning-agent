@@ -4,6 +4,15 @@
   "required": ["exam", "target", "base_allocation", "allocation_policy"],
   "properties": {
     "profile_version": {"type": "integer", "minimum": 1},
+    "onboarding": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {"enum": ["pending", "ready"]},
+        "completed_at": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
     "exam": {
       "type": "object",
       "required": ["type"],

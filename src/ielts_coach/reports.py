@@ -18,7 +18,13 @@ def build_summary(home: Path, days: int = 14) -> str:
     counts: dict[str, int] = defaultdict(int)
     for row in rows:
         counts[row["module"]] += 1
-        if row["band"] is not None:
+        score_kind = row["score_kind"] if "score_kind" in row.keys() else None
+        confidence = row["score_confidence"] if "score_confidence" in row.keys() else None
+        usable_score = (
+            score_kind != "partial_profile"
+            and (score_kind != "ai_training_estimate" or confidence in (None, "medium", "high"))
+        )
+        if row["band"] is not None and usable_score:
             grouped[row["module"]].append(float(row["band"]))
 
     lines = [f"# 最近 {days} 天学习摘要", ""]
@@ -38,9 +44,14 @@ def build_summary(home: Path, days: int = 14) -> str:
     with connect(home) as conn:
         reading = conn.execute(
             """
-            SELECT question_type,COUNT(*) total,SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct
+            SELECT question_type,
+                   SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) total,
+                   SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct
             FROM reading_answers ra JOIN sessions s ON s.session_id=ra.session_id
-            WHERE s.occurred_at>=? GROUP BY question_type ORDER BY total DESC
+            WHERE s.occurred_at>=?
+            GROUP BY question_type
+            HAVING SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) > 0
+            ORDER BY total DESC
             """,
             (cutoff,),
         ).fetchall()
@@ -69,7 +80,16 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
     with connect(home) as conn:
         for module in ("listening", "reading", "writing", "speaking"):
             rows = conn.execute(
-                "SELECT band,occurred_at FROM sessions WHERE module=? AND status='completed' AND band IS NOT NULL ORDER BY occurred_at DESC LIMIT ?",
+                """
+                SELECT band,occurred_at FROM sessions
+                WHERE module=? AND status='completed' AND band IS NOT NULL
+                  AND COALESCE(score_kind,'unspecified') <> 'partial_profile'
+                  AND (
+                        COALESCE(score_kind,'unspecified') <> 'ai_training_estimate'
+                        OR COALESCE(score_confidence,'medium') IN ('medium','high')
+                      )
+                ORDER BY occurred_at DESC LIMIT ?
+                """,
                 (module, limit),
             ).fetchall()
             values = [float(row["band"]) for row in reversed(rows)]
@@ -88,13 +108,21 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
                    COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value,cs.created_at
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
             WHERE COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) IS NOT NULL
+              AND s.status='completed'
+              AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
+              AND COALESCE(cs.confidence,'medium') IN ('medium','high')
             ORDER BY cs.created_at
             """
         ).fetchall()
         reading = conn.execute(
             """
-            SELECT question_type,COUNT(*) total,SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct
-            FROM reading_answers GROUP BY question_type ORDER BY total DESC
+            SELECT question_type,
+                   SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) total,
+                   SUM(CASE WHEN is_correct=1 THEN 1 ELSE 0 END) correct
+            FROM reading_answers
+            GROUP BY question_type
+            HAVING SUM(CASE WHEN is_correct IS NOT NULL THEN 1 ELSE 0 END) > 0
+            ORDER BY total DESC
             """
         ).fetchall()
 

@@ -13,12 +13,13 @@ from .calibration import calibration_report, record_calibration
 from .config import load_profile
 from .corpus import corpus_stats, import_manifest, reindex_corpus
 from .init_home import initialise_home
+from .onboarding import complete_onboarding, onboarding_status
 from .paths import find_project_root, resolve_home
 from .profiles import build_learning_profile
 from .question_bank import draw_question, search_questions, show_question
 from .reports import build_summary, build_trend_report, build_weekly_report
 from .session_io import load_data_file, load_session_file
-from .session_manager import finish_session, show_session, start_session
+from .session_manager import finish_session, show_session, start_session, transition_session
 from .speaking_io import import_speaking_report
 from .storage import connect, db_path, list_corpora, list_error_profile, list_sessions, record_session, update_error_status
 from .story_bank import add_story, list_stories, show_story
@@ -32,6 +33,7 @@ speaking_app = typer.Typer(no_args_is_help=True, help="Import structured speakin
 calibration_app = typer.Typer(no_args_is_help=True, help="Track model score calibration against authorised references")
 error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring error status")
 story_app = typer.Typer(no_args_is_help=True, help="Manage reusable personal Speaking stories")
+onboarding_app = typer.Typer(no_args_is_help=True, help="Inspect and complete first-use setup")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -39,6 +41,7 @@ app.add_typer(speaking_app, name="speaking")
 app.add_typer(calibration_app, name="calibration")
 app.add_typer(error_app, name="error")
 app.add_typer(story_app, name="story")
+app.add_typer(onboarding_app, name="onboarding")
 
 
 @app.command()
@@ -89,6 +92,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "sessions", "errors", "corpora", "question_passages", "questions",
         "question_options", "question_attempts", "reading_answers", "writing_versions",
         "criterion_scores", "speaking_reports", "allocation_history", "calibration_results",
+        "schema_meta",
     }
     if db_path(target).exists():
         with connect(target) as conn:
@@ -107,7 +111,14 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             starter_reading_passages = int(conn.execute(
                 "SELECT COUNT(*) FROM question_passages WHERE corpus_id='ielts-ai-coach-starter'"
             ).fetchone()[0])
-        checks["V0.2 database tables"] = required_tables.issubset(tables)
+            schema_row = conn.execute(
+                "SELECT value FROM schema_meta WHERE key='schema_version'"
+            ).fetchone() if "schema_meta" in tables else None
+        checks["V0.3 database schema"] = (
+            required_tables.issubset(tables)
+            and schema_row is not None
+            and schema_row["value"] == "3"
+        )
         checks["starter corpus indexed (41 questions)"] = starter_questions == 41
         checks["starter Reading indexed (4 passages / 16 questions)"] = (
             starter_reading_passages == 4 and starter_reading_questions == 16
@@ -300,6 +311,16 @@ def session_finish(session_file: Path = typer.Argument(..., exists=True, readabl
     typer.echo(f"Completed and recorded: {data['session_id']}")
 
 
+@session_app.command("transition")
+def session_transition(
+    session_file: Path = typer.Argument(..., exists=True, readable=True),
+    status: str = typer.Argument(...),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = transition_session(resolve_home(home), session_file, status)
+    typer.echo(f"Session {data['session_id']}: {data['status']}")
+
+
 @session_app.command("show")
 def session_show(session_id: str, home: Optional[Path] = typer.Option(None)) -> None:
     data = show_session(resolve_home(home), session_id)
@@ -311,13 +332,35 @@ def session_show(session_id: str, home: Optional[Path] = typer.Option(None)) -> 
 @session_app.command("list")
 def session_list(module: Optional[str] = typer.Option(None), limit: int = typer.Option(50), home: Optional[Path] = typer.Option(None)) -> None:
     for row in list_sessions(resolve_home(home), module=module, limit=limit):
-        typer.echo(f"- {row['session_id']} | {row['module']} | {row['status']} | band={row['band']} | {row['occurred_at']}")
+        typer.echo(
+            f"- {row['session_id']} | {row['module']} | {row['status']} | "
+            f"band={row['band']} | kind={row['score_kind'] or 'unspecified'} | "
+            f"confidence={row['score_confidence'] or 'n/a'} | {row['occurred_at']}"
+        )
 
 
 @speaking_app.command("import-report")
 def speaking_import_report(report_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
     data = import_speaking_report(resolve_home(home), report_file)
     typer.echo(f"Imported speaking report: {data['session_id']}")
+
+
+@onboarding_app.command("status")
+def onboarding_status_command(home: Optional[Path] = typer.Option(None)) -> None:
+    typer.echo(json.dumps(onboarding_status(resolve_home(home)), ensure_ascii=False, indent=2))
+
+
+@onboarding_app.command("complete")
+def onboarding_complete_command(
+    setup_file: Optional[Path] = typer.Option(
+        None, "--setup-file", exists=True, readable=True,
+        help="Optional YAML/JSON mapping with confirmed goal, baseline and preference updates.",
+    ),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    updates = load_data_file(setup_file) if setup_file else None
+    result = complete_onboarding(resolve_home(home), updates)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 @calibration_app.command("record")

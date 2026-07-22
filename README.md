@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V0.2.1 已实现
+## V0.3.0 已实现
 
 ### 六个 Skill
 
@@ -26,8 +26,10 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - 题目、文章、选项、答题尝试与题目级 Provenance
 - Writing V1/V2/Final 与 TA/TR、CC、LR、GRA 结构化存储
 - Reading 逐题答案、定位、耗时和错误标签
-- Speaking Voice 结构化报告导入
-- Session 自动创建、完成、查看和列表
+- Speaking Voice/Live 观察、来源模型临时估分、本地 IELTS 标准复评三层分离
+- Session 自动创建、状态迁移、完成、查看和列表
+- 首次使用 onboarding 状态与目标/最低要求/基线配置
+- 分数来源、证据类型、置信度与官方 Rubric 记录
 - 错误 `active / monitoring / resolved` 状态
 - 错误、能力、行为三层学习画像
 - 分数、分项和阅读题型趋势报告
@@ -102,8 +104,13 @@ ielts-coach question show START-R-003
 
 # Session
 ielts-coach session start reading --question-id START-R-003
+ielts-coach session transition D:\IELTS_AI\data\sessions\reading\R-YYYYMMDD-001.md learner_working
 ielts-coach session finish D:\IELTS_AI\data\sessions\reading\R-YYYYMMDD-001.md
 ielts-coach session list
+
+# 首次设置
+ielts-coach onboarding status
+ielts-coach onboarding complete --setup-file onboarding.yaml
 
 # 分析
 ielts-coach summary --days 14
@@ -136,6 +143,7 @@ ielts-coach calibration report
 - [资料来源](docs/CORPUS_SOURCES.md)
 - [资料导入](docs/CORPUS_IMPORT.md)
 - [使用工作流](docs/USAGE_WORKFLOWS.md)
+- [评分完整性与官方标准](docs/SCORING_INTEGRITY.md)
 - [隐私与版权](docs/PRIVACY_AND_COPYRIGHT.md)
 - [路线图](docs/ROADMAP.md)
 

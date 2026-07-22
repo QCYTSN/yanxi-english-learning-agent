@@ -4,7 +4,7 @@ description: IELTS Academic Writing coach for Task 1 and Task 2. Use for questio
 license: MIT
 compatibility: Requires IELTS_HOME and the ielts-coach CLI. Supports text questions, structured Task 1 data, and user-provided images where the client can inspect images.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # IELTS Writing coach
@@ -33,7 +33,10 @@ Read `references/workflow.md`, `references/scoring-policy.md`,
 6. Separate minimal correction, natural expression and target-band alternative.
 7. Preserve relevant learner ideas and position.
 8. Do not reward inaccurate decorative vocabulary.
-9. Use official descriptors from the user's authorised corpus when available.
+9. Use the official IELTS Writing Band Descriptors for every numerical estimate.
+10. If the official descriptors are unavailable, give qualitative coaching only;
+    do not invent a Band estimate from this Skill's summary.
+11. Record the official rubric source and version in the session.
 
 ## Structured saving
 
@@ -45,5 +48,6 @@ ielts-coach session finish <session-file>
 ```
 
 Store `versions` for V1/V2/final and `criterion_scores` for TA/TR, CC, LR and
-GRA with confidence and short evidence. Save reusable errors only. Do not copy a
-private answer key or book into the public repository.
+GRA with confidence, assessment role and short evidence. Task 1 uses TA; Task 2
+uses TR. Save reusable errors only. Do not copy a private answer key or book into
+the public repository.

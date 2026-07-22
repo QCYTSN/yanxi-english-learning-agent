@@ -16,8 +16,15 @@ def test_speaking_report_import(tmp_path: Path):
     )
     data = import_speaking_report(home, report)
     assert data["module"] == "speaking"
+    assert data["band"] is None
+    assert data["score_kind"] == "partial_profile"
     with connect(home) as conn:
         assert conn.execute("SELECT COUNT(*) FROM speaking_reports").fetchone()[0] == 1
+        row = conn.execute(
+            "SELECT assessment_role FROM criterion_scores WHERE session_id=?",
+            (data["session_id"],),
+        ).fetchone()
+        assert row["assessment_role"] == "source_model"
 
 
 def test_calibration_framework(tmp_path: Path):

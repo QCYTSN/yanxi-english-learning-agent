@@ -33,11 +33,25 @@ Core tables:
 sessions, errors, corpora
 question_passages, questions, question_options, question_attempts
 reading_answers, writing_versions, criterion_scores, speaking_reports
-allocation_history, calibration_results
+allocation_history, calibration_results, schema_meta
 ```
 
 Markdown/YAML remains the human-editable session interchange format. SQLite is
 the reporting and query source.
+
+Scores carry provenance, confidence and rubric metadata. Planning excludes
+partial profiles, low-confidence AI estimates and source-model provisional
+scores.
+
+## Speaking evidence pipeline
+
+```text
+Voice / Live conversation
+  -> source observations and optional provisional estimate
+  -> local Agent applies official IELTS Speaking descriptors
+  -> partial FC/LR/GRA profile, or four-criterion estimate when PRON evidence exists
+  -> SQLite archive and progress analysis
+```
 
 ## Learning memory
 

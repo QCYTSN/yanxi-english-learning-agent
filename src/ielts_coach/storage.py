@@ -21,6 +21,11 @@ CREATE TABLE IF NOT EXISTS sessions (
     status TEXT NOT NULL DEFAULT 'completed',
     raw_score REAL,
     band REAL,
+    score_kind TEXT,
+    score_confidence TEXT,
+    answer_key_source TEXT,
+    band_conversion_source TEXT,
+    rubric_json TEXT NOT NULL DEFAULT '{}',
     duration_minutes REAL,
     payload_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
@@ -153,6 +158,9 @@ CREATE TABLE IF NOT EXISTS criterion_scores (
     score_high REAL,
     score REAL,
     confidence TEXT,
+    assessment_role TEXT NOT NULL DEFAULT 'local_rubric',
+    evidence_source TEXT,
+    rubric_json TEXT NOT NULL DEFAULT '{}',
     evidence_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
     UNIQUE(session_id, version_label, criterion),
@@ -162,8 +170,13 @@ CREATE INDEX IF NOT EXISTS idx_criteria ON criterion_scores(criterion);
 
 CREATE TABLE IF NOT EXISTS speaking_reports (
     session_id TEXT PRIMARY KEY,
+    report_version INTEGER NOT NULL DEFAULT 1,
     mode TEXT,
     transcript TEXT,
+    raw_report_json TEXT NOT NULL DEFAULT '{}',
+    source_model_estimate_json TEXT NOT NULL DEFAULT '{}',
+    local_evaluation_json TEXT NOT NULL DEFAULT '{}',
+    evidence_types_json TEXT NOT NULL DEFAULT '[]',
     report_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
     FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
@@ -198,6 +211,11 @@ CREATE TABLE IF NOT EXISTS calibration_results (
     created_at TEXT NOT NULL,
     UNIQUE(case_id,model,criterion)
 );
+
+CREATE TABLE IF NOT EXISTS schema_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 
@@ -231,6 +249,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
         "question_id": "TEXT",
         "status": "TEXT NOT NULL DEFAULT 'completed'",
         "updated_at": "TEXT",
+        "score_kind": "TEXT",
+        "score_confidence": "TEXT",
+        "answer_key_source": "TEXT",
+        "band_conversion_source": "TEXT",
+        "rubric_json": "TEXT NOT NULL DEFAULT '{}'",
     }
     for name, declaration in additions.items():
         if name not in session_columns:
@@ -245,6 +268,30 @@ def _migrate(conn: sqlite3.Connection) -> None:
     calibration_columns = _columns(conn, "calibration_results")
     if "tolerance" not in calibration_columns:
         conn.execute("ALTER TABLE calibration_results ADD COLUMN tolerance REAL NOT NULL DEFAULT 0.5")
+    criterion_columns = _columns(conn, "criterion_scores")
+    criterion_additions = {
+        "assessment_role": "TEXT NOT NULL DEFAULT 'local_rubric'",
+        "evidence_source": "TEXT",
+        "rubric_json": "TEXT NOT NULL DEFAULT '{}'",
+    }
+    for name, declaration in criterion_additions.items():
+        if name not in criterion_columns:
+            conn.execute(f"ALTER TABLE criterion_scores ADD COLUMN {name} {declaration}")
+    report_columns = _columns(conn, "speaking_reports")
+    report_additions = {
+        "report_version": "INTEGER NOT NULL DEFAULT 1",
+        "raw_report_json": "TEXT NOT NULL DEFAULT '{}'",
+        "source_model_estimate_json": "TEXT NOT NULL DEFAULT '{}'",
+        "local_evaluation_json": "TEXT NOT NULL DEFAULT '{}'",
+        "evidence_types_json": "TEXT NOT NULL DEFAULT '[]'",
+    }
+    for name, declaration in report_additions.items():
+        if name not in report_columns:
+            conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
+    conn.execute(
+        "INSERT INTO schema_meta(key,value) VALUES('schema_version','3') "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
+    )
 
 
 def initialise_database(home: Path) -> Path:
@@ -293,19 +340,28 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
             """
             INSERT INTO sessions(
               session_id,module,occurred_at,source_id,question_id,status,raw_score,band,
-              duration_minutes,payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+              score_kind,score_confidence,answer_key_source,band_conversion_source,
+              rubric_json,duration_minutes,payload_json,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(session_id) DO UPDATE SET
               module=excluded.module,occurred_at=excluded.occurred_at,
               source_id=excluded.source_id,question_id=excluded.question_id,
               status=excluded.status,raw_score=excluded.raw_score,band=excluded.band,
+              score_kind=excluded.score_kind,score_confidence=excluded.score_confidence,
+              answer_key_source=excluded.answer_key_source,
+              band_conversion_source=excluded.band_conversion_source,
+              rubric_json=excluded.rubric_json,
               duration_minutes=excluded.duration_minutes,payload_json=excluded.payload_json,
               updated_at=excluded.updated_at
             """,
             (
                 session_id, module, occurred_at, data.get("source_id"), data.get("question_id"),
                 data.get("status", "completed"), raw_score,
-                data.get("band", data.get("estimated_overall")), data.get("duration_minutes"),
+                data.get("band", data.get("estimated_overall")), data.get("score_kind"),
+                data.get("score_confidence"),
+                data.get("answer_key_source"), data.get("band_conversion_source"),
+                json.dumps(data.get("rubric", {}), ensure_ascii=False, default=str),
+                data.get("duration_minutes"),
                 json.dumps(data, ensure_ascii=False, default=str), created_at, created_at,
             ),
         )
@@ -349,13 +405,15 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
                 """
                 INSERT INTO criterion_scores(
                   session_id,version_label,criterion,score_low,score_high,score,
-                  confidence,evidence_json,created_at
-                ) VALUES(?,?,?,?,?,?,?,?,?)
+                  confidence,assessment_role,evidence_source,rubric_json,evidence_json,created_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     session_id, str(item.get("version", item.get("version_label", "final"))),
                     criterion, item.get("score_low"), item.get("score_high"), item.get("score"),
-                    item.get("confidence"),
+                    item.get("confidence"), item.get("assessment_role", "local_rubric"),
+                    item.get("evidence_source"),
+                    json.dumps(item.get("rubric", data.get("rubric", {})), ensure_ascii=False, default=str),
                     json.dumps(item.get("evidence", []), ensure_ascii=False, default=str), created_at,
                 ),
             )
@@ -364,8 +422,6 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
         conn.execute("DELETE FROM reading_answers WHERE session_id=?", (session_id,))
         for item in data.get("questions", []) or []:
             correct_flag = item.get("is_correct")
-            if correct_flag is None and item.get("user_answer") is not None and item.get("correct_answer") is not None:
-                correct_flag = str(item.get("user_answer")).strip().casefold() == str(item.get("correct_answer")).strip().casefold()
             payload = json.dumps(item, ensure_ascii=False, default=str)
             conn.execute(
                 """
@@ -404,14 +460,26 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
             report = data["speaking_report"]
             conn.execute(
                 """
-                INSERT INTO speaking_reports(session_id,mode,transcript,report_json,created_at)
-                VALUES(?,?,?,?,?)
+                INSERT INTO speaking_reports(
+                  session_id,report_version,mode,transcript,raw_report_json,
+                  source_model_estimate_json,local_evaluation_json,evidence_types_json,
+                  report_json,created_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?)
                 ON CONFLICT(session_id) DO UPDATE SET
-                  mode=excluded.mode,transcript=excluded.transcript,
+                  report_version=excluded.report_version,mode=excluded.mode,
+                  transcript=excluded.transcript,raw_report_json=excluded.raw_report_json,
+                  source_model_estimate_json=excluded.source_model_estimate_json,
+                  local_evaluation_json=excluded.local_evaluation_json,
+                  evidence_types_json=excluded.evidence_types_json,
                   report_json=excluded.report_json,created_at=excluded.created_at
                 """,
                 (
-                    session_id, report.get("mode"), report.get("transcript"),
+                    session_id, report.get("report_version", 2), report.get("mode"),
+                    (report.get("source_observations") or {}).get("transcript"),
+                    json.dumps(data.get("speaking_raw_report", report), ensure_ascii=False, default=str),
+                    json.dumps(report.get("source_model_estimate", {}), ensure_ascii=False, default=str),
+                    json.dumps(report.get("local_evaluation", {}), ensure_ascii=False, default=str),
+                    json.dumps((report.get("source_observations") or {}).get("evidence_types", []), ensure_ascii=False),
                     json.dumps(report, ensure_ascii=False, default=str), created_at,
                 ),
             )
@@ -425,7 +493,10 @@ def get_session(home: Path, session_id: str) -> sqlite3.Row | None:
 
 def list_sessions(home: Path, module: str | None = None, limit: int = 50) -> list[sqlite3.Row]:
     initialise_database(home)
-    sql = "SELECT session_id,module,occurred_at,status,band,duration_minutes,question_id FROM sessions"
+    sql = (
+        "SELECT session_id,module,occurred_at,status,band,score_kind,score_confidence,"
+        "duration_minutes,question_id FROM sessions"
+    )
     params: list[Any] = []
     if module:
         sql += " WHERE module=?"
@@ -440,7 +511,16 @@ def recent_bands(home: Path, module: str, limit: int = 3) -> list[float]:
     initialise_database(home)
     with connect(home) as conn:
         rows = conn.execute(
-            "SELECT band FROM sessions WHERE module=? AND status='completed' AND band IS NOT NULL ORDER BY occurred_at DESC LIMIT ?",
+            """
+            SELECT band FROM sessions
+            WHERE module=? AND status='completed' AND band IS NOT NULL
+              AND COALESCE(score_kind,'unspecified') <> 'partial_profile'
+              AND (
+                    COALESCE(score_kind,'unspecified') <> 'ai_training_estimate'
+                    OR COALESCE(score_confidence,'medium') IN ('medium','high')
+                  )
+            ORDER BY occurred_at DESC LIMIT ?
+            """,
             (module, limit),
         ).fetchall()
     return [float(row["band"]) for row in rows]
@@ -453,7 +533,9 @@ def recent_criterion_average(home: Path, module: str, criterion: str, limit: int
             """
             SELECT COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
-            WHERE s.module=? AND cs.criterion=?
+            WHERE s.module=? AND cs.criterion=? AND s.status='completed'
+              AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
+              AND COALESCE(cs.confidence,'medium') IN ('medium','high')
             ORDER BY cs.created_at DESC LIMIT ?
             """,
             (module, criterion, limit),

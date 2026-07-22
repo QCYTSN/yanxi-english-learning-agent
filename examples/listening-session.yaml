@@ -4,6 +4,9 @@ occurred_at: 2026-07-21T19:00:00
 source_id: CAM20-T2-L
 raw_score: 32
 band: 7.5
+score_kind: answer_key_estimate
+answer_key_source: user-owned Cambridge IELTS 20 Test 2 answer key
+band_conversion_source: conversion table accompanying the same practice source
 duration_minutes: 40
 error_tags:
   - L_SINGULAR_PLURAL

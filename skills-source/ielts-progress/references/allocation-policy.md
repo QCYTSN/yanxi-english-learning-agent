@@ -20,6 +20,16 @@ The CLI considers:
 - maximum per-period shift;
 - proximity to the exam date.
 
+Only comparable, usable evidence may influence automatic allocation:
+
+- official results and verified answer-key estimates;
+- medium/high-confidence local AI training estimates;
+- medium/high-confidence local rubric criterion scores.
+
+Exclude partial Speaking profiles, low-confidence AI estimates and source-model
+provisional scores. Legacy records with unspecified provenance may remain visible,
+but reports should identify them as legacy rather than silently relabel them.
+
 Use `ielts-coach allocation` to persist one recommendation per planning cycle.
 Do not manually make a larger change unless the user explicitly overrides the
 policy with a reason.
