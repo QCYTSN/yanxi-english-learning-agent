@@ -6,10 +6,10 @@ require a later design decision. `UI_ENGINEERING_ARCHITECTURE.md` remains
 authoritative for engineering structure and integration boundaries.
 
 V0.7 is a usable companion UI, not the final visual release. It includes Today,
-practice selection, Writing, Reading, evidence feedback, Library,
-History/Progress and Settings, backed by the local Runtime. Mock and manual
-Agent routes are available; verified vendor process adapters and Speaking UI
-remain later product increments.
+practice selection, Writing, Reading, external Voice/Live Speaking handoff,
+high-frequency Listening, evidence feedback, Library, History/Progress and
+Settings, backed by the local Runtime. Mock and manual Agent routes are
+available; verified vendor process adapters remain later product increments.
 
 ## 1. Product decision
 
@@ -91,23 +91,25 @@ Why this shape:
 
 ### Launch contract
 
-Future command:
+Implemented everyday command:
 
 ```powershell
-ielts-coach ui start --agent auto
+ielts-coach ui open
 ```
 
 Expected behaviour:
 
 1. bind to `127.0.0.1` on an available port;
 2. create a short-lived launch token;
-3. detect available adapters without selecting a model silently;
+3. detect available adapters without selecting a model or starting an Agent silently;
 4. open the browser or return the local URL;
 5. show an explicit connection state;
 6. continue the most recent active Session when the learner chooses Continue.
 
 An Agent may trigger the same command after a request such as “启动雅思学习界面”.
 The UI must also be directly launchable without an Agent conversation.
+`ielts-coach ui shortcut-install` creates a Windows desktop entry that invokes
+the same start-or-reuse path. It is a UI launcher, not an Agent launcher.
 
 ## 4. Agent Adapter contract
 
@@ -618,6 +620,10 @@ criteria remain unchanged for their later increment.
 - corpus import guidance;
 - rubric/settings/doctor screens;
 - optional local packaging.
+
+The V0.7 content workbench now also exposes corpus readiness, a local raw-file
+inbox and structured manifest/JSONL import. Assisted PDF/audio structuring,
+human review and visual pack assembly remain subsequent increments.
 
 ## 15. MVP exclusions
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from collections.abc import Iterable
 from typing import Any, Protocol
 
 
@@ -14,6 +15,18 @@ class AgentCapabilities:
     audio_input: bool
     tool_execution: bool
     remote_processing: bool
+    cancellation: bool = False
+    timeout_control: bool = False
+
+
+@dataclass(frozen=True)
+class AgentIdentity:
+    agent_provider: str | None
+    agent_version: str | None
+    model_id: str | None
+    model_display_name: str | None
+    launcher_kind: str
+    calibration_status: str
 
 
 class AgentAdapter(Protocol):
@@ -22,14 +35,28 @@ class AgentAdapter(Protocol):
 
     def probe(self) -> AgentCapabilities: ...
 
-    def run(self, home: Path, request: dict[str, Any]) -> dict[str, Any]: ...
+    def identity(self) -> AgentIdentity: ...
+
+    def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]: ...
+
+    def stream(
+        self, home: Path, execution_ref: str
+    ) -> Iterable[dict[str, Any]]: ...
+
+    def cancel(self, home: Path, execution_ref: str) -> bool: ...
+
+    def resume(
+        self, home: Path, execution_ref: str, request: dict[str, Any]
+    ) -> dict[str, Any]: ...
 
 
 def describe_adapter(adapter: AgentAdapter) -> dict[str, Any]:
+    identity = asdict(adapter.identity())
+    available = getattr(adapter, "available", lambda: True)()
     return {
         "id": adapter.id,
         "label": adapter.label,
-        "available": True,
+        "available": bool(available),
         "capabilities": asdict(adapter.probe()),
+        "identity": identity,
     }
-

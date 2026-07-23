@@ -51,6 +51,21 @@ export function StatusBadge({ children, tone = 'neutral' }: PropsWithChildren<{ 
   return <span className={`status-badge ${tone}`}>{children}</span>
 }
 
+export function ConformanceBadge({ status, mode }: {
+  status?: string | null
+  mode?: string | null
+}) {
+  const statusLabels: Record<string, string> = {
+    verified: '已验证', provisional: '待复核', skill_only: '技能训练', rejected: '不符合',
+  }
+  const modeLabels: Record<string, string> = {
+    full_mock: '完整模考', section_practice: '分项练习',
+    question_type_drill: '题型专项', skill_drill: '技能训练',
+  }
+  const tone = status === 'verified' ? 'success' : status === 'rejected' ? 'warning' : 'neutral'
+  return <StatusBadge tone={tone}>{modeLabels[mode ?? ''] ?? '练习'} · {statusLabels[status ?? ''] ?? '未分类'}</StatusBadge>
+}
+
 export function PhaseRail({ active, phases }: { active: string; phases: string[] }) {
   return (
     <ol className="phase-rail" aria-label="学习阶段">
@@ -76,4 +91,15 @@ export function StructuredDataTable({ data }: { data: Record<string, unknown> })
       </table>
     </div>
   )
+}
+
+export function StructuredTaskVisual({ data }: { data: Record<string, unknown> }) {
+  if (data.visual_type === 'process' && Array.isArray(data.stages)) {
+    return (
+      <ol className="process-visual" aria-label="Task 1 流程图">
+        {data.stages.map((stage, index) => <li key={`${index}-${String(stage)}`}><span>{index + 1}</span>{String(stage)}</li>)}
+      </ol>
+    )
+  }
+  return <StructuredDataTable data={data} />
 }

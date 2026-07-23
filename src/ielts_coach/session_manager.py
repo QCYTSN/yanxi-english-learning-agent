@@ -12,11 +12,14 @@ import yaml
 from .session_io import load_session_file
 from .storage import (
     connect,
+    get_assessment_pack,
+    get_question,
     get_idempotency_record,
     get_session,
     record_session,
     save_idempotency_record,
 )
+from .conformance import assess_pack
 from .validation import validate_data
 from .errors import InvalidSessionTransitionError
 from .locking import runtime_lock
@@ -92,6 +95,9 @@ def start_session(
     question_id: str | None = None,
     source_id: str | None = None,
     passage_id: str | None = None,
+    assessment_pack_id: str | None = None,
+    assessment_contract: dict[str, Any] | None = None,
+    practice_mode: str | None = None,
     mode: str | None = None,
     time_limit_minutes: float | None = None,
     idempotency_key: str | None = None,
@@ -109,6 +115,9 @@ def start_session(
             question_id=question_id,
             source_id=source_id,
             passage_id=passage_id,
+            assessment_pack_id=assessment_pack_id,
+            assessment_contract=assessment_contract,
+            practice_mode=practice_mode,
             mode=mode,
             time_limit_minutes=time_limit_minutes,
         )
@@ -126,14 +135,34 @@ def _start_session_unlocked(
     question_id: str | None = None,
     source_id: str | None = None,
     passage_id: str | None = None,
+    assessment_pack_id: str | None = None,
+    assessment_contract: dict[str, Any] | None = None,
+    practice_mode: str | None = None,
     mode: str | None = None,
     time_limit_minutes: float | None = None,
 ) -> Path:
     module = module.lower()
+    contract = _resolve_assessment_contract(
+        home,
+        module,
+        question_id=question_id,
+        assessment_pack_id=assessment_pack_id,
+        assessment_contract=assessment_contract,
+        practice_mode=practice_mode,
+    )
+    practice_mode = str(contract["practice_mode"])
+    conformance_status = str(contract["conformance_status"])
     session_id = generate_session_id(home, module)
     now = datetime.now(timezone.utc).isoformat()
-    if module == "reading" and mode == "timed-practice" and time_limit_minutes is None:
-        time_limit_minutes = 20.0
+    if time_limit_minutes is None:
+        structure = contract.get("structure") or {}
+        if structure.get("time_limit_minutes"):
+            time_limit_minutes = float(structure["time_limit_minutes"])
+        elif module == "reading" and mode == "timed-practice":
+            time_limit_minutes = 20.0
+        elif module == "writing" and question_id:
+            question = get_question(home, question_id) or {}
+            time_limit_minutes = 20.0 if question.get("task") == "task1" else 40.0
     data: dict[str, Any] = {
         "session_id": session_id,
         "module": module,
@@ -142,10 +171,14 @@ def _start_session_unlocked(
         "occurred_at": now,
         "question_id": question_id,
         "passage_id": passage_id,
+        "assessment_pack_id": assessment_pack_id,
+        "assessment_contract": contract,
         "source_id": source_id,
         "mode": mode,
+        "practice_mode": practice_mode,
+        "conformance_status": conformance_status,
         "time_limit_minutes": time_limit_minutes,
-        "started_at": now if mode == "timed-practice" else None,
+        "started_at": now if mode == "timed-practice" or practice_mode == "full_mock" else None,
         "submitted_at": None,
         "answer_revealed_at": None,
         "hints_used": 0,
@@ -169,6 +202,62 @@ def _start_session_unlocked(
         path.unlink(missing_ok=True)
         raise
     return path
+
+
+def _resolve_assessment_contract(
+    home: Path,
+    module: str,
+    *,
+    question_id: str | None,
+    assessment_pack_id: str | None,
+    assessment_contract: dict[str, Any] | None,
+    practice_mode: str | None,
+) -> dict[str, Any]:
+    if assessment_pack_id:
+        pack = get_assessment_pack(home, assessment_pack_id)
+        if not pack:
+            raise ValueError(f"Unknown assessment pack: {assessment_pack_id}")
+        if pack.get("module") != module:
+            raise ValueError("Assessment pack module does not match the Session module")
+        contract = dict(pack)
+    elif assessment_contract:
+        contract = dict(assessment_contract)
+        if contract.get("module") != module:
+            raise ValueError("Assessment contract module does not match the Session module")
+        report = assess_pack(contract)
+        contract["conformance_status"] = report["status"]
+        contract["conformance_report"] = report
+    elif question_id:
+        question = get_question(home, question_id)
+        if not question:
+            raise ValueError(f"Unknown question: {question_id}")
+        if question.get("module") != module:
+            raise ValueError("Question module does not match the Session module")
+        contract = {
+            "module": module,
+            "practice_mode": practice_mode or question.get("practice_mode") or "question_type_drill",
+            "conformance_status": question.get("conformance_status") or "provisional",
+            "standard_profile": question.get("standard_profile") or "ielts-academic",
+            "standard_version": question.get("standard_version"),
+            "question_id": question_id,
+        }
+    else:
+        inferred = practice_mode or ("skill_drill" if module == "listening" else "section_practice")
+        contract = {
+            "module": module,
+            "practice_mode": inferred,
+            "conformance_status": "skill_only" if inferred == "skill_drill" else "provisional",
+            "standard_profile": "ielts-academic",
+        }
+    resolved_mode = str(practice_mode or contract.get("practice_mode") or "section_practice")
+    status = str(contract.get("conformance_status") or (contract.get("conformance_report") or {}).get("status") or "provisional")
+    contract["practice_mode"] = resolved_mode
+    contract["conformance_status"] = status
+    if status == "rejected":
+        raise ValueError("This content failed IELTS conformance checks and cannot start a practice Session")
+    if resolved_mode == "full_mock" and status != "verified":
+        raise ValueError("A full IELTS mock requires a verified assessment contract")
+    return contract
 
 
 def _render_session_document(data: dict[str, Any], body: str) -> str:

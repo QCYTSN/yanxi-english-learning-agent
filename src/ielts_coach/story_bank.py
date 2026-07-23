@@ -10,7 +10,11 @@ from .validation import validate_data
 
 
 def add_story(home: Path, path: Path) -> dict[str, Any]:
-    data = validate_data(load_data_file(path), "story")
+    return save_story(home, load_data_file(path))
+
+
+def save_story(home: Path, value: dict[str, Any]) -> dict[str, Any]:
+    data = validate_data(value, "story")
     target = home / "story-bank" / f"{data['story_id']}.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")

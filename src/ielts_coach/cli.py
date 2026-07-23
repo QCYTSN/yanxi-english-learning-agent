@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Optional
@@ -9,6 +10,7 @@ import typer
 
 from .allocation import recommend_allocation
 from . import __version__
+from .backups import create_backup, list_backups, restore_backup, verify_backup
 from .calibration import (
     calibration_report,
     import_calibration_case,
@@ -18,6 +20,9 @@ from .calibration import (
     record_calibration,
 )
 from .config import load_profile
+from .conformance import assess_pack, assess_question, standard_profile
+from .content_imports import imports as list_content_imports, process_import
+from .content_inventory import build_content_readiness, content_requirements
 from .corpus import corpus_stats, import_manifest, reindex_corpus
 from .diagnostics import (
     attach_diagnostic_session,
@@ -26,6 +31,7 @@ from .diagnostics import (
     diagnostic_status,
     start_diagnostic,
 )
+from .health import audit_data_home
 from .init_home import initialise_home
 from .onboarding import complete_onboarding, onboarding_status
 from .paths import find_project_root, resolve_home
@@ -44,7 +50,7 @@ from .study_runtime import (
 )
 from .speaking_io import import_speaking_report
 from .storage import (
-    connect, db_path, list_corpora, list_error_profile, list_sessions,
+    SCHEMA_VERSION, connect, db_path, list_corpora, list_error_profile, list_sessions,
     record_runtime_telemetry, record_session, telemetry_summary, update_error_status,
 )
 from .story_bank import add_story, list_stories, show_story
@@ -69,6 +75,9 @@ rubric_app = typer.Typer(no_args_is_help=True, help="Manage official scoring rub
 privacy_app = typer.Typer(no_args_is_help=True, help="Check whether material may be sent for remote processing")
 telemetry_app = typer.Typer(no_args_is_help=True, help="Record metadata-only cost and latency observations")
 ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser study desk")
+conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content contracts and eligibility")
+content_app = typer.Typer(no_args_is_help=True, help="Inspect content readiness and staged local imports")
+backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -83,6 +92,102 @@ app.add_typer(rubric_app, name="rubric")
 app.add_typer(privacy_app, name="privacy")
 app.add_typer(telemetry_app, name="telemetry")
 app.add_typer(ui_app, name="ui")
+app.add_typer(conformance_app, name="conformance")
+app.add_typer(content_app, name="content")
+app.add_typer(backup_app, name="backup")
+
+
+@backup_app.command("create")
+def backup_create_command(
+    home: Optional[Path] = typer.Option(None),
+    kind: str = typer.Option("manual", help="Short reason recorded in the backup manifest"),
+) -> None:
+    """Create a verified local snapshot without including prior backups or runtime files."""
+    result = create_backup(resolve_home(home), kind=kind)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@backup_app.command("list")
+def backup_list_command(home: Optional[Path] = typer.Option(None)) -> None:
+    """List backups stored under the current IELTS_HOME."""
+    typer.echo(json.dumps(list_backups(resolve_home(home)), ensure_ascii=False, indent=2))
+
+
+@backup_app.command("verify")
+def backup_verify_command(
+    backup: str = typer.Argument(..., help="Backup ID or absolute .zip path"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Verify manifest hashes and SQLite integrity without restoring data."""
+    typer.echo(json.dumps(verify_backup(resolve_home(home), backup), ensure_ascii=False, indent=2))
+
+
+@backup_app.command("restore")
+def backup_restore_command(
+    backup: str = typer.Argument(..., help="Backup ID or absolute .zip path"),
+    confirm: bool = typer.Option(False, "--confirm", help="Required destructive-action confirmation"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Restore managed local data after validation and a pre-restore safety backup."""
+    if not confirm:
+        typer.echo("Restore was not started. Re-run with --confirm after stopping the Study Desk.", err=True)
+        raise typer.Exit(code=2)
+    result = restore_backup(resolve_home(home), backup, confirmed=True)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@content_app.command("requirements")
+def content_requirements_command() -> None:
+    """Print the adjustable high-quality content inventory targets."""
+    typer.echo(json.dumps(content_requirements(), ensure_ascii=False, indent=2))
+
+
+@content_app.command("readiness")
+def content_readiness_command(home: Optional[Path] = typer.Option(None)) -> None:
+    """Compare the local corpus with the inventory targets."""
+    typer.echo(json.dumps(build_content_readiness(resolve_home(home)), ensure_ascii=False, indent=2))
+
+
+@content_app.command("imports")
+def content_imports_command(home: Optional[Path] = typer.Option(None)) -> None:
+    """List files staged through the local content workbench."""
+    typer.echo(json.dumps(list_content_imports(resolve_home(home)), ensure_ascii=False, indent=2))
+
+
+@content_app.command("process")
+def content_process_command(
+    import_id: str,
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Validate and import a staged manifest/JSONL package."""
+    typer.echo(json.dumps(process_import(resolve_home(home), import_id), ensure_ascii=False, indent=2))
+
+
+@conformance_app.command("standard")
+def conformance_standard() -> None:
+    """Print the pinned IELTS Academic standard profile used by this build."""
+    typer.echo(json.dumps(standard_profile(), ensure_ascii=False, indent=2))
+
+
+@conformance_app.command("question")
+def conformance_question(
+    question_id: str,
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Re-assess an indexed question without changing it."""
+    question = show_question(resolve_home(home), question_id, include_answer=True)
+    typer.echo(json.dumps(assess_question(question), ensure_ascii=False, indent=2))
+
+
+@conformance_app.command("pack")
+def conformance_pack(path: Path) -> None:
+    """Validate an assessment-pack JSON or YAML file before import."""
+    payload = load_data_file(path)
+    validate_data(payload, "assessment-pack")
+    report = assess_pack(payload)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    if report["status"] == "rejected":
+        raise typer.Exit(code=2)
 
 
 @ui_app.command("start")
@@ -100,6 +205,65 @@ def ui_start(
     try:
         serve_ui(resolve_home(home), port=port, open_browser=not no_open)
     except RuntimeError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@ui_app.command("open")
+def ui_open(
+    home: Optional[Path] = typer.Option(None),
+    port: int = typer.Option(0, min=0, max=65535),
+    no_open: bool = typer.Option(False, help="Start or reuse the service without opening a browser"),
+) -> None:
+    """Start or reuse the background Study Desk and open a fresh authenticated tab."""
+    try:
+        from .web.server import open_ui
+
+        url = open_ui(resolve_home(home), port=port, open_browser=not no_open)
+        typer.echo(f"IELTS Study Desk ready: {url}")
+    except (ImportError, RuntimeError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@ui_app.command("stop")
+def ui_stop(home: Optional[Path] = typer.Option(None)) -> None:
+    """Stop the background Study Desk for this IELTS_HOME."""
+    from .web.server import stop_ui
+
+    typer.echo("Stopping IELTS Study Desk." if stop_ui(resolve_home(home)) else "IELTS Study Desk is not running.")
+
+
+@ui_app.command("status")
+def ui_status_command(home: Optional[Path] = typer.Option(None)) -> None:
+    """Show whether the background Study Desk is running."""
+    from .web.server import ui_status
+
+    typer.echo(json.dumps(ui_status(resolve_home(home)), ensure_ascii=False, indent=2))
+
+
+@ui_app.command("shortcut-install")
+def ui_shortcut_install(home: Optional[Path] = typer.Option(None)) -> None:
+    """Install a Windows desktop shortcut that starts or reopens the Study Desk."""
+    try:
+        from .web.shortcut import install_desktop_shortcut
+
+        path = install_desktop_shortcut(resolve_home(home))
+        typer.echo(f"Desktop shortcut installed: {path}")
+    except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@ui_app.command("shortcut-remove")
+def ui_shortcut_remove() -> None:
+    """Remove the Windows desktop Study Desk shortcut."""
+    try:
+        from .web.shortcut import remove_desktop_shortcut
+
+        path = remove_desktop_shortcut()
+        typer.echo(f"Desktop shortcut removed: {path}" if path else "Desktop shortcut was not installed.")
+    except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
 
@@ -148,6 +312,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
     starter_questions = 0
     starter_reading_questions = 0
     starter_reading_passages = 0
+    starter_listening_items = 0
     required_tables = {
         "sessions", "errors", "corpora", "question_passages", "questions",
         "question_options", "question_attempts", "reading_answers", "writing_versions",
@@ -155,7 +320,12 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "calibration_cases", "diagnostic_runs", "schema_meta",
         "rubric_registry", "runtime_events", "runtime_telemetry",
         "study_drafts", "idempotency_records", "media_assets", "agent_runs",
-        "agent_run_events", "ui_settings",
+        "agent_run_events", "ui_settings", "listening_items",
+        "assessment_packs",
+        "content_import_jobs", "content_import_files",
+        "content_reviews",
+        "assessment_runs", "section_runs", "question_responses",
+        "coaching_artifacts",
     }
     if db_path(target).exists():
         with connect(target) as conn:
@@ -174,20 +344,28 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             starter_reading_passages = int(conn.execute(
                 "SELECT COUNT(*) FROM question_passages WHERE corpus_id='ielts-ai-coach-starter'"
             ).fetchone()[0])
+            starter_listening_items = int(conn.execute(
+                "SELECT COUNT(*) FROM listening_items WHERE source_type='project_original'"
+            ).fetchone()[0])
             schema_row = conn.execute(
                 "SELECT value FROM schema_meta WHERE key='schema_version'"
             ).fetchone() if "schema_meta" in tables else None
             rubric_count = int(conn.execute("SELECT COUNT(*) FROM rubric_registry").fetchone()[0])
-        checks["database schema v6"] = (
+        checks[f"database schema v{SCHEMA_VERSION}"] = (
             required_tables.issubset(tables)
             and schema_row is not None
-            and schema_row["value"] == "6"
+            and schema_row["value"] == str(SCHEMA_VERSION)
         )
         checks["official rubric references registered"] = rubric_count >= 2
-        checks["starter corpus indexed (41 questions)"] = starter_questions == 41
+        checks["starter corpus indexed (61 questions)"] = starter_questions == 61
         checks["starter Reading indexed (4 passages / 16 questions)"] = (
             starter_reading_passages == 4 and starter_reading_questions == 16
         )
+        checks["starter Listening corpus indexed (50 expressions)"] = (
+            starter_listening_items == 50
+        )
+        health = audit_data_home(target)
+        checks["cross-store consistency"] = health["status"] != "failed"
     failed = False
     typer.echo(f"IELTS_HOME: {target}")
     for label, ok in checks.items():

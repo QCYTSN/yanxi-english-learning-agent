@@ -6,6 +6,8 @@ from .config import DEFAULT_PROFILE, DEFAULT_SETTINGS, migrate_configuration, wr
 from .corpus import import_manifest, install_starter_corpus
 from .storage import initialise_database
 from .rubrics import ensure_default_rubrics
+from .listening_corpus import install_starter_listening
+from .content_reviews import ensure_bundled_content_reviews
 
 DIRECTORIES = (
     "config", "database", "corpus/manifests", "corpus/official-user-imported",
@@ -25,8 +27,16 @@ def initialise_home(home: Path, force: bool = False) -> None:
     if not force:
         migrate_configuration(home)
     initialise_database(home)
+    install_starter_listening(home)
     ensure_default_rubrics(home)
     install_starter_corpus(home, force=force)
     manifest_path = home / "corpus" / "starter-open" / "manifest.yaml"
     if manifest_path.exists():
-        import_manifest(home, manifest_path, index=True, force=force)
+        import_manifest(
+            home,
+            manifest_path,
+            index=True,
+            force=force,
+            refresh_reviews=False,
+        )
+        ensure_bundled_content_reviews(home, corpus_id="ielts-ai-coach-starter")

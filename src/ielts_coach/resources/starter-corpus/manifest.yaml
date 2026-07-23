@@ -4,6 +4,9 @@ title: IELTS AI Coach Starter Corpus
 publisher: IELTS AI Coach contributors
 source_type: project_original
 authenticity: practice_only
+standard_profile: ielts-academic
+standard_version: "2026-07"
+rights_status: redistributable
 license: CC-BY-4.0
 storage:
   mode: bundled

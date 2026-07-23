@@ -9,10 +9,17 @@ from typing import Any, Callable
 from .rubrics import require_rubric
 from .session_io import load_session_file
 from .session_manager import PREFIXES, persist_session_atomic
-from .storage import connect, get_session, initialise_database, record_runtime_event
+from .storage import (
+    connect,
+    get_question_for_grading,
+    get_session,
+    initialise_database,
+    record_runtime_event,
+)
 from .validation import validate_data
 from .errors import AnswerRevealLockedError, SessionRevisionConflictError
 from .locking import runtime_lock
+from .listening_corpus import listening_item, normalise_listening_answer
 
 
 TERMINAL_STATUSES = {"completed", "cancelled"}
@@ -68,7 +75,7 @@ def resume_session(home: Path, module: str | None = None) -> dict[str, Any] | No
     return data
 
 
-def _mutate(
+def mutate_session(
     home: Path,
     session_id: str,
     event_type: str,
@@ -146,9 +153,76 @@ def submit_writing_version(
         data["status"] = "awaiting_feedback"
         data["submitted_at"] = _now()
 
-    return _mutate(
+    return mutate_session(
         home, session_id, f"writing_version_{label}", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
+    )
+
+
+def submit_listening_attempt(
+    home: Path,
+    session_id: str,
+    *,
+    item_id: str,
+    user_answer: str,
+    error_tags: list[str] | None = None,
+    expected_revision: int | None = None,
+    idempotency_key: str | None = None,
+) -> dict[str, Any]:
+    item = listening_item(home, item_id)
+    answer = user_answer.strip()
+    if not answer:
+        raise ValueError("Listening answer must not be empty")
+    is_correct = normalise_listening_answer(answer) == normalise_listening_answer(
+        str(item["expression"])
+    )
+    tags = [str(tag).strip() for tag in (error_tags or []) if str(tag).strip()]
+    if not is_correct and not tags:
+        tags = ["listening_spelling_or_segmentation"]
+    attempted_at = _now()
+
+    def apply(data: dict[str, Any]) -> None:
+        if data["module"] != "listening":
+            raise ValueError("This operation requires a Listening Session")
+        attempt = {
+            "question_id": None,
+            "item_id": item_id,
+            "question_number": len(data.get("questions") or []) + 1,
+            "question_type": "high_frequency_expression",
+            "user_answer": answer,
+            "correct_answer": item["expression"],
+            "is_correct": is_correct,
+            "error_tags": tags,
+            "attempted_at": attempted_at,
+            "category": item["category"],
+        }
+        data.setdefault("questions", []).append(attempt)
+        attempts = data["questions"]
+        data["score"] = {
+            "correct": sum(1 for row in attempts if row.get("is_correct") is True),
+            "total": len(attempts),
+        }
+        data["raw_score"] = data["score"]["correct"]
+        data["last_listening_result"] = attempt
+        if not is_correct:
+            data.setdefault("errors", []).extend(
+                {
+                    "tag": tag,
+                    "count": 1,
+                    "evidence": f"{answer} -> {item['expression']}",
+                    "status": "active",
+                }
+                for tag in tags
+            )
+        data["status"] = "learner_working"
+
+    return mutate_session(
+        home,
+        session_id,
+        "listening_high_frequency_attempt",
+        apply,
+        expected_revision=expected_revision,
+        idempotency_key=idempotency_key,
     )
 
 
@@ -214,7 +288,7 @@ def apply_writing_review(
         data["writing_review"] = review
         data["status"] = "awaiting_revision"
 
-    return _mutate(
+    return mutate_session(
         home, session_id, "writing_review", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
     )
@@ -240,7 +314,7 @@ def record_reading_hint(
         data["hints_used"] = next_level
         data["status"] = "learner_working"
 
-    return _mutate(
+    return mutate_session(
         home, session_id, "reading_hint", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
     )
@@ -257,11 +331,17 @@ def submit_reading_answers(
     if not answers:
         raise ValueError("At least one Reading answer is required")
 
+    graded_answers: list[dict[str, Any]] = []
+    for item in answers:
+        question_id = item.get("question_id")
+        question = get_question_for_grading(home, str(question_id)) if question_id else None
+        graded_answers.append(_grade_reading_item(item, question))
+
     def apply(data: dict[str, Any]) -> None:
         if data["module"] != "reading":
             raise ValueError("This operation requires a Reading Session")
         clean: list[dict[str, Any]] = []
-        for item in answers:
+        for item in graded_answers:
             if not item.get("question_type") or item.get("user_answer") in {None, ""}:
                 raise ValueError("Each Reading answer needs question_type and user_answer")
             clean.append(
@@ -271,17 +351,52 @@ def submit_reading_answers(
                     "question_type": item["question_type"],
                     "user_answer": item["user_answer"],
                     "duration_seconds": item.get("duration_seconds"),
+                    "correct_answer": item.get("correct_answer"),
+                    "is_correct": item.get("is_correct"),
                     "error_tags": [],
                 }
             )
         data["questions"] = clean
+        scored = [item for item in clean if item.get("is_correct") is not None]
+        if scored:
+            correct = sum(1 for item in scored if item["is_correct"] is True)
+            data["raw_score"] = correct
+            data["score"] = {"correct": correct, "total": len(scored)}
+            data["score_kind"] = "answer_key_estimate"
+            data["answer_key_source"] = "local-corpus-validated-key"
+            # A raw score is not an IELTS band unless a verified full-test pack
+            # also supplies an explicit conversion table and source.
+            if data.get("practice_mode") != "full_mock" or data.get("conformance_status") != "verified":
+                data["band"] = None
         data["submitted_at"] = _now()
         data["status"] = "awaiting_feedback"
 
-    return _mutate(
+    return mutate_session(
         home, session_id, "reading_submission", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
     )
+
+
+def _normalise_objective_answer(value: Any) -> str:
+    if isinstance(value, list):
+        return "|".join(sorted(_normalise_objective_answer(item) for item in value))
+    return " ".join(str(value or "").strip().casefold().split())
+
+
+def _grade_reading_item(item: dict[str, Any], question: dict[str, Any] | None) -> dict[str, Any]:
+    graded = dict(item)
+    if not question or "correct_answer" not in question:
+        graded["is_correct"] = None
+        return graded
+    correct_answer = question["correct_answer"]
+    accepted = question.get("accepted_answers") or question.get("accepted_variants") or []
+    candidates = [correct_answer, *(accepted if isinstance(accepted, list) else [accepted])]
+    submitted = _normalise_objective_answer(item.get("user_answer"))
+    graded["correct_answer"] = correct_answer
+    graded["is_correct"] = any(
+        submitted == _normalise_objective_answer(candidate) for candidate in candidates
+    )
+    return graded
 
 
 def apply_reading_review(
@@ -331,7 +446,7 @@ def apply_reading_review(
         data["score"] = {"correct": correct, "total": scored} if scored else data.get("score")
         data["status"] = "awaiting_revision"
 
-    return _mutate(
+    return mutate_session(
         home, session_id, "reading_review", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
     )

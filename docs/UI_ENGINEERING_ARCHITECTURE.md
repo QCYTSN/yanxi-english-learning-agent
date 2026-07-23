@@ -1,17 +1,17 @@
 # UI engineering architecture
 
-Status: implemented V0.7 engineering baseline (2026-07-22).
+Status: implemented through V0.9 functional baseline (2026-07-23).
 
 This document is authoritative for process, data and integration boundaries.
 Visual style remains undecided. `UI_PRODUCT_SPEC.md` contains workflow ideas and
 provisional visual exploration only.
 
 V0.7 implements the complete first usable **companion UI** boundary: packaged
-local web service, deterministic Writing/Reading workflows, evidence feedback,
-history/progress, Media Registry, TextAnchor, MockAdapter and ManualAdapter.
-Vendor process adapters (OpenCode/Claude/Codex), Speaking UI and desktop
-packaging remain later, separately testable increments; the browser never
-depends on terminal presentation text.
+local web service, deterministic Writing/Reading/Listening workflows, external
+Voice/Live Speaking handoff, evidence feedback, history/progress, Media
+Registry, TextAnchor, MockAdapter and ManualAdapter. Vendor process adapters
+(OpenCode/Claude/Codex) and a desktop shell remain later, separately testable
+increments; the browser never depends on terminal presentation text.
 
 ## 1. Engineering objective
 
@@ -65,10 +65,10 @@ The IELTS Core never imports React concerns or vendor-specific Agent code.
 
 ## 3. Process model
 
-Recommended command:
+Recommended everyday command:
 
 ```powershell
-ielts-coach ui start
+ielts-coach ui open
 ```
 
 It starts one local Python process that:
@@ -78,15 +78,17 @@ It starts one local Python process that:
 3. serves the compiled frontend assets;
 4. exposes the deterministic local API;
 5. owns the Agent run supervisor;
-6. opens a browser unless `--no-open` is supplied;
-7. shuts down cleanly after an explicit stop.
+6. reuses the healthy single instance or starts it in the background;
+7. opens a browser unless `--no-open` is supplied;
+8. shuts down after `ielts-coach ui stop`.
 
 The browser never launches Agent executables directly. The local Python process
 does so through an approved adapter.
 
 The UI may be launched in three ways:
 
-- directly from PowerShell: `ielts-coach ui start`;
+- directly from PowerShell: `ielts-coach ui open`;
+- from the Windows desktop shortcut installed by `ielts-coach ui shortcut-install`;
 - by a terminal Agent after “启动雅思界面”;
 - by a desktop Agent that can execute the same local command.
 
@@ -116,6 +118,16 @@ conversation interface to the page.
 - Server-Sent Events for one-way Agent progress streaming;
 - ordinary HTTP POST for user actions and cancellation;
 - no WebSocket in the first version.
+
+### Content workbench boundary
+
+Raw PDF, image and audio uploads are copied only into
+`IELTS_HOME/corpus/inbox/<import_id>` and recorded with a hash. They remain
+`needs_structuring`; the system does not silently OCR them or claim they are
+questions. A prepared `manifest.yaml` plus referenced JSONL can be validated
+and indexed. Indexed questions can then be selected into an Assessment Pack;
+the Runtime derives its structure, and a reviewed full pack is blocked until
+all referenced items are independently verified.
 
 ### Packaging
 
@@ -154,7 +166,9 @@ ielts-ai-coach/
    │  ├─ auth.py          # launch token / origin checks
    │  ├─ app.py           # thin versioned HTTP routes and orchestration
    │  ├─ models.py        # request/response models
-   │  └─ server.py        # loopback socket and browser launch
+   │  ├─ server.py        # single-instance loopback service and browser launch
+   │  ├─ background.py    # detached process entry point
+   │  └─ shortcut.py      # Windows .lnk installation
    ├─ agent_gateway/
    │  ├─ base.py          # AgentAdapter protocol
    │  ├─ registry.py
@@ -366,7 +380,7 @@ usage metadata is stored through the existing metadata-only telemetry table.
 
 ## 12. Persistence changes required for UI phases
 
-Schema v6 is implemented as a backward-compatible migration over the existing
+Schema v12 is implemented as a backward-compatible migration over the existing
 learning-data base. It adds UI/adapter infrastructure only:
 
 ### `agent_runs`
@@ -401,6 +415,13 @@ visibility. IELTS profile and privacy defaults stay in existing configuration.
 V0.7 also adds `study_drafts` for autosave revision checks and
 `idempotency_records` for duplicate write protection. Formal Session content
 remains canonical in Session Markdown plus SQLite indexes.
+
+### `listening_items`
+
+Stores project-original high-frequency expressions, category, Chinese meaning,
+priority and structured training metadata. Attempts are not duplicated here:
+they remain canonical Session question-attempt rows and reference an `item_id`
+inside the validated attempt payload.
 
 Every database change requires a backward-compatible migration and migration
 test from v1 through the current version.
@@ -485,6 +506,19 @@ PUT  /api/v1/sessions/{id}/draft
 POST /api/v1/writing/{id}/versions
 POST /api/v1/reading/{id}/hints
 POST /api/v1/reading/{id}/answers
+```
+
+### Listening and Speaking
+
+```text
+GET  /api/v1/listening/categories
+GET  /api/v1/listening/items
+POST /api/v1/listening/{id}/attempts
+GET  /api/v1/speaking/questions
+POST /api/v1/speaking/handoffs
+POST /api/v1/speaking/{id}/reports
+GET  /api/v1/speaking/stories
+POST /api/v1/speaking/stories
 ```
 
 ### Corpus and media
@@ -587,7 +621,7 @@ Existing Python tests stay unchanged and green.
 - answer-lock tests through HTTP, not just direct functions;
 - media path traversal and MIME tests;
 - launch-token/origin tests;
-- migration v5 -> v6 test.
+- migration from V0.1 through schema v12.
 
 ### Agent Gateway
 

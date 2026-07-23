@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -34,6 +35,16 @@ def _authenticate(client: TestClient) -> None:
     assert response.status_code == 200
 
 
+def _wait_agent(client: TestClient, run_id: str) -> dict:
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        run = client.get(f"/api/v1/agent-runs/{run_id}").json()
+        if run["status"] in {"persisted", "failed", "cancelled", "awaiting_import"}:
+            return run
+        time.sleep(0.03)
+    raise AssertionError("Agent run did not reach a terminal state")
+
+
 def test_health_bootstrap_auth_and_origin(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
@@ -48,13 +59,98 @@ def test_health_bootstrap_auth_and_origin(tmp_path: Path):
     bootstrap = client.get("/api/v1/bootstrap")
     assert bootstrap.status_code == 200
     assert bootstrap.json()["setup_required"] is False
-    assert bootstrap.json()["core_version"] == "0.7.0"
+    assert bootstrap.json()["core_version"] == "1.0.0"
+    assert bootstrap.json()["storage"]["data_home"] == str(home.resolve())
 
     blocked = client.get(
         "/api/v1/bootstrap", headers={"Origin": "http://attacker.invalid"}
     )
     assert blocked.status_code == 403
     assert blocked.json()["error"]["code"] == "INVALID_ORIGIN"
+
+
+def test_backup_api_create_verify_and_restore_confirmation(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    client = _client(home)
+    _authenticate(client)
+
+    created = client.post("/api/v1/backups")
+    assert created.status_code == 200
+    backup_id = created.json()["backup_id"]
+    rows = client.get("/api/v1/backups")
+    assert rows.status_code == 200
+    assert rows.json()[0]["backup_id"] == backup_id
+
+    verified = client.post(f"/api/v1/backups/{backup_id}/verify")
+    assert verified.status_code == 200
+    assert verified.json()["database_integrity"] == "ok"
+
+    refused = client.post(
+        f"/api/v1/backups/{backup_id}/restore", json={"confirmed": False}
+    )
+    assert refused.status_code == 422
+    restored = client.post(
+        f"/api/v1/backups/{backup_id}/restore", json={"confirmed": True}
+    )
+    assert restored.status_code == 200
+    assert restored.json()["restored"] is True
+
+
+def test_content_readiness_and_private_upload_queue(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    client = _client(home)
+    _authenticate(client)
+
+    readiness = client.get("/api/v1/content/readiness")
+    assert readiness.status_code == 200
+    assert set(readiness.json()["modules"]) == {"listening", "reading", "writing", "speaking"}
+
+    upload = client.post(
+        "/api/v1/content/imports",
+        data={
+            "title": "Owned PDF",
+            "source_type": "licensed_private",
+            "authenticity": "official_practice_book",
+            "rights_status": "local_private",
+        },
+        files=[("files", ("owned.pdf", b"%PDF-1.4\ntest", "application/pdf"))],
+    )
+    assert upload.status_code == 200
+    assert upload.json()["status"] == "needs_structuring"
+    jobs = client.get("/api/v1/content/imports")
+    assert jobs.status_code == 200
+    assert jobs.json()[0]["files"][0]["original_name"] == "owned.pdf"
+
+    pack = client.post("/api/v1/assessment-packs", json={
+        "module": "writing",
+        "title": "Starter writing pair",
+        "question_ids": ["START-WT1-001", "START-WT2-001"],
+    })
+    assert pack.status_code == 200
+    assert pack.json()["conformance_status"] == "provisional"
+    review_target = client.get(
+        f"/api/v1/content-reviews/targets/assessment_pack/{pack.json()['pack_id']}"
+    )
+    assert review_target.status_code == 200
+    checklist = {
+        key: True for key in review_target.json()["required_checklist"]
+    }
+    reviewed_pack = client.post(
+        f"/api/v1/content-reviews/targets/assessment_pack/{pack.json()['pack_id']}",
+        json={
+            "reviewer": "UI test reviewer",
+            "decision": "approved",
+            "checklist": checklist,
+            "notes": "Structure and dependencies checked.",
+        },
+    )
+    assert reviewed_pack.status_code == 200
+    assert reviewed_pack.json()["local_review_status"] == "approved"
+    assert client.get(
+        f"/api/v1/assessment-packs/{pack.json()['pack_id']}"
+    ).json()["conformance_status"] == "verified"
 
 
 def test_session_creation_draft_and_idempotent_writing_submission(tmp_path: Path):
@@ -137,6 +233,7 @@ def test_media_registry_and_mock_agent_round_trip(tmp_path: Path):
 
     run = client.post(
         "/api/v1/agent-runs",
+        headers={"Idempotency-Key": "create-writing-agent"},
         json={
             "adapter_id": "mock",
             "study_session_id": session_id,
@@ -145,7 +242,8 @@ def test_media_registry_and_mock_agent_round_trip(tmp_path: Path):
         },
     )
     assert run.status_code == 200
-    assert run.json()["status"] == "persisted"
+    persisted = _wait_agent(client, run.json()["run_id"])
+    assert persisted["status"] == "persisted"
     canonical = client.get(f"/api/v1/sessions/{session_id}").json()
     assert canonical["status"] == "awaiting_revision"
     assert canonical["writing_review"]["priority_issues"][0]["anchor"]["offset_encoding"] == "unicode_code_points"

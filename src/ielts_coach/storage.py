@@ -6,8 +6,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from filelock import FileLock
+
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
+
+SCHEMA_VERSION = 13
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -19,7 +23,10 @@ CREATE TABLE IF NOT EXISTS sessions (
     source_id TEXT,
     question_id TEXT,
     passage_id TEXT,
+    assessment_pack_id TEXT,
     mode TEXT,
+    practice_mode TEXT,
+    conformance_status TEXT,
     status TEXT NOT NULL DEFAULT 'completed',
     raw_score REAL,
     band REAL,
@@ -61,6 +68,35 @@ CREATE TABLE IF NOT EXISTS corpora (
     imported_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS content_import_jobs (
+    import_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    authenticity TEXT,
+    rights_status TEXT NOT NULL,
+    status TEXT NOT NULL,
+    error_message TEXT,
+    summary_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_content_import_jobs_status
+ON content_import_jobs(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS content_import_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    import_id TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    stored_name TEXT NOT NULL,
+    file_kind TEXT NOT NULL,
+    mime_type TEXT,
+    size_bytes INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(import_id) REFERENCES content_import_jobs(import_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_content_import_files_job ON content_import_files(import_id);
+
 CREATE TABLE IF NOT EXISTS question_passages (
     passage_id TEXT PRIMARY KEY,
     corpus_id TEXT,
@@ -88,6 +124,9 @@ CREATE TABLE IF NOT EXISTS questions (
     source_type TEXT NOT NULL,
     authenticity TEXT,
     review_status TEXT,
+    practice_mode TEXT,
+    standard_profile TEXT,
+    conformance_status TEXT,
     content_hash TEXT NOT NULL,
     payload_json TEXT NOT NULL,
     created_at TEXT NOT NULL,
@@ -98,6 +137,44 @@ CREATE TABLE IF NOT EXISTS questions (
 CREATE INDEX IF NOT EXISTS idx_questions_filters ON questions(module,task,question_type,source_type);
 CREATE INDEX IF NOT EXISTS idx_questions_hash ON questions(content_hash);
 CREATE INDEX IF NOT EXISTS idx_questions_passage ON questions(passage_id);
+
+CREATE TABLE IF NOT EXISTS assessment_packs (
+    pack_id TEXT PRIMARY KEY,
+    corpus_id TEXT,
+    module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
+    title TEXT NOT NULL,
+    practice_mode TEXT NOT NULL,
+    standard_profile TEXT NOT NULL,
+    standard_version TEXT,
+    source_type TEXT NOT NULL,
+    authenticity TEXT,
+    rights_status TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    conformance_status TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(corpus_id) REFERENCES corpora(corpus_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_packs_filters
+ON assessment_packs(module,practice_mode,conformance_status);
+
+CREATE TABLE IF NOT EXISTS content_reviews (
+    review_id TEXT PRIMARY KEY,
+    target_type TEXT NOT NULL CHECK(target_type IN ('question','passage','assessment_pack')),
+    target_id TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    decision TEXT NOT NULL CHECK(decision IN ('approved','changes_requested','rejected')),
+    checklist_json TEXT NOT NULL DEFAULT '{}',
+    notes TEXT,
+    created_at TEXT NOT NULL,
+    superseded_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_content_reviews_target
+ON content_reviews(target_type,target_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_content_reviews_current
+ON content_reviews(target_type,target_id,content_hash,decision);
 
 CREATE TABLE IF NOT EXISTS question_options (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -329,7 +406,14 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     run_id TEXT PRIMARY KEY,
     study_session_id TEXT,
     adapter_id TEXT NOT NULL,
+    agent_provider TEXT,
+    agent_version TEXT,
+    model_id TEXT,
+    model_display_name TEXT,
     agent_session_id TEXT,
+    launcher_kind TEXT NOT NULL DEFAULT 'unknown',
+    capabilities_json TEXT NOT NULL DEFAULT '{}',
+    calibration_status TEXT NOT NULL DEFAULT 'unknown',
     action TEXT NOT NULL,
     output_contract TEXT NOT NULL,
     base_revision INTEGER,
@@ -341,6 +425,12 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     created_at TEXT NOT NULL,
     started_at TEXT,
     completed_at TEXT,
+    timeout_seconds INTEGER NOT NULL DEFAULT 120,
+    attempt_count INTEGER NOT NULL DEFAULT 1,
+    cancel_requested INTEGER NOT NULL DEFAULT 0,
+    heartbeat_at TEXT,
+    recovery_action TEXT,
+    execution_ref TEXT,
     FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_agent_runs_session ON agent_runs(study_session_id,created_at DESC);
@@ -356,11 +446,100 @@ CREATE TABLE IF NOT EXISTS agent_run_events (
     FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS coaching_artifacts (
+    artifact_id TEXT PRIMARY KEY,
+    artifact_type TEXT NOT NULL,
+    contract_version INTEGER NOT NULL,
+    study_session_id TEXT,
+    agent_run_id TEXT,
+    payload_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    FOREIGN KEY(agent_run_id) REFERENCES agent_runs(run_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_coaching_artifacts_type
+ON coaching_artifacts(artifact_type,created_at DESC);
+
 CREATE TABLE IF NOT EXISTS ui_settings (
     key TEXT PRIMARY KEY,
     value_json TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS listening_items (
+    item_id TEXT PRIMARY KEY,
+    category TEXT NOT NULL,
+    subcategory TEXT,
+    expression TEXT NOT NULL,
+    meaning_zh TEXT NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 1,
+    source_type TEXT NOT NULL DEFAULT 'project_original',
+    payload_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_listening_items_category
+ON listening_items(category,priority,item_id);
+
+CREATE TABLE IF NOT EXISTS assessment_runs (
+    run_id TEXT PRIMARY KEY,
+    pack_id TEXT NOT NULL,
+    session_id TEXT NOT NULL UNIQUE,
+    module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
+    practice_mode TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN (
+      'active','paused','reviewing','submitted','completed','cancelled','expired'
+    )),
+    revision INTEGER NOT NULL DEFAULT 0,
+    pack_hash TEXT NOT NULL,
+    pack_snapshot_json TEXT NOT NULL,
+    time_limit_seconds INTEGER,
+    elapsed_active_seconds REAL NOT NULL DEFAULT 0,
+    resumed_at TEXT,
+    paused_at TEXT,
+    submitted_at TEXT,
+    navigation_json TEXT NOT NULL DEFAULT '{}',
+    submission_json TEXT NOT NULL DEFAULT '{}',
+    media_state_json TEXT NOT NULL DEFAULT '{}',
+    score_result_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(pack_id) REFERENCES assessment_packs(pack_id) ON DELETE RESTRICT,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE RESTRICT
+);
+CREATE INDEX IF NOT EXISTS idx_assessment_runs_status
+ON assessment_runs(status,updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_assessment_runs_pack
+ON assessment_runs(pack_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS section_runs (
+    run_id TEXT NOT NULL,
+    section_key TEXT NOT NULL,
+    order_index INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'not_started',
+    revision INTEGER NOT NULL DEFAULT 0,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    started_at TEXT,
+    submitted_at TEXT,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(run_id,section_key),
+    FOREIGN KEY(run_id) REFERENCES assessment_runs(run_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS question_responses (
+    run_id TEXT NOT NULL,
+    question_id TEXT NOT NULL,
+    section_key TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 0,
+    response_json TEXT NOT NULL DEFAULT '{}',
+    flagged INTEGER NOT NULL DEFAULT 0,
+    answered_at TEXT,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(run_id,question_id),
+    FOREIGN KEY(run_id) REFERENCES assessment_runs(run_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_question_responses_section
+ON question_responses(run_id,section_key);
 
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -393,13 +572,16 @@ def _columns(conn: sqlite3.Connection, table: str) -> set[str]:
     return {str(row[1]) for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
 
 
-def _migrate(conn: sqlite3.Connection) -> None:
+def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> None:
     # V0.1 databases remain usable without destructive migration.
     session_columns = _columns(conn, "sessions")
     additions = {
         "question_id": "TEXT",
         "passage_id": "TEXT",
+        "assessment_pack_id": "TEXT",
         "mode": "TEXT",
+        "practice_mode": "TEXT",
+        "conformance_status": "TEXT",
         "status": "TEXT NOT NULL DEFAULT 'completed'",
         "updated_at": "TEXT",
         "score_kind": "TEXT",
@@ -416,6 +598,19 @@ def _migrate(conn: sqlite3.Connection) -> None:
     for name, declaration in additions.items():
         if name not in session_columns:
             conn.execute(f"ALTER TABLE sessions ADD COLUMN {name} {declaration}")
+    question_columns = _columns(conn, "questions")
+    question_additions = {
+        "practice_mode": "TEXT",
+        "standard_profile": "TEXT",
+        "conformance_status": "TEXT",
+    }
+    for name, declaration in question_additions.items():
+        if name not in question_columns:
+            conn.execute(f"ALTER TABLE questions ADD COLUMN {name} {declaration}")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_questions_conformance "
+        "ON questions(practice_mode,conformance_status)"
+    )
     conn.execute("UPDATE sessions SET status='completed' WHERE status IS NULL")
     conn.execute("UPDATE sessions SET updated_at=created_at WHERE updated_at IS NULL")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_question ON sessions(question_id)")
@@ -446,19 +641,119 @@ def _migrate(conn: sqlite3.Connection) -> None:
     for name, declaration in report_additions.items():
         if name not in report_columns:
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
+    agent_columns = _columns(conn, "agent_runs")
+    agent_additions = {
+        "agent_provider": "TEXT",
+        "agent_version": "TEXT",
+        "model_id": "TEXT",
+        "model_display_name": "TEXT",
+        "launcher_kind": "TEXT NOT NULL DEFAULT 'unknown'",
+        "capabilities_json": "TEXT NOT NULL DEFAULT '{}'",
+        "calibration_status": "TEXT NOT NULL DEFAULT 'unknown'",
+        "timeout_seconds": "INTEGER NOT NULL DEFAULT 120",
+        "attempt_count": "INTEGER NOT NULL DEFAULT 1",
+        "cancel_requested": "INTEGER NOT NULL DEFAULT 0",
+        "heartbeat_at": "TEXT",
+        "recovery_action": "TEXT",
+        "execution_ref": "TEXT",
+    }
+    for name, declaration in agent_additions.items():
+        if name not in agent_columns:
+            conn.execute(f"ALTER TABLE agent_runs ADD COLUMN {name} {declaration}")
+    previous_number = int(previous_version) if str(previous_version).isdigit() else 0
+    if previous_version is not None and previous_number < 10:
+        # Pre-v10 review_status was an importable declaration, not an auditable
+        # local approval. Preserve it as source metadata and require re-review.
+        for table, key, pending_status in (
+            ("questions", "question_id", "unreviewed"),
+            ("assessment_packs", "pack_id", "in_review"),
+        ):
+            rows = conn.execute(
+                f"SELECT {key},payload_json FROM {table}"
+            ).fetchall()
+            for row in rows:
+                payload = json.loads(row["payload_json"])
+                if payload.get("review_status") is not None:
+                    payload.setdefault(
+                        "source_review_status",
+                        str(payload["review_status"]),
+                    )
+                if payload.get("conformance_status") is not None:
+                    payload.setdefault(
+                        "source_conformance_status",
+                        str(payload["conformance_status"]),
+                    )
+                payload["review_status"] = pending_status
+                payload["conformance_status"] = (
+                    "skill_only"
+                    if payload.get("practice_mode") == "skill_drill"
+                    else "provisional"
+                )
+                payload.pop("conformance_report", None)
+                conn.execute(
+                    f"""
+                    UPDATE {table}
+                    SET review_status=?,conformance_status=?,payload_json=?,updated_at=?
+                    WHERE {key}=?
+                    """,
+                    (
+                        payload["review_status"],
+                        payload["conformance_status"],
+                        json.dumps(payload, ensure_ascii=False, default=str),
+                        _now(),
+                        row[key],
+                    ),
+                )
     conn.execute(
-        "INSERT INTO schema_meta(key,value) VALUES('schema_version','6') "
+        f"INSERT INTO schema_meta(key,value) VALUES('schema_version','{SCHEMA_VERSION}') "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
     )
 
 
 def initialise_database(home: Path) -> Path:
     path = db_path(home)
-    with connect(home) as conn:
-        conn.executescript(SCHEMA)
-        conn.execute("PRAGMA journal_mode = WAL")
-        _migrate(conn)
+    if _existing_schema_version(path) == str(SCHEMA_VERSION):
+        return path
+    lock_path = home / "runtime" / "locks" / "database-migration.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(lock_path), timeout=30):
+        existing_version = _existing_schema_version(path)
+        if existing_version == str(SCHEMA_VERSION):
+            return path
+        if path.is_file() and existing_version != str(SCHEMA_VERSION):
+            from .backups import create_backup
+
+            create_backup(
+                home,
+                kind=f"pre-migration-{existing_version or 'legacy'}-to-{SCHEMA_VERSION}",
+            )
+        with connect(home) as conn:
+            conn.executescript(SCHEMA)
+            conn.execute("PRAGMA journal_mode = WAL")
+            _migrate(conn, existing_version)
     return path
+
+
+def _existing_schema_version(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    conn: sqlite3.Connection | None = None
+    try:
+        conn = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
+        table = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_meta'"
+        ).fetchone()
+        if not table:
+            return "legacy"
+        row = conn.execute(
+            "SELECT value FROM schema_meta WHERE key='schema_version'"
+        ).fetchone()
+        return str(row[0]) if row else "legacy"
+    except sqlite3.DatabaseError as exc:
+        raise ValueError(f"Existing IELTS database is unreadable: {exc}") from exc
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def _now() -> str:
@@ -498,15 +793,17 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
         conn.execute(
             """
             INSERT INTO sessions(
-              session_id,module,occurred_at,source_id,question_id,passage_id,mode,status,raw_score,band,
+              session_id,module,occurred_at,source_id,question_id,passage_id,assessment_pack_id,mode,practice_mode,conformance_status,status,raw_score,band,
               score_kind,score_confidence,answer_key_source,band_conversion_source,
               rubric_json,time_limit_minutes,started_at,submitted_at,answer_revealed_at,hints_used,
               duration_minutes,payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(session_id) DO UPDATE SET
               module=excluded.module,occurred_at=excluded.occurred_at,
               source_id=excluded.source_id,question_id=excluded.question_id,
-              passage_id=excluded.passage_id,mode=excluded.mode,
+              passage_id=excluded.passage_id,assessment_pack_id=excluded.assessment_pack_id,
+              mode=excluded.mode,practice_mode=excluded.practice_mode,
+              conformance_status=excluded.conformance_status,
               status=excluded.status,raw_score=excluded.raw_score,band=excluded.band,
               score_kind=excluded.score_kind,score_confidence=excluded.score_confidence,
               answer_key_source=excluded.answer_key_source,
@@ -520,7 +817,9 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
             """,
             (
                 session_id, module, occurred_at, data.get("source_id"), data.get("question_id"),
-                data.get("passage_id"), data.get("mode"), data.get("status", "completed"), raw_score,
+                data.get("passage_id"), data.get("assessment_pack_id"), data.get("mode"),
+                data.get("practice_mode"), data.get("conformance_status"),
+                data.get("status", "completed"), raw_score,
                 data.get("band", data.get("estimated_overall")), data.get("score_kind"),
                 data.get("score_confidence"),
                 data.get("answer_key_source"), data.get("band_conversion_source"),
@@ -678,35 +977,59 @@ def recent_bands(home: Path, module: str, limit: int = 3) -> list[float]:
     with connect(home) as conn:
         rows = conn.execute(
             """
-            SELECT band FROM sessions
+            SELECT payload_json FROM sessions
             WHERE module=? AND status='completed' AND band IS NOT NULL
-              AND COALESCE(score_kind,'unspecified') <> 'partial_profile'
-              AND (
-                    COALESCE(score_kind,'unspecified') <> 'ai_training_estimate'
-                    OR COALESCE(score_confidence,'medium') IN ('medium','high')
-                  )
             ORDER BY occurred_at DESC LIMIT ?
             """,
-            (module, limit),
+            (module, max(limit * 5, 25)),
         ).fetchall()
-    return [float(row["band"]) for row in rows]
+    from .score_results import build_score_result
+
+    values: list[float] = []
+    for row in rows:
+        result = build_score_result(json.loads(row["payload_json"]))
+        if result["eligible_for_progress"] and result["band"] is not None:
+            values.append(float(result["band"]))
+        if len(values) >= limit:
+            break
+    return values
 
 
-def recent_criterion_average(home: Path, module: str, criterion: str, limit: int = 5) -> float | None:
+def recent_criterion_average(
+    home: Path,
+    module: str,
+    criterion: str,
+    limit: int = 5,
+    *,
+    eligible_only: bool = False,
+) -> float | None:
     initialise_database(home)
     with connect(home) as conn:
         rows = conn.execute(
             """
-            SELECT COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value
+            SELECT COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value,
+                   s.payload_json
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
             WHERE s.module=? AND cs.criterion=? AND s.status='completed'
               AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
               AND COALESCE(cs.confidence,'medium') IN ('medium','high')
             ORDER BY cs.created_at DESC LIMIT ?
             """,
-            (module, criterion, limit),
+            (module, criterion, max(limit * 5, 25)),
         ).fetchall()
-    values = [float(row["value"]) for row in rows if row["value"] is not None]
+    from .score_results import build_score_result
+
+    values = []
+    for row in rows:
+        if row["value"] is None:
+            continue
+        if eligible_only and not build_score_result(
+            json.loads(row["payload_json"])
+        )["eligible_for_progress"]:
+            continue
+        values.append(float(row["value"]))
+        if len(values) >= limit:
+            break
     return sum(values) / len(values) if values else None
 
 
@@ -781,6 +1104,164 @@ def list_corpora(home: Path) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def create_content_import_job(home: Path, job: dict[str, Any], files: list[dict[str, Any]]) -> None:
+    initialise_database(home)
+    now = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO content_import_jobs(
+              import_id,title,source_type,authenticity,rights_status,status,error_message,
+              summary_json,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                job["import_id"], job["title"], job["source_type"], job.get("authenticity"),
+                job["rights_status"], job["status"], job.get("error_message"),
+                json.dumps(job.get("summary") or {}, ensure_ascii=False, default=str), now, now,
+            ),
+        )
+        for item in files:
+            conn.execute(
+                """
+                INSERT INTO content_import_files(
+                  import_id,original_name,stored_name,file_kind,mime_type,size_bytes,sha256,created_at
+                ) VALUES(?,?,?,?,?,?,?,?)
+                """,
+                (
+                    job["import_id"], item["original_name"], item["stored_name"],
+                    item["file_kind"], item.get("mime_type"), int(item["size_bytes"]),
+                    item["sha256"], now,
+                ),
+            )
+
+
+def update_content_import_job(
+    home: Path,
+    import_id: str,
+    *,
+    status: str,
+    error_message: str | None = None,
+    summary: dict[str, Any] | None = None,
+) -> None:
+    initialise_database(home)
+    with connect(home) as conn:
+        cursor = conn.execute(
+            """
+            UPDATE content_import_jobs
+            SET status=?,error_message=?,summary_json=?,updated_at=?
+            WHERE import_id=?
+            """,
+            (
+                status, error_message,
+                json.dumps(summary or {}, ensure_ascii=False, default=str), _now(), import_id,
+            ),
+        )
+        if cursor.rowcount == 0:
+            raise ValueError(f"Unknown content import: {import_id}")
+
+
+def get_content_import_job(home: Path, import_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM content_import_jobs WHERE import_id=?", (import_id,)
+        ).fetchone()
+        if not row:
+            return None
+        files = conn.execute(
+            """
+            SELECT original_name,stored_name,file_kind,mime_type,size_bytes,sha256
+            FROM content_import_files WHERE import_id=? ORDER BY id
+            """,
+            (import_id,),
+        ).fetchall()
+    result = dict(row)
+    result["summary"] = json.loads(result.pop("summary_json") or "{}")
+    result["files"] = [dict(item) for item in files]
+    return result
+
+
+def list_content_import_jobs(home: Path, limit: int = 100) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        ids = [
+            str(row["import_id"])
+            for row in conn.execute(
+                "SELECT import_id FROM content_import_jobs ORDER BY created_at DESC LIMIT ?",
+                (max(1, min(int(limit), 500)),),
+            ).fetchall()
+        ]
+    return [item for import_id in ids if (item := get_content_import_job(home, import_id))]
+
+
+def upsert_assessment_pack(home: Path, pack: dict[str, Any]) -> None:
+    initialise_database(home)
+    now = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO assessment_packs(
+              pack_id,corpus_id,module,title,practice_mode,standard_profile,standard_version,
+              source_type,authenticity,rights_status,review_status,conformance_status,
+              payload_json,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(pack_id) DO UPDATE SET
+              corpus_id=excluded.corpus_id,module=excluded.module,title=excluded.title,
+              practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
+              standard_version=excluded.standard_version,source_type=excluded.source_type,
+              authenticity=excluded.authenticity,rights_status=excluded.rights_status,
+              review_status=excluded.review_status,conformance_status=excluded.conformance_status,
+              payload_json=excluded.payload_json,updated_at=excluded.updated_at
+            """,
+            (
+                pack["pack_id"], pack.get("corpus_id"), pack["module"], pack["title"],
+                pack["practice_mode"], pack["standard_profile"], pack.get("standard_version"),
+                pack["source_type"], pack.get("authenticity"), pack["rights_status"],
+                pack["review_status"], pack["conformance_status"],
+                json.dumps(pack, ensure_ascii=False, default=str), now, now,
+            ),
+        )
+
+
+def get_assessment_pack(home: Path, pack_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT payload_json FROM assessment_packs WHERE pack_id=?", (pack_id,)
+        ).fetchone()
+    return json.loads(row["payload_json"]) if row else None
+
+
+def list_assessment_packs(
+    home: Path,
+    *,
+    module: str | None = None,
+    practice_mode: str | None = None,
+    conformance_status: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    clauses: list[str] = []
+    params: list[Any] = []
+    for column, value in (
+        ("module", module),
+        ("practice_mode", practice_mode),
+        ("conformance_status", conformance_status),
+    ):
+        if value:
+            clauses.append(f"{column}=?")
+            params.append(value)
+    sql = "SELECT payload_json FROM assessment_packs"
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY title LIMIT ?"
+    params.append(max(1, min(int(limit), 500)))
+    with connect(home) as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [json.loads(row["payload_json"]) for row in rows]
+
+
 def upsert_passage(home: Path, passage: dict[str, Any]) -> None:
     initialise_database(home)
     passage_id = str(passage["passage_id"])
@@ -844,15 +1325,18 @@ def upsert_question(home: Path, question: dict[str, Any], *, force: bool = False
             """
             INSERT INTO questions(
               question_id,corpus_id,module,task,part,question_number,question_type,title,content,
-              passage_id,topics_text,source_type,authenticity,review_status,content_hash,
+              passage_id,topics_text,source_type,authenticity,review_status,practice_mode,
+              standard_profile,conformance_status,content_hash,
               payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(question_id) DO UPDATE SET
               corpus_id=excluded.corpus_id,module=excluded.module,task=excluded.task,part=excluded.part,
               question_number=excluded.question_number,question_type=excluded.question_type,
               title=excluded.title,content=excluded.content,passage_id=excluded.passage_id,
               topics_text=excluded.topics_text,source_type=excluded.source_type,
               authenticity=excluded.authenticity,review_status=excluded.review_status,
+              practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
+              conformance_status=excluded.conformance_status,
               content_hash=excluded.content_hash,payload_json=excluded.payload_json,updated_at=excluded.updated_at
             """,
             (
@@ -860,7 +1344,9 @@ def upsert_question(home: Path, question: dict[str, Any], *, force: bool = False
                 _as_text(question.get("part")), _as_text(question.get("question_number")),
                 question.get("question_type"), question.get("title"), question["content"],
                 question.get("passage_id"), " ".join(map(str, topics)), question["source_type"],
-                question.get("authenticity"), question.get("review_status"), q_hash,
+                question.get("authenticity"), question.get("review_status"),
+                question.get("practice_mode"), question.get("standard_profile"),
+                question.get("conformance_status"), q_hash,
                 json.dumps(question, ensure_ascii=False, default=str), now, now,
             ),
         )
@@ -912,7 +1398,7 @@ def list_questions(
         clauses.append(
             "NOT EXISTS(SELECT 1 FROM sessions s WHERE s.question_id=q.question_id AND s.status='completed') AND NOT EXISTS(SELECT 1 FROM question_attempts qa JOIN sessions s2 ON s2.session_id=qa.session_id WHERE qa.question_id=q.question_id AND s2.status='completed')"
         )
-    sql = "SELECT q.question_id,q.module,q.task,q.part,q.question_type,q.title,q.content,q.passage_id,q.topics_text,q.source_type,q.authenticity,q.corpus_id FROM questions q"
+    sql = "SELECT q.question_id,q.module,q.task,q.part,q.question_type,q.title,q.content,q.passage_id,q.topics_text,q.source_type,q.authenticity,q.corpus_id,q.review_status,q.practice_mode,q.standard_profile,q.conformance_status FROM questions q"
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
     sql += " ORDER BY q.question_id LIMIT ?"
@@ -927,17 +1413,34 @@ def get_question(home: Path, question_id: str, include_answer: bool = False) -> 
         row = conn.execute("SELECT * FROM questions WHERE question_id=?", (question_id,)).fetchone()
         if not row:
             return None
-        if include_answer and row["passage_id"]:
-            active_timed = conn.execute(
-                """
-                SELECT 1 FROM sessions
-                WHERE module='reading' AND mode='timed-practice'
-                  AND passage_id=? AND status NOT IN ('completed','cancelled')
-                  AND submitted_at IS NULL
-                LIMIT 1
-                """,
-                (row["passage_id"],),
-            ).fetchone()
+        if include_answer:
+            active_timed = None
+            if row["passage_id"]:
+                active_timed = conn.execute(
+                    """
+                    SELECT 1 FROM sessions
+                    WHERE module='reading' AND mode='timed-practice'
+                      AND passage_id=? AND status NOT IN ('completed','cancelled')
+                      AND submitted_at IS NULL
+                    LIMIT 1
+                    """,
+                    (row["passage_id"],),
+                ).fetchone()
+            if not active_timed:
+                active_pack_rows = conn.execute(
+                    """
+                    SELECT p.payload_json
+                    FROM sessions s
+                    JOIN assessment_packs p ON p.pack_id=s.assessment_pack_id
+                    WHERE s.module='reading' AND s.practice_mode='full_mock'
+                      AND s.status NOT IN ('completed','cancelled')
+                      AND s.submitted_at IS NULL
+                    """
+                ).fetchall()
+                active_timed = any(
+                    question_id in (json.loads(item["payload_json"]).get("question_ids") or [])
+                    for item in active_pack_rows
+                )
             if active_timed:
                 raise ValueError(
                     "Reading answers are locked until the active timed-practice Session is submitted"
@@ -959,6 +1462,21 @@ def get_question(home: Path, question_id: str, include_answer: bool = False) -> 
         if not include_answer:
             data = _redact_answer_data(data)
         return data
+
+
+def get_question_for_grading(home: Path, question_id: str) -> dict[str, Any] | None:
+    """Load the private answer payload for an in-process submission grader.
+
+    This deliberately bypasses the learner-facing reveal lock, but is not exposed
+    through the HTTP API. Callers must only persist or return the result after the
+    learner has submitted the attempt.
+    """
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT payload_json FROM questions WHERE question_id=?", (question_id,)
+        ).fetchone()
+    return json.loads(row["payload_json"]) if row else None
 
 
 _SENSITIVE_ANSWER_KEYS = {
@@ -1061,6 +1579,113 @@ def update_error_status(home: Path, tag: str, status: str) -> int:
     with connect(home) as conn:
         cursor = conn.execute("UPDATE errors SET status=? WHERE tag=?", (status, tag))
         return cursor.rowcount
+
+
+def upsert_listening_items(home: Path, items: list[dict[str, Any]]) -> None:
+    initialise_database(home)
+    now = _now()
+    values: list[tuple[Any, ...]] = []
+    for item in items:
+        item_id = str(item["item_id"])
+        category = str(item["category"])
+        expression = str(item["expression"]).strip()
+        meaning_zh = str(item["meaning_zh"]).strip()
+        if not item_id or not category or not expression or not meaning_zh:
+            raise ValueError("Listening item requires item_id, category, expression, and meaning_zh")
+        values.append(
+            (
+                item_id,
+                category,
+                item.get("subcategory"),
+                expression,
+                meaning_zh,
+                int(item.get("priority", 1)),
+                str(item.get("source_type", "project_original")),
+                json.dumps(item, ensure_ascii=False, default=str),
+                now,
+                now,
+            )
+        )
+    with connect(home) as conn:
+        conn.executemany(
+            """
+            INSERT INTO listening_items(
+              item_id,category,subcategory,expression,meaning_zh,priority,
+              source_type,payload_json,created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(item_id) DO UPDATE SET
+              category=excluded.category,subcategory=excluded.subcategory,
+              expression=excluded.expression,meaning_zh=excluded.meaning_zh,
+              priority=excluded.priority,source_type=excluded.source_type,
+              payload_json=excluded.payload_json,updated_at=excluded.updated_at
+            """,
+            values,
+        )
+
+
+def upsert_listening_item(home: Path, item: dict[str, Any]) -> None:
+    upsert_listening_items(home, [item])
+
+
+def get_listening_item(home: Path, item_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT payload_json FROM listening_items WHERE item_id=?", (item_id,)
+        ).fetchone()
+    return json.loads(row["payload_json"]) if row else None
+
+
+def list_listening_items(
+    home: Path,
+    *,
+    category: str | None = None,
+    query: str | None = None,
+    limit: int = 200,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    clauses: list[str] = []
+    params: list[Any] = []
+    if category:
+        clauses.append("category=?")
+        params.append(category)
+    if query:
+        clauses.append("(LOWER(expression) LIKE ? OR meaning_zh LIKE ? OR LOWER(payload_json) LIKE ?)")
+        value = f"%{query.casefold()}%"
+        params.extend([value, f"%{query}%", value])
+    sql = "SELECT payload_json FROM listening_items"
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY priority,item_id LIMIT ?"
+    params.append(max(1, min(int(limit), 1000)))
+    with connect(home) as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [json.loads(row["payload_json"]) for row in rows]
+
+
+def listening_attempt_rows(home: Path) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        rows = conn.execute(
+            """
+            SELECT qa.is_correct,qa.payload_json
+            FROM question_attempts qa
+            JOIN sessions s ON s.session_id=qa.session_id
+            WHERE s.module='listening' AND qa.question_type='high_frequency_expression'
+            ORDER BY qa.created_at,qa.id
+            """
+        ).fetchall()
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        payload = json.loads(row["payload_json"])
+        result.append(
+            {
+                "item_id": payload.get("item_id"),
+                "is_correct": None if row["is_correct"] is None else bool(row["is_correct"]),
+                "payload": payload,
+            }
+        )
+    return result
 
 
 def record_runtime_event(
@@ -1292,19 +1917,32 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
         conn.execute(
             """
             INSERT INTO agent_runs(
-              run_id,study_session_id,adapter_id,agent_session_id,action,output_contract,
+              run_id,study_session_id,adapter_id,agent_provider,agent_version,model_id,
+              model_display_name,agent_session_id,launcher_kind,capabilities_json,
+              calibration_status,action,output_contract,
               base_revision,status,error_code,request_json,result_json,usage_json,
-              created_at,started_at,completed_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              created_at,started_at,completed_at,timeout_seconds,attempt_count,
+              cancel_requested,heartbeat_at,recovery_action,execution_ref
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 run["run_id"], run.get("study_session_id"), run["adapter_id"],
-                run.get("agent_session_id"), run["action"], run["output_contract"],
+                run.get("agent_provider"), run.get("agent_version"), run.get("model_id"),
+                run.get("model_display_name"), run.get("agent_session_id"),
+                run.get("launcher_kind", "unknown"),
+                json.dumps(run.get("capabilities") or {}, ensure_ascii=False),
+                run.get("calibration_status", "unknown"),
+                run["action"], run["output_contract"],
                 run.get("base_revision"), run["status"], run.get("error_code"),
                 json.dumps(run.get("request") or {}, ensure_ascii=False),
                 json.dumps(run.get("result"), ensure_ascii=False) if run.get("result") is not None else None,
                 json.dumps(run.get("usage") or {}, ensure_ascii=False),
                 run.get("created_at") or _now(), run.get("started_at"), run.get("completed_at"),
+                int(run.get("timeout_seconds") or 120),
+                int(run.get("attempt_count") or 1),
+                int(bool(run.get("cancel_requested", False))),
+                run.get("heartbeat_at"), run.get("recovery_action"),
+                run.get("execution_ref"),
             ),
         )
     return get_agent_run(home, run["run_id"]) or run
@@ -1312,8 +1950,12 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
 
 def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
     allowed = {
-        "agent_session_id", "status", "error_code", "result_json", "usage_json",
-        "started_at", "completed_at",
+        "agent_provider", "agent_version", "model_id", "model_display_name",
+        "agent_session_id", "launcher_kind", "capabilities_json",
+        "calibration_status", "status", "error_code", "result_json", "usage_json",
+        "started_at", "completed_at", "timeout_seconds", "attempt_count",
+        "cancel_requested", "heartbeat_at", "recovery_action", "execution_ref",
+        "base_revision",
     }
     columns: list[str] = []
     values: list[Any] = []
@@ -1323,6 +1965,8 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
             column, value = "result_json", json.dumps(value, ensure_ascii=False)
         elif key == "usage":
             column, value = "usage_json", json.dumps(value, ensure_ascii=False)
+        elif key == "capabilities":
+            column, value = "capabilities_json", json.dumps(value, ensure_ascii=False)
         if column not in allowed:
             continue
         columns.append(f"{column}=?")
@@ -1345,7 +1989,14 @@ def get_agent_run(home: Path, run_id: str) -> dict[str, Any] | None:
         "run_id": row["run_id"],
         "study_session_id": row["study_session_id"],
         "adapter_id": row["adapter_id"],
+        "agent_provider": row["agent_provider"],
+        "agent_version": row["agent_version"],
+        "model_id": row["model_id"],
+        "model_display_name": row["model_display_name"],
         "agent_session_id": row["agent_session_id"],
+        "launcher_kind": row["launcher_kind"],
+        "capabilities": json.loads(row["capabilities_json"]),
+        "calibration_status": row["calibration_status"],
         "action": row["action"],
         "output_contract": row["output_contract"],
         "base_revision": row["base_revision"],
@@ -1357,7 +2008,32 @@ def get_agent_run(home: Path, run_id: str) -> dict[str, Any] | None:
         "created_at": row["created_at"],
         "started_at": row["started_at"],
         "completed_at": row["completed_at"],
+        "timeout_seconds": int(row["timeout_seconds"]),
+        "attempt_count": int(row["attempt_count"]),
+        "cancel_requested": bool(row["cancel_requested"]),
+        "heartbeat_at": row["heartbeat_at"],
+        "recovery_action": row["recovery_action"],
+        "execution_ref": row["execution_ref"],
     }
+
+
+def list_agent_runs(
+    home: Path,
+    *,
+    study_session_id: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    params: list[Any] = []
+    sql = "SELECT run_id FROM agent_runs"
+    if study_session_id:
+        sql += " WHERE study_session_id=?"
+        params.append(study_session_id)
+    sql += " ORDER BY created_at DESC LIMIT ?"
+    params.append(max(1, min(int(limit), 500)))
+    with connect(home) as conn:
+        ids = [str(row["run_id"]) for row in conn.execute(sql, params).fetchall()]
+    return [run for run_id in ids if (run := get_agent_run(home, run_id))]
 
 
 def append_agent_run_event(
@@ -1399,5 +2075,65 @@ def list_agent_run_events(home: Path, run_id: str, after: int = 0) -> list[dict[
             "payload": json.loads(row["payload_json"]),
             "created_at": row["created_at"],
         }
+        for row in rows
+    ]
+
+
+def save_coaching_artifact(
+    home: Path,
+    *,
+    artifact_id: str,
+    artifact_type: str,
+    contract_version: int,
+    payload: dict[str, Any],
+    study_session_id: str | None = None,
+    agent_run_id: str | None = None,
+) -> dict[str, Any]:
+    initialise_database(home)
+    created_at = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO coaching_artifacts(
+              artifact_id,artifact_type,contract_version,study_session_id,
+              agent_run_id,payload_json,created_at
+            ) VALUES(?,?,?,?,?,?,?)
+            ON CONFLICT(artifact_id) DO UPDATE SET
+              payload_json=excluded.payload_json,contract_version=excluded.contract_version
+            """,
+            (
+                artifact_id,
+                artifact_type,
+                int(contract_version),
+                study_session_id,
+                agent_run_id,
+                json.dumps(payload, ensure_ascii=False),
+                created_at,
+            ),
+        )
+        row = conn.execute(
+            "SELECT * FROM coaching_artifacts WHERE artifact_id=?", (artifact_id,)
+        ).fetchone()
+    return {
+        **dict(row),
+        "payload": json.loads(row["payload_json"]),
+    }
+
+
+def list_coaching_artifacts(
+    home: Path, *, artifact_type: str | None = None, limit: int = 50
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    sql = "SELECT * FROM coaching_artifacts"
+    params: list[Any] = []
+    if artifact_type:
+        sql += " WHERE artifact_type=?"
+        params.append(artifact_type)
+    sql += " ORDER BY created_at DESC LIMIT ?"
+    params.append(max(1, min(int(limit), 500)))
+    with connect(home) as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [
+        {**dict(row), "payload": json.loads(row["payload_json"])}
         for row in rows
     ]

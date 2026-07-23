@@ -43,7 +43,7 @@ Passage item:
 Question item:
 
 ```json
-{"question_id":"Q-001","module":"reading","passage_id":"P-001","question_type":"multiple_choice","content":"...","options":{"A":"...","B":"..."},"correct_answer":"B","evidence_location":"Paragraph B","source_type":"licensed_private","authenticity":"official_practice_book","review_status":"verified"}
+{"question_id":"Q-001","module":"reading","passage_id":"P-001","question_type":"multiple_choice","content":"...","options":{"A":"...","B":"..."},"correct_answer":"B","evidence_location":"Paragraph B","source_type":"licensed_private","authenticity":"official_practice_book","review_status":"unreviewed"}
 ```
 
 Question and passage IDs are global inside one IELTS_HOME. Prefix private IDs
@@ -51,6 +51,12 @@ with the corpus ID, for example `my-private-reading:Q-001` and
 `my-private-reading:P-001`. Imports reject an ID already owned by another
 corpus instead of overwriting it. Item-level `corpus_id`, `source_type` and
 `authenticity`, when supplied, must agree with the Manifest.
+
+Imported `review_status` and `conformance_status` are source declarations only.
+They never create a local approval. Use the Library review workbench to inspect
+the passage, prompt, options, answer, evidence and rights. The resulting
+`content_reviews` record is bound to a content hash and automatically becomes
+stale when the reviewed material changes.
 
 Import and inspect:
 

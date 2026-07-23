@@ -8,6 +8,7 @@ from statistics import mean
 from .allocation import recommend_allocation
 from .config import load_settings
 from .profiles import build_learning_profile
+from .score_results import build_score_result
 from .storage import connect, error_counts_since, sessions_since
 
 
@@ -18,14 +19,9 @@ def build_summary(home: Path, days: int = 14) -> str:
     counts: dict[str, int] = defaultdict(int)
     for row in rows:
         counts[row["module"]] += 1
-        score_kind = row["score_kind"] if "score_kind" in row.keys() else None
-        confidence = row["score_confidence"] if "score_confidence" in row.keys() else None
-        usable_score = (
-            score_kind != "partial_profile"
-            and (score_kind != "ai_training_estimate" or confidence in (None, "medium", "high"))
-        )
-        if row["band"] is not None and usable_score:
-            grouped[row["module"]].append(float(row["band"]))
+        score = build_score_result(row)
+        if score["band"] is not None and score["eligible_for_progress"]:
+            grouped[row["module"]].append(float(score["band"]))
 
     lines = [f"# 最近 {days} 天学习摘要", ""]
     for module in ("listening", "reading", "writing", "speaking"):
@@ -81,18 +77,21 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
         for module in ("listening", "reading", "writing", "speaking"):
             rows = conn.execute(
                 """
-                SELECT band,occurred_at FROM sessions
+                SELECT payload_json,occurred_at FROM sessions
                 WHERE module=? AND status='completed' AND band IS NOT NULL
-                  AND COALESCE(score_kind,'unspecified') <> 'partial_profile'
-                  AND (
-                        COALESCE(score_kind,'unspecified') <> 'ai_training_estimate'
-                        OR COALESCE(score_confidence,'medium') IN ('medium','high')
-                      )
                 ORDER BY occurred_at DESC LIMIT ?
                 """,
-                (module, limit),
+                (module, max(limit * 5, 25)),
             ).fetchall()
-            values = [float(row["band"]) for row in reversed(rows)]
+            admitted = [
+                build_score_result(row)
+                for row in reversed(rows)
+            ]
+            values = [
+                float(item["band"])
+                for item in admitted
+                if item["eligible_for_progress"] and item["band"] is not None
+            ][-limit:]
             if len(values) >= 2:
                 split = max(1, len(values) // 2)
                 early, recent = mean(values[:split]), mean(values[split:])
@@ -105,7 +104,8 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
         criteria = conn.execute(
             """
             SELECT s.module,cs.criterion,cs.version_label,
-                   COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value,cs.created_at
+                   COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value,
+                   cs.created_at,s.payload_json
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
             WHERE COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) IS NOT NULL
               AND s.status='completed'
@@ -128,7 +128,8 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
 
     grouped: dict[tuple[str, str], list[float]] = defaultdict(list)
     for row in criteria:
-        grouped[(row["module"], row["criterion"])].append(float(row["value"]))
+        if build_score_result(row)["eligible_for_progress"]:
+            grouped[(row["module"], row["criterion"])].append(float(row["value"]))
     lines.extend(["", "## 写作/口语分项"])
     if not grouped:
         lines.append("暂无结构化分项评分。")

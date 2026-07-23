@@ -1,0 +1,1 @@
+{"contract_version":1,"session_id":"L-example","items":[{"question_number":1,"user_answer":"fiveteen","correct_answer":"fifteen","evidence_location":"00:12-00:16","error_tags":["listening_spelling"],"explanation":"The vowel and final consonant were mis-segmented."}],"priority_patterns":["Spelling under number pressure"],"next_action":"Complete a five-item number drill."}

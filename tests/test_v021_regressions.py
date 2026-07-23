@@ -48,7 +48,7 @@ def test_v01_starter_manifest_is_safely_upgraded_and_indexed(tmp_path: Path):
     assert upgraded["corpus_version"] == 2
     assert upgraded["files"]
     with connect(home) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0] == 41
+        assert conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0] == 61
         assert conn.execute(
             "SELECT COUNT(*) FROM questions WHERE module='reading'"
         ).fetchone()[0] == 16

@@ -3,8 +3,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+import os
+import tempfile
 
 import yaml
+from filelock import FileLock
 
 from .config import load_profile, load_yaml
 from .validation import validate_data
@@ -39,10 +42,13 @@ def _merge_mapping(current: dict[str, Any], updates: dict[str, Any]) -> dict[str
     return result
 
 
-def complete_onboarding(home: Path, updates: dict[str, Any] | None = None) -> dict[str, Any]:
+def update_profile(
+    home: Path,
+    updates: dict[str, Any] | None = None,
+    *,
+    mark_ready: bool = False,
+) -> dict[str, Any]:
     path = home / "config" / "profile.yaml"
-    raw = load_yaml(path)
-    profile = load_profile(home)
     supplied = updates or {}
     unsupported = set(supplied) - ONBOARDING_FIELDS
     if unsupported:
@@ -53,14 +59,54 @@ def complete_onboarding(home: Path, updates: dict[str, Any] | None = None) -> di
             "IELTS AI Coach currently supports IELTS Academic only; "
             "General Training Reading and Writing tasks are not implemented"
         )
-    profile = _merge_mapping(profile, supplied)
-    profile["onboarding"] = {
-        **(profile.get("onboarding") or {}),
-        "status": "ready",
-        "completed_at": datetime.now(timezone.utc).isoformat(),
+    lock_path = home / "runtime" / "locks" / "profile.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(lock_path), timeout=30):
+        raw = load_yaml(path)
+        profile = _merge_mapping(load_profile(home), supplied)
+        # Target and minimum scores are editable in the UI while the stretch
+        # target remains an internal planning ceiling. Keep hidden planning
+        # bounds coherent instead of rejecting a valid visible form.
+        if isinstance(supplied.get("target"), dict):
+            target_scores = profile.get("target") or {}
+            minimum_scores = profile.get("minimum_required") or {}
+            stretch_scores = profile.get("stretch_target") or {}
+            for key, value in target_scores.items():
+                if key in minimum_scores and float(minimum_scores[key]) > float(value):
+                    minimum_scores[key] = value
+                if key in stretch_scores and float(stretch_scores[key]) < float(value):
+                    stretch_scores[key] = value
+            profile["minimum_required"] = minimum_scores
+            profile["stretch_target"] = stretch_scores
+        if mark_ready:
+            profile["onboarding"] = {
+                **(profile.get("onboarding") or {}),
+                "status": "ready",
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+            }
+        profile = validate_data(profile, "profile")
+        raw.update(profile)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=".profile-",
+            suffix=".yaml",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            yaml.safe_dump(raw, handle, allow_unicode=True, sort_keys=False)
+        try:
+            os.replace(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
+    return {
+        "onboarding": onboarding_status(home),
+        "profile": load_profile(home),
     }
-    profile = validate_data(profile, "profile")
-    # Preserve any future user-owned top-level fields while writing the validated merge.
-    raw.update(profile)
-    path.write_text(yaml.safe_dump(raw, allow_unicode=True, sort_keys=False), encoding="utf-8")
-    return onboarding_status(home)
+
+
+def complete_onboarding(home: Path, updates: dict[str, Any] | None = None) -> dict[str, Any]:
+    result = update_profile(home, updates, mark_ready=True)
+    return result["onboarding"]

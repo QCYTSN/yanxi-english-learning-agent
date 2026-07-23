@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 
+from .score_results import build_score_result
 from .storage import connect
 
 
@@ -12,7 +13,7 @@ def build_learning_profile(home: Path) -> str:
     with connect(home) as conn:
         sessions = conn.execute(
             """
-            SELECT module,occurred_at,band,score_kind,score_confidence,duration_minutes FROM sessions
+            SELECT module,occurred_at,band,score_kind,score_confidence,duration_minutes,payload_json FROM sessions
             WHERE status='completed'
             ORDER BY occurred_at
             """
@@ -27,13 +28,13 @@ def build_learning_profile(home: Path) -> str:
         criteria = conn.execute(
             """
             SELECT s.module,cs.criterion,
-                   AVG(COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0)) avg_score,
-                   COUNT(*) samples
+                   COALESCE(cs.score,(cs.score_low+cs.score_high)/2.0) value,
+                   s.payload_json
             FROM criterion_scores cs JOIN sessions s ON s.session_id=cs.session_id
             WHERE s.status='completed'
               AND COALESCE(cs.assessment_role,'local_rubric')='local_rubric'
               AND COALESCE(cs.confidence,'medium') IN ('medium','high')
-            GROUP BY s.module,cs.criterion ORDER BY s.module,cs.criterion
+            ORDER BY s.module,cs.criterion,cs.created_at
             """
         ).fetchall()
         reading = conn.execute(
@@ -59,15 +60,9 @@ def build_learning_profile(home: Path) -> str:
     lines.extend(["", "## 2. 能力画像"])
     by_module: dict[str, list[float]] = defaultdict(list)
     for row in sessions:
-        usable_score = (
-            row["score_kind"] != "partial_profile"
-            and (
-                row["score_kind"] != "ai_training_estimate"
-                or row["score_confidence"] in (None, "medium", "high")
-            )
-        )
-        if row["band"] is not None and usable_score:
-            by_module[row["module"]].append(float(row["band"]))
+        score = build_score_result(row)
+        if score["band"] is not None and score["eligible_for_progress"]:
+            by_module[row["module"]].append(float(score["band"]))
     for module in ("listening", "reading", "writing", "speaking"):
         values = by_module[module]
         lines.append(
@@ -75,10 +70,24 @@ def build_learning_profile(home: Path) -> str:
             if values
             else f"- {module.title()}: 暂无可用分数"
         )
-    if criteria:
-        lines.append("- 分项评分：")
-        for row in criteria:
-            lines.append(f"  - {row['module'].title()} {row['criterion']}: {row['avg_score']:.2f}（{row['samples']}）")
+    criterion_values: dict[tuple[str, str], list[float]] = defaultdict(list)
+    criterion_observations: dict[tuple[str, str], list[float]] = defaultdict(list)
+    for row in criteria:
+        if row["value"] is None:
+            continue
+        key = (row["module"], row["criterion"])
+        if build_score_result(row)["eligible_for_progress"]:
+            criterion_values[key].append(float(row["value"]))
+        else:
+            criterion_observations[key].append(float(row["value"]))
+    if criterion_values:
+        lines.append("- 分项评分（可信趋势）：")
+        for (module, criterion), values in criterion_values.items():
+            lines.append(f"  - {module.title()} {criterion}: {mean(values):.2f}（{len(values)}）")
+    if criterion_observations:
+        lines.append("- 分项评分（训练观察，不进入正式趋势）：")
+        for (module, criterion), values in criterion_observations.items():
+            lines.append(f"  - {module.title()} {criterion}: {mean(values):.2f}（{len(values)}）")
     if reading:
         lines.append("- 阅读题型正确率：")
         for row in reading:

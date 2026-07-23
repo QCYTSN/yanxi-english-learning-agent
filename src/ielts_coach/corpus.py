@@ -48,7 +48,14 @@ def _resolve_base(manifest: dict[str, Any], manifest_path: Path) -> Path:
     return Path(str(value)).expanduser().resolve() if value else manifest_path.parent.resolve()
 
 
-def import_manifest(home: Path, path: Path, *, index: bool = True, force: bool = False) -> dict[str, Any]:
+def import_manifest(
+    home: Path,
+    path: Path,
+    *,
+    index: bool = True,
+    force: bool = False,
+    refresh_reviews: bool = True,
+) -> dict[str, Any]:
     data = load_manifest(path)
     base = _resolve_base(data, path)
     stored = dict(data)
@@ -63,12 +70,13 @@ def import_manifest(home: Path, path: Path, *, index: bool = True, force: bool =
             files,
             source_type=stored["source_type"],
             authenticity=stored.get("authenticity"),
+            manifest=stored,
         )
     target = home / "corpus" / "manifests" / f"{data['corpus_id']}.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.safe_dump(stored, allow_unicode=True, sort_keys=False), encoding="utf-8")
     upsert_corpus(home, stored)
-    result: dict[str, Any] = {"manifest": stored, "index": {"passages": 0, "questions": 0, "duplicates": 0}}
+    result: dict[str, Any] = {"manifest": stored, "index": {"passages": 0, "questions": 0, "assessment_packs": 0, "duplicates": 0}}
     if index and files:
         result["index"] = import_question_files(
             home,
@@ -77,7 +85,9 @@ def import_manifest(home: Path, path: Path, *, index: bool = True, force: bool =
             files,
             source_type=stored["source_type"],
             authenticity=stored.get("authenticity"),
+            manifest=stored,
             force=force,
+            refresh_reviews=refresh_reviews,
         )
     return result
 
@@ -94,6 +104,7 @@ def reindex_corpus(home: Path, corpus_id: str, *, force: bool = False) -> dict[s
         data.get("files") or [],
         source_type=data["source_type"],
         authenticity=data.get("authenticity"),
+        manifest=data,
         force=force,
     )
 

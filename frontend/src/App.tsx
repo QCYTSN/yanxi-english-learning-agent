@@ -4,11 +4,16 @@ import { api, type Bootstrap } from './api/client'
 import { ErrorState, LoadingState } from './components/Common'
 import { Shell } from './components/Shell'
 import { FeedbackPage } from './pages/FeedbackPage'
+import { AssessmentRunnerPage } from './pages/AssessmentRunnerPage'
+import { DiagnosticPage } from './pages/DiagnosticPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { LibraryPage } from './pages/LibraryPage'
+import { ListeningWorkspace } from './pages/ListeningWorkspace'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { PracticePage } from './pages/PracticePage'
 import { ReadingWorkspace } from './pages/ReadingWorkspace'
 import { SettingsPage } from './pages/SettingsPage'
+import { SpeakingWorkspace } from './pages/SpeakingWorkspace'
 import { TodayPage } from './pages/TodayPage'
 import { WritingWorkspace } from './pages/WritingWorkspace'
 
@@ -28,11 +33,14 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
         <div className="setup-card">
           <p className="eyebrow">首次设置</p>
           <h1>本地学习目录尚未初始化</h1>
-          <p>运行 <code>ielts-coach init</code> 后刷新页面。E1 设置表单接入前，系统不会静默创建或覆盖学习数据。</p>
+          <p>请关闭此页面后重新双击桌面的 IELTS Study Desk。快捷方式会创建缺少的本地目录，不需要编辑配置文件。</p>
           <button onClick={() => void bootstrap.refetch()}>重新检查</button>
         </div>
       </div>
     )
+  }
+  if (bootstrap.data.onboarding?.status !== 'ready') {
+    return <OnboardingPage bootstrap={bootstrap.data} />
   }
 
   return (
@@ -40,9 +48,14 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
       <Routes>
         <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
         <Route path="/practice" element={<PracticePage />} />
+        <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
         <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
         <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
+        <Route path="/practice/listening" element={<ListeningWorkspace />} />
+        <Route path="/practice/listening/:sessionId" element={<ListeningWorkspace />} />
+        <Route path="/practice/speaking" element={<SpeakingWorkspace />} />
         <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
+        <Route path="/diagnostic" element={<DiagnosticPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
@@ -59,4 +72,3 @@ function StandaloneError({ error }: { error: unknown }) {
     </div>
   )
 }
-

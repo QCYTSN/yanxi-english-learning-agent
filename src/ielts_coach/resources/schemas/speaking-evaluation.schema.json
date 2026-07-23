@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["contract_version", "session_id", "score_kind", "confidence", "rubric", "criteria", "evidence_types", "priorities", "next_action"],
+  "properties": {
+    "contract_version": {"const": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "score_kind": {"enum": ["ai_training_estimate", "partial_profile"]},
+    "confidence": {"enum": ["low", "medium", "high"]},
+    "band": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+    "rubric": {
+      "type": "object",
+      "required": ["publisher", "standard", "source_reference"],
+      "properties": {
+        "publisher": {"const": "IELTS"},
+        "standard": {"const": "IELTS Speaking Band Descriptors"},
+        "version": {"type": ["string", "null"]},
+        "source_reference": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["criterion", "score", "evidence", "evidence_source"],
+        "properties": {
+          "criterion": {"enum": ["FC", "LR", "GRA", "PRON"]},
+          "score": {"type": ["number", "null"], "minimum": 0, "maximum": 9, "multipleOf": 0.5},
+          "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "evidence_source": {"enum": ["transcript", "timing", "audio", "voice_model_observation", "mixed", "unspecified"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "evidence_types": {"type": "array", "items": {"enum": ["transcript", "timing", "audio", "voice_model_observation", "mixed"]}},
+    "priorities": {"type": "array", "maxItems": 3, "items": {"type": "string", "minLength": 1}},
+    "next_action": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

@@ -3,11 +3,14 @@ from __future__ import annotations
 from .base import AgentAdapter, describe_adapter
 from .manual import ManualAdapter
 from .mock import MockAdapter
+from .process import ClaudeProcessAdapter, OpenCodeProcessAdapter
 
 
 _ADAPTERS: dict[str, AgentAdapter] = {
     "mock": MockAdapter(),
     "manual": ManualAdapter(),
+    "opencode": OpenCodeProcessAdapter(),
+    "claude": ClaudeProcessAdapter(),
 }
 
 
@@ -20,4 +23,3 @@ def get_adapter(adapter_id: str) -> AgentAdapter:
 
 def adapter_descriptors() -> list[dict[str, object]]:
     return [describe_adapter(adapter) for adapter in _ADAPTERS.values()]
-

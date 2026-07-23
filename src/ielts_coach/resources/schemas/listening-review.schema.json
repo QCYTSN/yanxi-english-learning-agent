@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["contract_version", "session_id", "items", "priority_patterns", "next_action"],
+  "properties": {
+    "contract_version": {"const": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_number", "user_answer", "correct_answer", "evidence_location", "error_tags", "explanation"],
+        "properties": {
+          "question_number": {"type": ["integer", "string"]},
+          "user_answer": {},
+          "correct_answer": {},
+          "evidence_location": {"type": "string", "minLength": 1},
+          "error_tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "explanation": {"type": "string", "minLength": 1},
+          "distractor": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "priority_patterns": {"type": "array", "maxItems": 3, "items": {"type": "string", "minLength": 1}},
+    "next_action": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

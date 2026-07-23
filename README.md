@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V0.7.0 已实现
+## V1.0.0 已实现
 
 ### 六个 Skill
 
@@ -39,17 +39,32 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - 分数、分项和阅读题型趋势报告
 - 受控 70/30 动态分配及历史记录
 - 评分校准结果登记与 MAE/±0.5 通过率报告
-- 原创 Starter Corpus：Writing、Speaking，以及 4 篇原创阅读文章和 16 道阅读题
+- 原创 Starter Corpus：Writing、Speaking、4 篇原创阅读文章和 16 道阅读题，以及 10 类 50 条高频 Listening 表达
 
 ### 本地学习 UI
 
-- `ielts-coach ui start` 启动仅监听 `127.0.0.1` 的浏览器学习界面
-- Today、Writing、Reading、Feedback、Library、History/Progress、Settings
+- `ielts-coach ui open` 在后台启动或复用仅监听 `127.0.0.1` 的单实例学习服务
+- Today、Writing、Reading、Speaking、Listening、Feedback、Library、History/Progress、Settings
 - React + TypeScript 前端作为 Python wheel 静态资源打包
 - Writing 自动保存、V1/V2、证据定位和 Task 1 注册图片
 - Reading 严格计时/逐级提示、答案锁和结构化复盘
-- MockAdapter 与 ManualAdapter；不解析任何 Agent 的终端展示文本
-- Schema v6 的幂等、revision 冲突、跨进程锁、Media Registry 和 Agent run 状态
+- Speaking 生成 Voice/Live 任务包，导回转写/结构化报告，并维护 Story Bank
+- Listening 用浏览器系统语音训练原创高频场景表达，记录错因和间隔复习状态
+- Mock、Manual、Claude Code CLI 与 OpenCode CLI Adapter；不解析任何 Agent 的终端展示文本
+- Schema v13 的幂等、revision 冲突、Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
+- 四科共用的完整模考运行器：冻结已审核套题、服务端权威计时、逐题恢复、导航、标记、提交和正式 Session 落盘
+- Academic Reading 三篇/40题/60分钟严格运行，提交前答案锁与提交后逐题证据复盘
+- Academic Writing 同一60分钟运行中的 Task 1/Task 2 独立保存，以及由 Runtime 执行的 1:2 汇总
+- Academic Listening 四部分/40题、注册音频、服务端一次播放状态和提交后复盘
+- Speaking Part 1–3、Voice/Live 任务包与导回结果绑定到同一 AssessmentRun/Session
+- 可校验的本地备份、跨目录恢复、迁移前安全快照和恢复后跨存储健康检查
+- Agent/模型执行来源、能力快照、运行时间、用量和校准状态记录
+- 浏览器内 Academic onboarding、Profile 设置、quick/full Diagnostic、Rubric、Telemetry 和 Doctor 状态
+- 统一 ScoreResult 与唯一进步准入规则：未校准或低置信度 AI 估分只显示为训练观察
+- Writing、Reading、Listening、Speaking、学习计划、摸底总结和周教练七类版本化 Agent 输出契约
+- Agent 后台队列、真实状态事件、超时、取消、重试、重启中断识别和 SSE 游标恢复
+- Today 直接消费 Runtime 的 70/30 推荐、目标差距、内容可用性与无 verified Pack 降级任务
+- Progress 展示四科可信趋势/训练观察、写口分项、阅读题型与耗时、听力场景/错因和错误状态
 
 ## 明确不包含
 
@@ -57,7 +72,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - 盗版资料下载入口
 - 独立模型 API 后端
 - 登录、云同步或多用户系统
-- OpenCode、Claude、Codex 的可编程进程 Adapter（V0.7 使用 Mock/Manual）
+- Codex 桌面当前会话的反向控制；只有发现稳定、可验证的本地调用协议后才会增加原生 Adapter
 - 自动语音识别和真实声学发音评分
 - RAG、向量数据库、微调或自主多 Agent 编排
 - 未经校准便冒充官方考官的分数
@@ -107,11 +122,18 @@ $ielts 读取我的目标和最近记录，开始今天的训练。
 
 OpenCode：从项目根目录启动后，让 Agent 加载 `ielts` skill。
 
-启动本地学习 UI（也可由能运行本地命令的 Agent 执行）：
+启动或重新打开本地学习 UI（不要求 Agent 已经运行）：
 
 ```powershell
-ielts-coach ui start
+ielts-coach ui open
+
+# 可选：安装 Windows 桌面快捷方式
+ielts-coach ui shortcut-install
 ```
+
+`ielts-coach ui start` 仍可用于前台调试；`ui status` 查看后台服务，
+`ui stop` 停止它。桌面快捷方式只启动/复用本地服务并打开 UI，不会静默
+启动 Claude Code、OpenCode 或 Codex。
 
 “Agent 能启动 UI”和“UI 能反向控制当前 Agent 对话”是两种能力。V0.7
 提供 MockAdapter 和 ManualAdapter；真实进程 Adapter 需要单独完成安全与能力验收。
@@ -145,6 +167,13 @@ ielts-coach telemetry summary
 # 首次设置
 ielts-coach onboarding status
 ielts-coach onboarding complete --setup-file onboarding.yaml
+
+# 本地备份与恢复
+ielts-coach backup create
+ielts-coach backup list
+ielts-coach backup verify <backup-id>
+# 恢复前先停止 Study Desk；系统仍会自动创建一次 pre-restore 安全备份
+ielts-coach backup restore <backup-id> --confirm
 
 # Academic 摸底
 ielts-coach diagnostic start --mode quick
@@ -192,6 +221,8 @@ ielts-coach calibration report
 - [Academic 摸底、严格阅读与评分校准](docs/ACADEMIC_DIAGNOSTIC_AND_CALIBRATION.md)
 - [隐私与版权](docs/PRIVACY_AND_COPYRIGHT.md)
 - [路线图](docs/ROADMAP.md)
+- [系统完整性优化计划](docs/SYSTEM_COMPLETENESS_PLAN.md)
+- [高质量内容补充计划](docs/CONTENT_ACQUISITION_PLAN.md)
 - [UI 产品与架构规格](docs/UI_PRODUCT_SPEC.md)
 - [UI 工程架构](docs/UI_ENGINEERING_ARCHITECTURE.md)
 - [UI 实现交接](docs/UI_IMPLEMENTATION_HANDOFF.md)

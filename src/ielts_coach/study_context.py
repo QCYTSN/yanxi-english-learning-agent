@@ -6,6 +6,7 @@ from typing import Any
 
 from .allocation import recommend_allocation
 from .config import load_profile
+from .content_inventory import build_content_readiness
 from .diagnostics import diagnostic_status
 from .onboarding import onboarding_status
 from .storage import connect, recent_bands
@@ -17,6 +18,18 @@ ROUTES = {
     "reading": "ielts-reading",
     "writing": "ielts-writing",
     "speaking": "ielts-speaking",
+}
+PRACTICE_ROUTES = {
+    "listening": "/practice?module=listening",
+    "reading": "/practice?module=reading",
+    "writing": "/practice?module=writing",
+    "speaking": "/practice?module=speaking",
+}
+FALLBACK_TASKS = {
+    "listening": ("高频听力场景听写", 20, "skill_drill"),
+    "reading": ("雅思阅读题型专项或逐级提示训练", 30, "question_type_drill"),
+    "writing": ("完成一道 Academic Writing 单项任务", 45, "section_practice"),
+    "speaking": ("生成 Voice / Live 口语任务包并导回报告", 20, "section_practice"),
 }
 
 
@@ -114,7 +127,7 @@ def build_study_context(
     setup = onboarding_status(home)
     history = _recent_snapshot(home, module, days)
     context: dict[str, Any] = {
-        "context_version": 1,
+        "context_version": 2,
         "route": ROUTES.get(module, "ielts"),
         "module": module,
         "onboarding": setup,
@@ -150,6 +163,58 @@ def build_study_context(
     context["diagnostic"] = diagnostic_status(home)
     context["allocation"] = allocation.allocation
     context["allocation_reasons"] = allocation.reasons[:3]
+    readiness = build_content_readiness(home)
+    with connect(home) as conn:
+        pack_rows = conn.execute(
+            """
+            SELECT module,COUNT(*) count FROM assessment_packs
+            WHERE practice_mode='full_mock' AND conformance_status='verified'
+            GROUP BY module
+            """
+        ).fetchall()
+    verified_packs = {str(row["module"]): int(row["count"]) for row in pack_rows}
+    ranked = sorted(
+        MODULES,
+        key=lambda name: (
+            float(allocation.evidence.get("target_gaps", {}).get(name) or 0),
+            float(allocation.allocation.get(name, 0)),
+        ),
+        reverse=True,
+    )
+    primary = ranked[0]
+    consolidation = next(
+        (
+            name
+            for name in sorted(
+                MODULES,
+                key=lambda item: float(allocation.allocation.get(item, 0)),
+                reverse=True,
+            )
+            if name != primary
+        ),
+        ranked[1],
+    )
+    context["today_plan"] = {
+        "strategy": "70_30",
+        "primary": _recommended_task(
+            primary,
+            share=0.70,
+            allocation=allocation,
+            readiness=readiness,
+            target=profile["target"],
+            verified_pack_count=verified_packs.get(primary, 0),
+        ),
+        "consolidation": _recommended_task(
+            consolidation,
+            share=0.30,
+            allocation=allocation,
+            readiness=readiness,
+            target=profile["target"],
+            verified_pack_count=verified_packs.get(consolidation, 0),
+        ),
+        "content_readiness_version": readiness["version"],
+        "verified_full_mock_count": readiness["band_ready_pack_count"],
+    }
     if setup["status"] == "pending":
         context["next_action"] = "complete_onboarding_once"
     elif setup["baseline_status"] == "missing":
@@ -157,3 +222,63 @@ def build_study_context(
     else:
         context["next_action"] = "recommend_one_primary_task"
     return context
+
+
+def _recommended_task(
+    module: str,
+    *,
+    share: float,
+    allocation: Any,
+    readiness: dict[str, Any],
+    target: dict[str, Any],
+    verified_pack_count: int,
+) -> dict[str, Any]:
+    module_readiness = readiness["modules"][module]
+    full_mock_metric = next(
+        (
+            item
+            for item in module_readiness["metrics"]
+            if item["key"] == "verified_full_mocks"
+        ),
+        None,
+    )
+    full_mock_available = verified_pack_count > 0 or bool(
+        full_mock_metric and full_mock_metric["current"] > 0
+    )
+    current = allocation.recent_average.get(module)
+    gap = allocation.evidence.get("target_gaps", {}).get(module)
+    if full_mock_available:
+        title = f"完成一套 {module.title()} verified full mock"
+        minutes = 60 if module in {"reading", "writing"} else 35
+        mode = "full_mock"
+    else:
+        title, minutes, mode = FALLBACK_TASKS[module]
+    reason = next(
+        (
+            item
+            for item in allocation.reasons
+            if module.lower() in item.lower()
+            or {
+                "listening": "听力",
+                "reading": "阅读",
+                "writing": "写作",
+                "speaking": "口语",
+            }[module]
+            in item
+        ),
+        f"当前训练分配为 {allocation.allocation[module] * 100:.0f}%。",
+    )
+    return {
+        "module": module,
+        "share": share,
+        "title": title,
+        "reason": reason,
+        "estimated_minutes": minutes,
+        "target_band": target.get(module),
+        "recent_band": current,
+        "target_gap": round(float(gap), 2) if gap is not None else None,
+        "content_available": full_mock_available,
+        "practice_mode": mode,
+        "fallback": not full_mock_available,
+        "route": PRACTICE_ROUTES[module],
+    }

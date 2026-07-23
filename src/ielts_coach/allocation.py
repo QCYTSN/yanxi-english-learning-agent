@@ -127,7 +127,9 @@ def recommend_allocation(home: Path, *, persist: bool = False) -> AllocationResu
 
     # Criterion-level signals are available after structured Writing/Speaking records exist.
     writing_risk = [
-        recent_criterion_average(home, "writing", criterion)
+        recent_criterion_average(
+            home, "writing", criterion, eligible_only=True
+        )
         for criterion in ("TR", "TA", "CC", "LR", "GRA")
     ]
     writing_risk = [value for value in writing_risk if value is not None]

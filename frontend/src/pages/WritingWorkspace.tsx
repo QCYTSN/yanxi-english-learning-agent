@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type Draft, type Question, type SessionSummary } from '../api/client'
 import { AgentPanel } from '../components/AgentPanel'
-import { ErrorState, LoadingState, PageHeader, PhaseRail, SaveState, StructuredDataTable } from '../components/Common'
+import { ConformanceBadge, ErrorState, LoadingState, PageHeader, PhaseRail, SaveState, StructuredTaskVisual } from '../components/Common'
 
 export function WritingWorkspace() {
   const { sessionId = '' } = useParams()
@@ -71,20 +71,24 @@ export function WritingWorkspace() {
   const versions = (session.data.versions as Array<{ label: string; content: string }> | undefined) ?? []
   const nextLabel = versions.some((item) => item.label === 'v1') ? 'V2' : 'V1'
   const submittedLabel = versions.at(-1)?.label
+  const isTask1 = question.data?.task === 'task1'
+  const minimumWords = Number(question.data?.minimum_words ?? (isTask1 ? 150 : 250))
+  const words = wordCount(content)
+  const minutes = isTask1 ? 20 : 40
   return (
     <div className="workspace-page">
-      <PageHeader eyebrow={sessionId} title="Writing 工作区" description="先完成自己的版本，再查看证据化反馈。" action={<SaveState state={saveState} />} />
+      <PageHeader eyebrow={sessionId} title="Writing 工作区" description="先完成自己的版本，再查看证据化反馈。Task 2 在完整考试中按双倍权重计分。" action={<div className="header-badges"><ConformanceBadge status={question.data?.conformance_status ?? String(session.data.conformance_status ?? '')} mode={question.data?.practice_mode ?? String(session.data.practice_mode ?? '')} /><SaveState state={saveState} /></div>} />
       <PhaseRail active={status === 'awaiting_revision' ? '修改' : status === 'awaiting_feedback' ? '反馈' : '写作'} phases={['审题', '写作', '反馈', '修改', '完成']} />
       <div className="writing-grid">
         <aside className="task-panel">
           <p className="eyebrow">Task</p>
           <h2>{question.data?.task === 'task1' ? 'Academic Task 1' : 'Academic Task 2'}</h2>
           <p className="task-prompt">{question.data?.content ?? '题目正在载入。'}</p>
-          {question.data?.task_data && <StructuredDataTable data={question.data.task_data} />}
+          {question.data?.task_data && <StructuredTaskVisual data={question.data.task_data} />}
           {question.data?.task === 'task1' && <MediaUpload sessionId={sessionId} />}
         </aside>
         <section className="editor-panel">
-          <div className="editor-toolbar"><span>{nextLabel}</span><span>{wordCount(content)} words</span><span><TimerReset size={16} />40:00</span></div>
+          <div className="editor-toolbar"><span>{nextLabel}</span><span className={words < minimumWords ? 'word-count-warning' : undefined}>{words} / 至少 {minimumWords} words</span><span><TimerReset size={16} />{minutes}:00</span></div>
           <label className="sr-only" htmlFor="essay-editor">作文内容</label>
           <textarea id="essay-editor" className="essay-editor" value={content} onChange={(event) => setContent(event.target.value)} placeholder="在这里开始写作……" spellCheck />
           <div className="editor-footer"><SaveState state={saveState} /><button className="button primary" onClick={() => submit.mutate()} disabled={!content.trim() || submit.isPending || status === 'awaiting_feedback'}><Send size={18} />提交 {nextLabel}</button></div>

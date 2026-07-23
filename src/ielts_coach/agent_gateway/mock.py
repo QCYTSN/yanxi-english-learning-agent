@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .base import AgentCapabilities
+from .base import AgentCapabilities, AgentIdentity
+from .. import __version__
 from ..question_bank import show_question
 from ..session_manager import show_session
 from ..text_anchor import create_text_anchor
@@ -12,6 +13,16 @@ from ..text_anchor import create_text_anchor
 class MockAdapter:
     id = "mock"
     label = "Mock feedback"
+
+    def identity(self) -> AgentIdentity:
+        return AgentIdentity(
+            agent_provider="ielts-ai-coach",
+            agent_version=__version__,
+            model_id=None,
+            model_display_name=None,
+            launcher_kind="deterministic_local",
+            calibration_status="not_applicable",
+        )
 
     def probe(self) -> AgentCapabilities:
         return AgentCapabilities(
@@ -22,9 +33,11 @@ class MockAdapter:
             audio_input=False,
             tool_execution=False,
             remote_processing=False,
+            cancellation=True,
+            timeout_control=True,
         )
 
-    def run(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
+    def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
         session_id = str(request["study_session_id"])
         session = show_session(home, session_id)
         if not session:
@@ -34,7 +47,64 @@ class MockAdapter:
             return self._writing_review(home, session)
         if contract == "reading-review@1":
             return self._reading_review(session)
+        if contract == "listening-review@1":
+            return self._listening_review(session)
+        if contract == "speaking-evaluation@1":
+            return self._speaking_evaluation(session)
+        if contract == "study-plan@1":
+            return {
+                "contract_version": 1,
+                "period": "current-week",
+                "allocation": {
+                    "listening": 0.35,
+                    "reading": 0.35,
+                    "writing": 0.20,
+                    "speaking": 0.10,
+                },
+                "tasks": [
+                    {
+                        "module": "reading",
+                        "title": "Complete one evidence-based reading drill",
+                        "minutes": 30,
+                        "reason": "Deterministic contract fixture",
+                    }
+                ],
+                "evidence_summary": ["No model inference was used."],
+            }
+        if contract == "diagnostic-summary@1":
+            return {
+                "contract_version": 1,
+                "diagnostic_id": f"diagnostic:{session_id}",
+                "module_status": {
+                    module: {"status": "missing", "evidence": []}
+                    for module in ("listening", "reading", "writing", "speaking")
+                },
+                "evidence_gaps": ["Complete one Session in each module."],
+                "recommended_next_steps": ["Start the deterministic diagnostic."],
+            }
+        if contract == "weekly-coaching@1":
+            return {
+                "contract_version": 1,
+                "period": "current-week",
+                "wins": [],
+                "risks": ["Not enough eligible evidence."],
+                "next_week_focus": ["Collect one verified objective result."],
+                "evidence_limits": ["MockAdapter does not infer learning gains."],
+            }
         raise ValueError(f"MockAdapter does not support {contract}")
+
+    run = start
+
+    def stream(self, home: Path, execution_ref: str) -> list[dict[str, Any]]:
+        return []
+
+    def cancel(self, home: Path, execution_ref: str) -> bool:
+        return True
+
+    def resume(
+        self, home: Path, execution_ref: str, request: dict[str, Any]
+    ) -> dict[str, Any]:
+        return self.start(home, request)
 
     def _writing_review(self, home: Path, session: dict[str, Any]) -> dict[str, Any]:
         versions = session.get("versions") or []
@@ -122,4 +192,53 @@ class MockAdapter:
             "answer_revealed": True,
             "items": items,
             "next_action": "Review the evidence with an authorised key.",
+        }
+
+    def _listening_review(self, session: dict[str, Any]) -> dict[str, Any]:
+        items = [
+            {
+                "question_number": item.get("question_number", index),
+                "user_answer": item.get("user_answer"),
+                "correct_answer": item.get("correct_answer"),
+                "evidence_location": item.get("evidence_location")
+                or "Registered audio evidence",
+                "error_tags": item.get("error_tags") or [],
+                "explanation": "Deterministic review fixture; verify against authorised audio evidence.",
+                "distractor": None,
+            }
+            for index, item in enumerate(session.get("questions") or [], start=1)
+        ]
+        return {
+            "contract_version": 1,
+            "session_id": session["session_id"],
+            "items": items,
+            "priority_patterns": ["Verify spelling and segmentation."],
+            "next_action": "Replay only in a non-mock review context.",
+        }
+
+    def _speaking_evaluation(self, session: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "contract_version": 1,
+            "session_id": session["session_id"],
+            "score_kind": "partial_profile",
+            "confidence": "low",
+            "band": None,
+            "rubric": {
+                "publisher": "IELTS",
+                "standard": "IELTS Speaking Band Descriptors",
+                "version": "current-public",
+                "source_reference": "https://ielts.org/",
+            },
+            "criteria": [
+                {
+                    "criterion": name,
+                    "score": 6.0,
+                    "evidence": ["Deterministic transcript-only fixture."],
+                    "evidence_source": "transcript",
+                }
+                for name in ("FC", "LR", "GRA")
+            ],
+            "evidence_types": ["transcript"],
+            "priorities": ["Collect audio evidence before evaluating Pronunciation."],
+            "next_action": "Import a Voice / Live report with audio observations.",
         }

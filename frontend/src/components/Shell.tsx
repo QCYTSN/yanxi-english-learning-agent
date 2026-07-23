@@ -5,7 +5,7 @@ import { useEffect, useRef, type PropsWithChildren } from 'react'
 const navigation = [
   { to: '/today', label: '今日学习', icon: Home },
   { to: '/practice', label: '开始练习', icon: BookOpen },
-  { to: '/library', label: '本地题库', icon: Library },
+  { to: '/library', label: '内容与题库', icon: Library },
   { to: '/history', label: '历史与进步', icon: History },
   { to: '/settings', label: '设置', icon: Settings },
 ]

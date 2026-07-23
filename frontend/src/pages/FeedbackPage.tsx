@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Target } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { api, type SessionSummary } from '../api/client'
+import { api, type AgentRun, type SessionSummary } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
 type Anchor = { quote: string; start: number; end: number; status?: string }
@@ -17,6 +17,7 @@ export function FeedbackPage() {
   const { sessionId = '' } = useParams()
   const queryClient = useQueryClient()
   const session = useQuery({ queryKey: ['session', sessionId], queryFn: () => api<SessionSummary>(`/api/v1/sessions/${sessionId}`) })
+  const runs = useQuery({ queryKey: ['agent-runs', sessionId], queryFn: () => api<AgentRun[]>(`/api/v1/agent-runs?study_session_id=${encodeURIComponent(sessionId)}`) })
   const finish = useMutation({
     mutationFn: () => api<SessionSummary>(`/api/v1/sessions/${sessionId}/finish`, { method: 'POST' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['session', sessionId] }),
@@ -28,9 +29,18 @@ export function FeedbackPage() {
     <div className="page">
       <PageHeader eyebrow={sessionId} title={isWriting ? '写作反馈' : '阅读复盘'} description="正式反馈来自已经通过 Schema 和语义验证的 Session 数据。" action={session.data.status !== 'completed' ? <button className="button secondary" onClick={() => finish.mutate()}><CheckCircle2 size={18} />完成本次练习</button> : <StatusBadge tone="success">已完成</StatusBadge>} />
       {finish.isError && <ErrorState error={finish.error} />}
+      {runs.data?.[0] && <AgentIdentityCard run={runs.data[0]} />}
       {isWriting ? <WritingFeedback session={session.data} /> : <ReadingFeedback session={session.data} />}
     </div>
   )
+}
+
+function AgentIdentityCard({ run }: { run: AgentRun }) {
+  const deterministic = run.launcher_kind === 'deterministic_local'
+  return <section className="agent-identity-card">
+    <div><p className="eyebrow">Result provenance</p><h2>{deterministic ? '本地确定性测试结果' : 'Agent 生成结果'}</h2></div>
+    <dl><div><dt>Adapter</dt><dd>{run.adapter_id}</dd></div><div><dt>Agent</dt><dd>{run.agent_provider ?? '未知'}</dd></div><div><dt>模型</dt><dd>{deterministic ? '未使用模型' : run.model_display_name ?? run.model_id ?? '未知'}</dd></div><div><dt>生成时间</dt><dd>{new Date(run.completed_at ?? run.created_at).toLocaleString('zh-CN')}</dd></div><div><dt>校准</dt><dd>{run.calibration_status}</dd></div></dl>
+  </section>
 }
 
 function WritingFeedback({ session }: { session: SessionSummary }) {

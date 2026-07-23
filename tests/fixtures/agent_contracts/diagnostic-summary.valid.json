@@ -1,0 +1,1 @@
+{"contract_version":1,"diagnostic_id":"D-example","module_status":{"listening":{"status":"missing","evidence":[]},"reading":{"status":"partial","evidence":["One drill"]},"writing":{"status":"missing","evidence":[]},"speaking":{"status":"missing","evidence":[]}},"evidence_gaps":["No full mocks"],"recommended_next_steps":["Complete a quick diagnostic."]}

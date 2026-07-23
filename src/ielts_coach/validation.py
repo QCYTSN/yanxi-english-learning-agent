@@ -11,6 +11,7 @@ import jsonschema
 from jsonschema import FormatChecker
 
 from .speaking_evaluation import validate_speaking_report_semantics
+from .conformance import assess_pack
 
 
 def normalise_json_value(value: Any) -> Any:
@@ -48,8 +49,21 @@ def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
         _validate_writing_review_semantics(normalised)
     elif schema_name == "reading-review":
         _validate_reading_review_semantics(normalised)
+    elif schema_name == "listening-review":
+        _validate_listening_review_semantics(normalised)
+    elif schema_name == "speaking-evaluation":
+        _validate_speaking_evaluation_semantics(normalised)
+    elif schema_name == "study-plan":
+        allocation = normalised["allocation"]
+        if abs(sum(float(value) for value in allocation.values()) - 1.0) > 0.001:
+            raise ValueError("Study plan allocation must sum to 1")
     elif schema_name == "rubric-manifest":
         _validate_rubric_manifest_semantics(normalised)
+    elif schema_name == "assessment-pack":
+        report = assess_pack(normalised)
+        declared = normalised.get("conformance_status")
+        if declared == "verified" and report["status"] != "verified":
+            raise ValueError("Assessment pack claims verified conformance but failed: " + "; ".join(report["errors"] or report["warnings"]))
     return normalised
 
 
@@ -87,6 +101,30 @@ def _validate_reading_review_semantics(data: dict[str, Any]) -> None:
                 raise ValueError(f"Wrong-answer review item is missing: {', '.join(missing)}")
 
 
+def _validate_listening_review_semantics(data: dict[str, Any]) -> None:
+    numbers = [str(item["question_number"]) for item in data["items"]]
+    if len(numbers) != len(set(numbers)):
+        raise ValueError("Listening review question numbers must be unique")
+
+
+def _validate_speaking_evaluation_semantics(data: dict[str, Any]) -> None:
+    names = [item["criterion"] for item in data["criteria"]]
+    if len(names) != len(set(names)):
+        raise ValueError("Speaking evaluation criteria must be unique")
+    if data.get("band") is not None:
+        if set(names) != {"FC", "LR", "GRA", "PRON"}:
+            raise ValueError("Speaking overall band requires all four criteria")
+        pron = next(item for item in data["criteria"] if item["criterion"] == "PRON")
+        if pron["evidence_source"] not in {
+            "audio",
+            "voice_model_observation",
+            "mixed",
+        }:
+            raise ValueError(
+                "Speaking overall band requires audio-based Pronunciation evidence"
+            )
+
+
 def _validate_rubric_manifest_semantics(data: dict[str, Any]) -> None:
     expected = {
         "writing": "IELTS Writing Band Descriptors",
@@ -103,6 +141,13 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
         if correct is not None and total is not None and int(correct) > int(total):
             raise ValueError("score.correct must not exceed score.total")
     module = data["module"]
+    practice_mode = data.get("practice_mode")
+    if practice_mode == "full_mock":
+        contract = data.get("assessment_contract") or {}
+        if data.get("conformance_status") != "verified" or contract.get("conformance_status") != "verified":
+            raise ValueError("A full IELTS mock requires a verified assessment contract")
+    if practice_mode == "skill_drill" and data.get("band") is not None:
+        raise ValueError("Skill drills cannot produce an IELTS Band score")
     allowed_criteria = {
         "writing": {"TA", "TR", "CC", "LR", "GRA"},
         "speaking": {"FC", "LR", "GRA", "PRON"},
@@ -145,26 +190,52 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
         if not rubric.get("source_reference"):
             raise ValueError("Writing estimates require an official rubric source_reference")
         if data.get("band") is not None:
-            task = data.get("task")
-            scored_version = data.get("scored_version")
-            if task not in {"task1", "task2"} or not scored_version:
-                raise ValueError("A numeric Writing task estimate requires task and scored_version")
-            expected_criteria = {"TA", "CC", "LR", "GRA"} if task == "task1" else {"TR", "CC", "LR", "GRA"}
-            scored_items = [
-                item for item in (data.get("criterion_scores") or [])
-                if str(item.get("version", item.get("version_label", "final"))) == str(scored_version)
-            ]
-            exact = {str(item.get("criterion")): item.get("score") for item in scored_items}
-            if set(exact) != expected_criteria or any(value is None for value in exact.values()):
-                raise ValueError(
-                    "A numeric Writing task estimate requires four exact official criterion scores for scored_version"
-                )
-            mean_score = sum(Decimal(str(value)) for value in exact.values()) / Decimal("4")
-            expected_band = float((mean_score * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2)
-            if float(data["band"]) != expected_band:
-                raise ValueError(
-                    f"Writing task band must be the equally weighted four-criterion result ({expected_band})"
-                )
+            task_results = data.get("writing_task_results") or {}
+            if data.get("practice_mode") == "full_mock" and task_results:
+                task_bands: dict[str, Decimal] = {}
+                for task_name, task_criterion in (("task1", "TA"), ("task2", "TR")):
+                    task_result = task_results.get(task_name) or {}
+                    criteria = task_result.get("criteria") or {}
+                    required = {task_criterion, "CC", "LR", "GRA"}
+                    if set(criteria) != required:
+                        raise ValueError(
+                            f"Writing full mock {task_name} requires four exact official criterion scores"
+                        )
+                    mean = sum(Decimal(str(criteria[key])) for key in required) / Decimal("4")
+                    expected_task = (mean * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2
+                    if Decimal(str(task_result.get("band"))) != expected_task:
+                        raise ValueError(
+                            f"Writing full mock {task_name} band must equal {expected_task}"
+                        )
+                    task_bands[task_name] = expected_task
+                expected_overall = (
+                    ((task_bands["task1"] + task_bands["task2"] * 2) / 3) * 2
+                ).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2
+                if Decimal(str(data["band"])) != expected_overall:
+                    raise ValueError(
+                        f"Writing full mock band must use Task 1:Task 2 weighting of 1:2 ({expected_overall})"
+                    )
+            else:
+                task = data.get("task")
+                scored_version = data.get("scored_version")
+                if task not in {"task1", "task2"} or not scored_version:
+                    raise ValueError("A numeric Writing task estimate requires task and scored_version")
+                expected_criteria = {"TA", "CC", "LR", "GRA"} if task == "task1" else {"TR", "CC", "LR", "GRA"}
+                scored_items = [
+                    item for item in (data.get("criterion_scores") or [])
+                    if str(item.get("version", item.get("version_label", "final"))) == str(scored_version)
+                ]
+                exact = {str(item.get("criterion")): item.get("score") for item in scored_items}
+                if set(exact) != expected_criteria or any(value is None for value in exact.values()):
+                    raise ValueError(
+                        "A numeric Writing task estimate requires four exact official criterion scores for scored_version"
+                    )
+                mean_score = sum(Decimal(str(value)) for value in exact.values()) / Decimal("4")
+                expected_band = float((mean_score * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / 2)
+                if float(data["band"]) != expected_band:
+                    raise ValueError(
+                        f"Writing task band must be the equally weighted four-criterion result ({expected_band})"
+                    )
 
     if module == "speaking":
         score_kind = data.get("score_kind")
@@ -244,8 +315,13 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
         meaningful = bool(data.get("versions") or data.get("criterion_scores")) or common_score or errors
     elif module == "speaking":
         report = data.get("speaking_report") or {}
+        observations = report.get("source_observations") or {} if isinstance(report, dict) else {}
         report_content = bool(
-            report.get("parts") or report.get("transcript") or report.get("feedback")
+            report.get("parts")
+            or report.get("transcript")
+            or report.get("feedback")
+            or observations.get("parts")
+            or observations.get("transcript")
         ) if isinstance(report, dict) else False
         meaningful = report_content or bool(data.get("criterion_scores")) or common_score or errors
     else:
