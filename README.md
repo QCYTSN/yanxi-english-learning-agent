@@ -51,7 +51,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - Speaking 生成 Voice/Live 任务包，导回转写/结构化报告，并维护 Story Bank
 - Listening 用浏览器系统语音训练原创高频场景表达，记录错因和间隔复习状态
 - Mock、Manual、Claude Code CLI 与 OpenCode CLI Adapter；不解析任何 Agent 的终端展示文本
-- Schema v13 的幂等、revision 冲突、Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
+- Schema v14 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
 - 四科共用的完整模考运行器：冻结已审核套题、服务端权威计时、逐题恢复、导航、标记、提交和正式 Session 落盘
 - Academic Reading 三篇/40题/60分钟严格运行，提交前答案锁与提交后逐题证据复盘
 - Academic Writing 同一60分钟运行中的 Task 1/Task 2 独立保存，以及由 Runtime 执行的 1:2 汇总

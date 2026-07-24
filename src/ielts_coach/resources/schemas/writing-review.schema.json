@@ -27,7 +27,7 @@
     "stage": {"enum": ["first_review", "version_comparison", "final_review"]},
     "task": {"enum": ["task1", "task2"]},
     "version_label": {"type": "string", "minLength": 1},
-    "score_kind": {"const": "ai_training_estimate"},
+    "score_kind": {"enum": ["ai_training_estimate", "mock_fixture"]},
     "confidence": {"enum": ["low", "medium", "high"]},
     "estimated_band": {
       "type": "object",
@@ -42,7 +42,7 @@
       "type": "object",
       "required": ["rubric_id", "publisher", "standard", "source_reference"],
       "properties": {
-        "rubric_id": {"type": "string", "minLength": 1},
+        "rubric_id": {"const": "ielts-writing-public-descriptors"},
         "publisher": {"const": "IELTS"},
         "standard": {"const": "IELTS Writing Band Descriptors"},
         "version": {"type": ["string", "null"]},

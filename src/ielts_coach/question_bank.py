@@ -12,6 +12,7 @@ from .storage import (
     get_question_for_grading,
     list_questions,
     question_attempted,
+    redact_answer_data,
     upsert_assessment_pack,
     upsert_passage,
     upsert_question,
@@ -293,6 +294,7 @@ def search_questions(
     passage_id: str | None = None,
     exclude_completed: bool = False,
     limit: int = 50,
+    offset: int = 0,
 ) -> list[dict[str, Any]]:
     rows = list_questions(
         home,
@@ -306,6 +308,7 @@ def search_questions(
         passage_id=passage_id,
         exclude_completed=exclude_completed,
         limit=limit,
+        offset=offset,
     )
     return [dict(row) for row in rows]
 
@@ -325,6 +328,56 @@ def show_question(home: Path, question_id: str, include_answer: bool = False) ->
 
 
 def show_reading_set(home: Path, passage_id: str, include_answers: bool = False) -> dict[str, Any] | None:
+    if not include_answers:
+        with connect(home) as conn:
+            passage_row = conn.execute(
+                "SELECT payload_json FROM question_passages WHERE passage_id=?",
+                (passage_id,),
+            ).fetchone()
+            rows = conn.execute(
+                """
+                SELECT question_id,payload_json
+                FROM questions
+                WHERE module='reading' AND passage_id=?
+                ORDER BY question_id
+                """,
+                (passage_id,),
+            ).fetchall()
+            if not rows:
+                return None
+            question_ids = [str(row["question_id"]) for row in rows]
+            placeholders = ",".join("?" for _ in question_ids)
+            option_rows = conn.execute(
+                f"""
+                SELECT question_id,option_key,option_text
+                FROM question_options
+                WHERE question_id IN ({placeholders})
+                ORDER BY question_id,id
+                """,
+                question_ids,
+            ).fetchall()
+        options: dict[str, list[dict[str, str]]] = {}
+        for row in option_rows:
+            options.setdefault(str(row["question_id"]), []).append(
+                {"key": str(row["option_key"]), "text": str(row["option_text"])}
+            )
+        questions = []
+        for row in rows:
+            item = redact_answer_data(json.loads(row["payload_json"]))
+            if options.get(str(row["question_id"])):
+                item["options"] = options[str(row["question_id"])]
+            questions.append(item)
+        passage = (
+            redact_answer_data(json.loads(passage_row["payload_json"]))
+            if passage_row
+            else None
+        )
+        return {
+            "passage": passage,
+            "questions": questions,
+            "conformance": assess_reading_set(passage or {}, questions),
+        }
+
     rows = search_questions(home, module="reading", passage_id=passage_id, limit=1000)
     if not rows:
         return None

@@ -72,10 +72,14 @@ def test_writing_runtime_is_revisioned_validated_and_resumable(tmp_path: Path):
     assert submitted["status"] == "awaiting_feedback"
     assert resume_session(home, "writing")["session_id"] == session_id
 
-    reviewed = apply_writing_review(home, session_id, _writing_review(session_id), expected_revision=1)
+    review = _writing_review(session_id)
+    review["rubric"]["source_reference"] = "https://model-invented.invalid/rubric"
+    reviewed = apply_writing_review(home, session_id, review, expected_revision=1)
     assert reviewed["revision"] == 2
     assert reviewed["status"] == "awaiting_revision"
     assert reviewed["band"] == 6.5
+    assert reviewed["rubric"]["rubric_id"] == "ielts-writing-public-descriptors"
+    assert "model-invented.invalid" not in reviewed["rubric"]["source_reference"]
     with connect(home) as conn:
         assert conn.execute("SELECT COUNT(*) FROM writing_versions WHERE session_id=?", (session_id,)).fetchone()[0] == 1
         assert conn.execute("SELECT COUNT(*) FROM criterion_scores WHERE session_id=?", (session_id,)).fetchone()[0] == 4
@@ -99,6 +103,8 @@ def test_reading_runtime_preserves_hint_and_answer_integrity(tmp_path: Path):
     session_id = path.stem
     hint = record_reading_hint(home, session_id, level=1)
     assert hint["hints_used"] == 1
+    assert hint["latest_hint"]["answer_revealed"] is False
+    assert hint["latest_hint"]["message"]
 
     answers = [{"question_number": 1, "question_type": "multiple_choice", "user_answer": "B"}]
     submitted = submit_reading_answers(home, session_id, answers, expected_revision=1)

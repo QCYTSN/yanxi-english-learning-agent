@@ -13,6 +13,10 @@ from ielts_coach.agent_gateway import adapter_descriptors
 from ielts_coach.agent_gateway.process import (
     ClaudeProcessAdapter,
     OpenCodeProcessAdapter,
+    _normalise_opencode_result,
+    _process_environment,
+    _proxy_environment_from_windows_value,
+    _remove_temporary_paths,
 )
 from ielts_coach.agent_jobs import AgentJobManager
 from ielts_coach.init_home import initialise_home
@@ -120,6 +124,15 @@ def test_agent_contract_golden_and_failure_samples(contract: str):
         validate_agent_contract(contract, invalid)
 
 
+def test_writing_agent_cannot_invent_authoritative_rubric_id():
+    result = json.loads(
+        (FIXTURES / "writing-review.valid.json").read_text(encoding="utf-8")
+    )
+    result["rubric"]["rubric_id"] = "model-invented-rubric"
+    with pytest.raises(Exception):
+        validate_agent_contract("writing-review@1", result)
+
+
 def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
@@ -155,16 +168,19 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
         "queued",
         "running",
         "validating",
-        "persisting",
-        "persisted",
+        "test_passed",
     }
     run_id = response.json()["run_id"]
     deadline = time.monotonic() + 5
     run = response.json()
-    while run["status"] not in {"persisted", "failed"} and time.monotonic() < deadline:
+    while run["status"] not in {"test_passed", "failed"} and time.monotonic() < deadline:
         time.sleep(0.03)
         run = client.get(f"/api/v1/agent-runs/{run_id}").json()
-    assert run["status"] == "persisted"
+    assert run["status"] == "test_passed"
+    assert run["result"]["score_kind"] == "mock_fixture"
+    canonical = client.get(f"/api/v1/sessions/{session['session_id']}").json()
+    assert canonical["status"] == "awaiting_feedback"
+    assert "writing_review" not in canonical
     events = client.get(f"/api/v1/agent-runs/{run_id}/events?after=999")
     assert events.status_code == 200
 
@@ -182,10 +198,10 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
     }
 
 
-def test_schema13_and_restart_recovery(tmp_path: Path):
+def test_schema14_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 13
+    assert SCHEMA_VERSION == 14
     create_agent_run(
         home,
         {
@@ -212,7 +228,7 @@ def test_schema13_and_restart_recovery(tmp_path: Path):
         agent_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(agent_runs)")
         }
-    assert version == "13"
+    assert version == "14"
     assert {"timeout_seconds", "attempt_count", "cancel_requested"}.issubset(
         agent_columns
     )
@@ -231,7 +247,7 @@ def test_process_adapters_extract_only_explicit_runtime_identity():
     claude_identity = claude._extract_runtime_identity(
         json.dumps(
             {
-                "modelUsage": {"claude-sonnet-explicit": {"inputTokens": 20}},
+                "modelUsage": {"\u001b[1mclaude-sonnet-explicit[1m]\u001b[0m": {"inputTokens": 20}},
                 "session_id": "claude-session",
             }
         )
@@ -256,6 +272,119 @@ def test_process_adapters_extract_only_explicit_runtime_identity():
     assert opencode_identity["agent_provider"] == "opencode"
     assert opencode_identity["model_id"] == "model-returned-by-cli"
     assert opencode_identity["agent_session_id"] == "opencode-session"
+
+
+def test_process_adapters_keep_large_prompts_out_of_windows_command_line(
+    tmp_path: Path,
+):
+    prompt = "REQUEST\n" + ("x" * 50000)
+    claude = ClaudeProcessAdapter()
+    claude_command, claude_stdin, _, claude_cleanup = claude._prepare_invocation(
+        tmp_path,
+        "claude.exe",
+        prompt,
+        "writing-review@1",
+    )
+    assert prompt not in claude_command
+    assert claude_stdin == prompt
+    assert claude_cleanup == []
+
+    opencode = OpenCodeProcessAdapter()
+    command, stdin_text, environment, cleanup = opencode._prepare_invocation(
+        tmp_path,
+        "opencode.exe",
+        prompt,
+        "writing-review@1",
+    )
+    try:
+        assert prompt not in command
+        assert stdin_text is None
+        assert Path(environment["OPENCODE_CONFIG"]).is_file()
+        request_path = next(path for path in cleanup if path.suffix == ".txt")
+        assert request_path.read_text(encoding="utf-8") == prompt
+        assert "--file" in command
+    finally:
+        _remove_temporary_paths(cleanup)
+    assert all(not path.exists() for path in cleanup)
+
+
+def test_windows_system_proxy_is_translated_for_cli_adapters():
+    assert _proxy_environment_from_windows_value("127.0.0.1:7890") == {
+        "HTTP_PROXY": "http://127.0.0.1:7890",
+        "HTTPS_PROXY": "http://127.0.0.1:7890",
+        "http_proxy": "http://127.0.0.1:7890",
+        "https_proxy": "http://127.0.0.1:7890",
+    }
+    assert _proxy_environment_from_windows_value(
+        "http=proxy.local:8080;https=secure.local:8443;socks=127.0.0.1:1080"
+    ) == {
+        "HTTP_PROXY": "http://proxy.local:8080",
+        "HTTPS_PROXY": "http://secure.local:8443",
+        "ALL_PROXY": "socks5://127.0.0.1:1080",
+        "http_proxy": "http://proxy.local:8080",
+        "https_proxy": "http://secure.local:8443",
+        "all_proxy": "socks5://127.0.0.1:1080",
+    }
+
+
+def test_explicit_proxy_environment_is_not_overwritten(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.setenv("HTTPS_PROXY", "http://explicit.local:9000")
+    monkeypatch.setattr(
+        "ielts_coach.agent_gateway.process._windows_system_proxy_environment",
+        lambda: {
+            "HTTP_PROXY": "http://system.local:8080",
+            "HTTPS_PROXY": "http://system.local:8080",
+        },
+    )
+    environment = _process_environment({})
+    assert environment["HTTP_PROXY"] == "http://system.local:8080"
+    assert environment["HTTPS_PROXY"] == "http://explicit.local:9000"
+
+
+def test_opencode_adapter_normalises_provider_aliases_before_strict_validation():
+    result = _normalise_opencode_result(
+        {
+            "criteria": [
+                {
+                    "criterion": "grammatical_range_and_accuracy",
+                    "score": 0,
+                    "feedback": "There is no sentence-level evidence.",
+                }
+            ],
+            "priority_issues": [
+                {
+                    "issue_id": "insufficient_response",
+                    "issue": "The response does not address the task.",
+                    "recommendation": "Write a complete response.",
+                },
+                "Use complete grammatical sentences.",
+                "Use task-relevant vocabulary.",
+                "This fourth priority must be truncated.",
+            ]
+        }
+    )
+    assert result["priority_issues"][0] | {
+        "tag": "insufficient_response",
+        "evidence": "The response does not address the task.",
+        "learner_action": "Write a complete response.",
+    } == result["priority_issues"][0]
+    assert result["criteria"][0] | {
+        "criterion": "GRA",
+        "score_low": 0,
+        "score_high": 0,
+        "evidence_support": ["There is no sentence-level evidence."],
+        "evidence_limit": ["There is no sentence-level evidence."],
+    } == result["criteria"][0]
+    assert result["priority_issues"][1] == {
+        "tag": "AGENT_PRIORITY_2",
+        "evidence": "Use complete grammatical sentences.",
+        "learner_action": "Use complete grammatical sentences.",
+    }
+    assert len(result["priority_issues"]) == 3
 
 
 def test_agent_timeout_has_a_recoverable_failure(tmp_path: Path):

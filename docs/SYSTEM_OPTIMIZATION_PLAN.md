@@ -1,0 +1,136 @@
+# IELTS AI Coach 系统优化与扩展计划
+
+更新日期：2026-07-24
+
+本文是产品完整性、运行流畅度和技术演进的执行基线。视觉方案不在本文范围内。
+
+## 1. 冻结的系统边界
+
+```text
+React + TypeScript UI
+        ↓ HTTP / SSE
+FastAPI Local App Service
+        ↓
+Python IELTS Runtime ── Agent Gateway
+        ↓                    ↓
+SQLite / Session / Corpus    CLI / Manual Adapter
+```
+
+- SQLite、Session Markdown、Corpus 和 Media Registry 是数据真源。
+- UI 不实现第二套 IELTS 评分、答案或教学规则。
+- FastAPI 是本地应用服务，不是新的模型厂商 API 后端。
+- Agent 输出必须通过 Schema、语义、revision 和幂等校验后才能写入正式记录。
+- 明确操作直接路由到专用 Skill；自由输入才使用总路由。
+
+## 2. 性能目标
+
+本机基准以持续使用三年以上为设计范围：
+
+| 场景 | 目标 |
+|---|---:|
+| 普通只读 API p50 | 小于 80 ms |
+| 普通只读 API p95 | 小于 250 ms |
+| 本地写入 p95 | 小于 400 ms |
+| 首页可交互 | 小于 1.5 s |
+| 10,000 Session 历史检索 | 不全表扫描、不一次性传输 |
+| 100,000 题题库浏览 | 分页、过滤和批量读取 |
+| Agent / PDF 等重任务 | 不阻塞 UI 请求线程 |
+
+设置页的“本地运行容量”显示滚动请求延迟、慢路由、SQLite 模式、数据库大小和主要表规模。性能结论必须来自这些数据和可复现基准，不凭语言偏好判断。
+
+## 3. 当前已完成的性能底座
+
+- Schema v14；
+- SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
+- `sessions`、`errors`、Media owner 等增长路径索引；
+- 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
+- Reading 整篇和选项批量读取，取消逐题连接；
+- 题库与套题审核状态批量解析，取消列表 N+1 查询；
+- Agent Run 列表单次查询；
+- Bootstrap 直接查询最新活动 Session；
+- 未变化的内置 Corpus 启动时只做完整性计数，不再重复逐题索引（本机复测约 3 秒降至 0.15 秒）；
+- CLI 版本探测 60 秒缓存；
+- 有界内存性能监视器，不记录作文、题目或提示词；
+- Media Asset 与 owner 解耦，同一文件可绑定多个 Session。
+
+## 4. 当前已完成的学习闭环修正
+
+- 模考时间到后冻结答案并自动提交，提交区域不再消失；
+- 完整 Writing 评分不再默认预填 6 分，必须导入真实评阅来源、两项证据和全部标准分项；
+- Reading 三级提示返回实际策略内容，并绑定当前题目，始终标记 `answer_revealed=false`；
+- Speaking 仅导入转写时进入 `awaiting_feedback`，可继续调用 `speaking-evaluation@1`；
+- Session 媒体会进入 Agent request 的结构化证据清单；不支持图片/音频的 Adapter 明确标记证据不可用；
+- 设置页提供无 Token 的 CLI、版本与代理继承预检，并明确它不等于真实模型连通。
+
+## 5. 仍需完成的产品工作
+
+### P0：可信学习闭环
+
+1. 完整 Writing Mock 的双任务 Agent 评阅协议  
+   需要新增 `writing-mock-review@1`，分别保存 Task 1/Task 2 证据，再由 Runtime 以 1:2 汇总。当前页面只提供严格的结构化评阅导入，不应冒充自动评阅。
+
+2. Agent 图片实际传输  
+   当前 Registry、owner 绑定、隐私判断和证据不足标记已完成。下一步为声明 `image_input=true` 的 Adapter 实现受控附件传输；不得向 Agent 暴露任意本地路径。
+
+3. Listening 单次播放服务端租约  
+   浏览器音频会产生 Range 请求，不能简单限制为一次 HTTP GET。需要一次 AssessmentRun 专属、短时有效、不可跨运行复用的播放租约，并保留断点续播。
+
+4. 完整 Speaking Mock 复评  
+   外部 Voice / Live 报告导回后，应在同一 AssessmentRun 内完成结构化本地评估，再结束运行。
+
+### P1：从工具集合升级为学习系统
+
+1. 将 `PracticeUnit`、`AssessmentRun`、`ReviewTask` 分成三类一等领域对象；
+2. 今日任务直接创建并绑定 Diagnostic / Practice / Review，不再让用户手工关联；
+3. 建立统一待复习队列：错误、到期听力语料、Writing V2、Reading 错题；
+4. Progress 增加真实趋势图、周报、错误收件箱和可执行下一步；
+5. Learner Library 与 Content Studio 分离；
+6. Content Studio 增加 PDF 预览、结构化进度、校验错误定位和人工审核工作台；
+7. 所有长列表改为游标分页，前端使用虚拟列表或窗口化渲染；
+8. 大型导入、PDF 解析、备份和媒体分析进入可恢复后台任务队列。
+
+### P2：规模化和桌面体验
+
+1. 建立 10k Session / 100k Question 合成数据基准；
+2. 增加 SQLite 查询计划回归测试和慢查询阈值；
+3. 前端路由分包、懒加载、资源预算和长任务监控；
+4. 增量备份、数据库维护建议与存储配额；
+5. 快捷方式启动器显示服务、Agent、模型和代理状态；
+6. 视觉设计系统和最终交互优化。
+
+## 6. 是否新增 Rust、Go 或其他语言
+
+当前不新增语言。原因不是 Python/TypeScript 永远足够，而是现有瓶颈来自连接生命周期、N+1 查询、无分页和重任务边界；这些问题换语言仍然存在。
+
+满足以下条件之一才启动原生技术评估：
+
+- 相同输入的 CPU profile 显示单个纯计算热点长期占用超过 30% 总运行时间；
+- 100k 题基准在索引、分页和批量查询后仍无法达到 p95 目标；
+- PDF/OCR/音频处理单任务超过 5 秒且影响其他本地请求；
+- 需要跨进程可恢复任务，而 Python worker 无法达到稳定性目标。
+
+候选边界：
+
+- Rust：PDF 文本归一化、音频特征、哈希/去重、CPU 密集解析，优先以可选 Python 扩展或独立 worker 接入；
+- Go：只有在需要长期运行的多进程任务调度或独立本地守护进程时评估；
+- 前端继续 TypeScript。WebAssembly 只用于经 profile 证明的浏览器 CPU 热点。
+
+无论新增何种语言，都不能复制 IELTS 规则、绕过 Schema、直接写数据库或改变数据权威关系。
+
+## 7. 验收闸门
+
+每一阶段必须同时通过：
+
+```powershell
+$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
+python -m pytest -q
+ielts-coach init
+ielts-coach sync-skills
+ielts-coach doctor
+cd frontend
+npm run typecheck
+npm run test
+npm run build
+```
+
+性能相关改动还必须提供测试规模、p50/p95、查询次数或 CPU profile 证据。

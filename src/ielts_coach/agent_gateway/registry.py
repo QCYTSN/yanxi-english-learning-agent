@@ -23,3 +23,17 @@ def get_adapter(adapter_id: str) -> AgentAdapter:
 
 def adapter_descriptors() -> list[dict[str, object]]:
     return [describe_adapter(adapter) for adapter in _ADAPTERS.values()]
+
+
+def adapter_diagnostics() -> list[dict[str, object]]:
+    results = []
+    for adapter in _ADAPTERS.values():
+        descriptor = describe_adapter(adapter)
+        diagnostic = getattr(adapter, "diagnostics", None)
+        details = diagnostic() if callable(diagnostic) else {
+            "available": descriptor["available"],
+            "model_call_test": "not_run",
+            "boundary": "This adapter does not expose a local process preflight.",
+        }
+        results.append({**descriptor, "diagnostics": details})
+    return results

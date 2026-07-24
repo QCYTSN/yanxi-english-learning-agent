@@ -18,7 +18,13 @@ from .storage import (
 
 
 ACTIVE_STATES = {"queued", "running", "validating", "persisting"}
-TERMINAL_STATES = {"persisted", "failed", "cancelled", "invalid_output"}
+TERMINAL_STATES = {
+    "persisted",
+    "test_passed",
+    "failed",
+    "cancelled",
+    "invalid_output",
+}
 
 
 def _now() -> str:
@@ -134,6 +140,11 @@ class AgentJobManager:
             cancel_requested=0,
             recovery_action=None,
             attempt_count=int(run.get("attempt_count") or 1) + 1,
+            timeout_seconds=(
+                max(300, int(run.get("timeout_seconds") or 120))
+                if run.get("adapter_id") in {"claude", "opencode"}
+                else int(run.get("timeout_seconds") or 120)
+            ),
             base_revision=(
                 int(session.get("revision", 0))
                 if session
@@ -232,6 +243,28 @@ class AgentJobManager:
                 {"stage": "validating", "label": "Validating structured result"},
             )
             validated = validate_agent_contract(run["output_contract"], result)
+            if run["adapter_id"] == "mock":
+                update_agent_run(
+                    self.home,
+                    run_id,
+                    status="test_passed",
+                    result=validated,
+                    completed_at=_now(),
+                    heartbeat_at=_now(),
+                    recovery_action=None,
+                )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "test_passed",
+                    {
+                        "stage": "test_passed",
+                        "label": "Pipeline test passed",
+                        "learning_record_written": False,
+                        "model_called": False,
+                    },
+                )
+                return
             update_agent_run(
                 self.home, run_id, status="persisting", heartbeat_at=_now()
             )
@@ -261,7 +294,12 @@ class AgentJobManager:
                 },
             )
         except TimeoutError as exc:
-            self._fail(run_id, "AGENT_TIMEOUT", str(exc), "retry")
+            recovery = (
+                "check_claude_provider_then_retry"
+                if run.get("adapter_id") == "claude"
+                else "check_agent_cli_then_retry"
+            )
+            self._fail(run_id, "AGENT_TIMEOUT", str(exc), recovery)
         except Exception as exc:
             code = getattr(exc, "code", "AGENT_RUN_FAILED")
             recovery = (
@@ -315,6 +353,12 @@ class AgentJobManager:
             run_id,
             status="failed",
             error_code=code,
+            result={
+                "error": {
+                    "code": code,
+                    "message": message[-2000:],
+                }
+            },
             recovery_action=recovery_action,
             completed_at=_now(),
             heartbeat_at=_now(),

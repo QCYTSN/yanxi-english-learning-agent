@@ -11,6 +11,7 @@ from .session_io import load_session_file
 from .session_manager import PREFIXES, persist_session_atomic
 from .storage import (
     connect,
+    get_question,
     get_question_for_grading,
     get_session,
     initialise_database,
@@ -235,9 +236,23 @@ def apply_writing_review(
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     review = validate_data(review, "writing-review")
+    if review["score_kind"] != "ai_training_estimate":
+        raise ValueError("Mock fixtures cannot be applied as learner Writing feedback")
     if review["session_id"] != session_id:
         raise ValueError("Writing review session_id does not match the target Session")
-    require_rubric(home, review["rubric"]["rubric_id"], "writing")
+    registered_rubric = require_rubric(
+        home, "ielts-writing-public-descriptors", "writing"
+    )
+    review = {
+        **review,
+        "rubric": {
+            "rubric_id": registered_rubric["rubric_id"],
+            "publisher": registered_rubric["publisher"],
+            "standard": registered_rubric["standard"],
+            "version": registered_rubric["version"],
+            "source_reference": registered_rubric["source_reference"],
+        },
+    }
 
     def apply(data: dict[str, Any]) -> None:
         if data["module"] != "writing":
@@ -299,9 +314,14 @@ def record_reading_hint(
     session_id: str,
     *,
     level: int | None = None,
+    question_id: str | None = None,
     expected_revision: int | None = None,
     idempotency_key: str | None = None,
 ) -> dict[str, Any]:
+    question = get_question(home, question_id, include_answer=False) if question_id else None
+    if question_id and question is None:
+        raise ValueError(f"Unknown Reading question: {question_id}")
+
     def apply(data: dict[str, Any]) -> None:
         if data["module"] != "reading":
             raise ValueError("This operation requires a Reading Session")
@@ -311,13 +331,72 @@ def record_reading_hint(
         next_level = current + 1 if level is None else level
         if next_level not in {1, 2, 3} or next_level < current:
             raise ValueError("Reading hint level must progress monotonically from 1 to 3")
+        if question and str(question.get("passage_id") or "") != str(data.get("passage_id") or ""):
+            raise ValueError("Reading hint question is not part of this Session passage")
+        hint = _reading_hint(question, next_level)
         data["hints_used"] = next_level
+        data["latest_hint"] = hint
+        data["reading_hints"] = [
+            *(data.get("reading_hints") or []),
+            hint,
+        ][-20:]
         data["status"] = "learner_working"
 
     return mutate_session(
         home, session_id, "reading_hint", apply,
         expected_revision=expected_revision, idempotency_key=idempotency_key,
     )
+
+
+def _reading_hint(question: dict[str, Any] | None, level: int) -> dict[str, Any]:
+    question_type = str((question or {}).get("question_type") or "unknown")
+    strategies = {
+        "true_false_not_given": (
+            "先判断题干是在陈述事实，还是加入了原文没有比较或限定的信息。",
+            "定位题干中的专有名词、数字和限定词，再核对原文表达的是相同、相反，还是没有说明。",
+            "最后只检查命题中的范围词与程度词；没有证据不能推成 FALSE，应保留 NOT GIVEN。",
+        ),
+        "yes_no_not_given": (
+            "先确认题干问的是作者观点，而不是文中出现过的客观事实。",
+            "定位态度词和评价词，比较作者是否明确赞同、反对，或没有表达立场。",
+            "不要用常识补全作者观点；只有明确相反才选 NO，没有立场证据应考虑 NOT GIVEN。",
+        ),
+        "matching_headings": (
+            "先概括每段的中心功能，不要被单个重复词吸引。",
+            "比较段落开头、转折句和结尾句，排除只覆盖细节的标题。",
+            "用一句话复述整段后再匹配；正确标题必须覆盖主旨而不是例子。",
+        ),
+        "multiple_choice": (
+            "先圈出题干限制条件，再回原文定位同义改写。",
+            "逐项找原文证据，区分“原文提到”与“真正回答题干”。",
+            "对剩余选项检查范围扩大、因果倒置和偷换主体三类干扰。",
+        ),
+        "sentence_completion": (
+            "先根据空格前后判断所需词性和语法形式。",
+            "回原文寻找题干同义改写，并严格遵守词数限制。",
+            "代回完整句检查语法、拼写和单复数；不要改写必须取自原文的词。",
+        ),
+        "summary_completion": (
+            "先快速读完整摘要，判断每个空格需要的词性与主题位置。",
+            "利用摘要顺序通常跟随原文的特点，从上一个定位点继续向后找。",
+            "代回后同时检查逻辑、语法和词数限制，避免把邻近但关系错误的词填入。",
+        ),
+    }
+    generic = (
+        "先圈出题干中的定位词与限制词，再寻找原文中的同义改写。",
+        "缩小到相关段落，判断题干真正考查的是主旨、细节还是逻辑关系。",
+        "提交前核对证据、语法形式和词数限制；不要用原文之外的常识补答案。",
+    )
+    messages = strategies.get(question_type, generic)
+    return {
+        "level": level,
+        "question_id": (question or {}).get("question_id"),
+        "question_type": question_type,
+        "message": messages[level - 1],
+        "generated_by": "study_runtime",
+        "answer_revealed": False,
+        "created_at": _now(),
+    }
 
 
 def submit_reading_answers(

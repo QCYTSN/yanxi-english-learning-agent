@@ -98,7 +98,10 @@ export type AgentRun = {
   recovery_action: string | null
   execution_ref: string | null
   error_code?: string | null
-  result?: { request?: Record<string, unknown> } | null
+  result?: {
+    request?: Record<string, unknown>
+    error?: { code: string; message: string }
+  } | null
 }
 
 export type TodayPlanTask = {

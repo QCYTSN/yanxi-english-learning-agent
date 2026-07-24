@@ -11,7 +11,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS errors (
     FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_errors_tag ON errors(tag);
+CREATE INDEX IF NOT EXISTS idx_errors_status_tag ON errors(status, tag);
 
 CREATE TABLE IF NOT EXISTS corpora (
     corpus_id TEXT PRIMARY KEY,
@@ -401,6 +402,20 @@ CREATE TABLE IF NOT EXISTS media_assets (
     created_at TEXT NOT NULL,
     UNIQUE(content_hash,mime_type)
 );
+CREATE INDEX IF NOT EXISTS idx_media_assets_owner
+ON media_assets(owner_type,owner_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS media_bindings (
+    media_id TEXT NOT NULL,
+    owner_type TEXT NOT NULL,
+    owner_id TEXT NOT NULL,
+    purpose TEXT NOT NULL DEFAULT 'evidence',
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(media_id,owner_type,owner_id,purpose),
+    FOREIGN KEY(media_id) REFERENCES media_assets(media_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_media_bindings_owner
+ON media_bindings(owner_type,owner_id,created_at DESC);
 
 CREATE TABLE IF NOT EXISTS agent_runs (
     run_id TEXT PRIMARY KEY,
@@ -558,13 +573,26 @@ def db_path(home: Path) -> Path:
     return home / "database" / filename
 
 
+class ManagedConnection(sqlite3.Connection):
+    """A transaction context that also releases the SQLite file handle."""
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
+        try:
+            return bool(super().__exit__(exc_type, exc, traceback))
+        finally:
+            self.close()
+
+
 def connect(home: Path) -> sqlite3.Connection:
     path = db_path(home)
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path, timeout=10, factory=ManagedConnection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA busy_timeout = 5000")
+    conn.execute("PRAGMA busy_timeout = 10000")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA temp_store = MEMORY")
+    conn.execute("PRAGMA cache_size = -32768")
     return conn
 
 
@@ -614,6 +642,13 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     conn.execute("UPDATE sessions SET status='completed' WHERE status IS NULL")
     conn.execute("UPDATE sessions SET updated_at=created_at WHERE updated_at IS NULL")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_question ON sessions(question_id)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sessions_status_time "
+        "ON sessions(status,occurred_at DESC)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_errors_status_tag ON errors(status,tag)"
+    )
     allocation_columns = _columns(conn, "allocation_history")
     if "period_key" not in allocation_columns:
         conn.execute("ALTER TABLE allocation_history ADD COLUMN period_key TEXT")
@@ -660,6 +695,14 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
             conn.execute(f"ALTER TABLE agent_runs ADD COLUMN {name} {declaration}")
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO media_bindings(media_id,owner_type,owner_id,purpose,created_at)
+        SELECT media_id,owner_type,owner_id,'evidence',created_at
+        FROM media_assets
+        WHERE owner_type IS NOT NULL AND owner_id IS NOT NULL
+        """
+    )
     previous_number = int(previous_version) if str(previous_version).isdigit() else 0
     if previous_version is not None and previous_number < 10:
         # Pre-v10 review_status was an importable declaration, not an auditable
@@ -956,7 +999,12 @@ def get_session(home: Path, session_id: str) -> sqlite3.Row | None:
         return conn.execute("SELECT * FROM sessions WHERE session_id=?", (session_id,)).fetchone()
 
 
-def list_sessions(home: Path, module: str | None = None, limit: int = 50) -> list[sqlite3.Row]:
+def list_sessions(
+    home: Path,
+    module: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[sqlite3.Row]:
     initialise_database(home)
     sql = (
         "SELECT session_id,module,occurred_at,status,mode,band,score_kind,score_confidence,"
@@ -966,10 +1014,25 @@ def list_sessions(home: Path, module: str | None = None, limit: int = 50) -> lis
     if module:
         sql += " WHERE module=?"
         params.append(module)
-    sql += " ORDER BY occurred_at DESC LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY occurred_at DESC LIMIT ? OFFSET ?"
+    params.extend([max(1, min(int(limit), 500)), max(0, int(offset))])
     with connect(home) as conn:
         return conn.execute(sql, params).fetchall()
+
+
+def latest_active_session(home: Path) -> sqlite3.Row | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        return conn.execute(
+            """
+            SELECT session_id,module,occurred_at,status,mode,band,score_kind,
+                   score_confidence,duration_minutes,question_id,passage_id
+            FROM sessions
+            WHERE status NOT IN ('completed','cancelled')
+            ORDER BY occurred_at DESC
+            LIMIT 1
+            """
+        ).fetchone()
 
 
 def recent_bands(home: Path, module: str, limit: int = 3) -> list[float]:
@@ -1240,6 +1303,7 @@ def list_assessment_packs(
     practice_mode: str | None = None,
     conformance_status: str | None = None,
     limit: int = 100,
+    offset: int = 0,
 ) -> list[dict[str, Any]]:
     initialise_database(home)
     clauses: list[str] = []
@@ -1255,8 +1319,8 @@ def list_assessment_packs(
     sql = "SELECT payload_json FROM assessment_packs"
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
-    sql += " ORDER BY title LIMIT ?"
-    params.append(max(1, min(int(limit), 500)))
+    sql += " ORDER BY title LIMIT ? OFFSET ?"
+    params.extend([max(1, min(int(limit), 500)), max(0, int(offset))])
     with connect(home) as conn:
         rows = conn.execute(sql, params).fetchall()
     return [json.loads(row["payload_json"]) for row in rows]
@@ -1374,7 +1438,7 @@ def list_questions(
     *, query: str | None = None, module: str | None = None, task: str | None = None,
     question_type: str | None = None, topic: str | None = None, source_type: str | None = None,
     corpus_id: str | None = None, passage_id: str | None = None,
-    exclude_completed: bool = False, limit: int = 50,
+    exclude_completed: bool = False, limit: int = 50, offset: int = 0,
 ) -> list[sqlite3.Row]:
     initialise_database(home)
     clauses: list[str] = []
@@ -1401,8 +1465,8 @@ def list_questions(
     sql = "SELECT q.question_id,q.module,q.task,q.part,q.question_type,q.title,q.content,q.passage_id,q.topics_text,q.source_type,q.authenticity,q.corpus_id,q.review_status,q.practice_mode,q.standard_profile,q.conformance_status FROM questions q"
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
-    sql += " ORDER BY q.question_id LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY q.question_id LIMIT ? OFFSET ?"
+    params.extend([max(1, min(int(limit), 500)), max(0, int(offset))])
     with connect(home) as conn:
         return conn.execute(sql, params).fetchall()
 
@@ -1496,6 +1560,11 @@ def _redact_answer_data(value: Any) -> Any:
     if isinstance(value, list):
         return [_redact_answer_data(item) for item in value]
     return value
+
+
+def redact_answer_data(value: Any) -> Any:
+    """Return learner-visible question data without answer or rationale fields."""
+    return _redact_answer_data(value)
 
 
 def question_attempted(home: Path, question_id: str) -> bool:
@@ -1857,6 +1926,7 @@ def register_media_asset(home: Path, asset: dict[str, Any]) -> dict[str, Any]:
             (asset["content_hash"], asset["mime_type"]),
         ).fetchone()
         if existing:
+            _bind_media_owner(conn, str(existing["media_id"]), asset, now)
             return _media_row(existing)
         conn.execute(
             """
@@ -1873,8 +1943,35 @@ def register_media_asset(home: Path, asset: dict[str, Any]) -> dict[str, Any]:
                 json.dumps(asset.get("metadata") or {}, ensure_ascii=False), now,
             ),
         )
+        _bind_media_owner(conn, str(asset["media_id"]), asset, now)
         row = conn.execute("SELECT * FROM media_assets WHERE media_id=?", (asset["media_id"],)).fetchone()
     return _media_row(row)
+
+
+def _bind_media_owner(
+    conn: sqlite3.Connection,
+    media_id: str,
+    asset: dict[str, Any],
+    created_at: str,
+) -> None:
+    owner_type = asset.get("owner_type")
+    owner_id = asset.get("owner_id")
+    if not owner_type or not owner_id:
+        return
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO media_bindings(
+          media_id,owner_type,owner_id,purpose,created_at
+        ) VALUES(?,?,?,?,?)
+        """,
+        (
+            media_id,
+            str(owner_type),
+            str(owner_id),
+            str(asset.get("purpose") or "evidence"),
+            created_at,
+        ),
+    )
 
 
 def _media_row(row: sqlite3.Row) -> dict[str, Any]:
@@ -1902,12 +1999,31 @@ def get_media_asset(home: Path, media_id: str) -> dict[str, Any] | None:
     return _media_row(row) if row else None
 
 
-def list_media_assets(home: Path, limit: int = 100) -> list[dict[str, Any]]:
+def list_media_assets(
+    home: Path,
+    limit: int = 100,
+    *,
+    owner_type: str | None = None,
+    owner_id: str | None = None,
+) -> list[dict[str, Any]]:
     initialise_database(home)
+    params: list[Any] = []
+    sql = "SELECT DISTINCT m.* FROM media_assets m"
+    clauses: list[str] = []
+    if owner_type or owner_id:
+        sql += " JOIN media_bindings b ON b.media_id=m.media_id"
+        if owner_type:
+            clauses.append("b.owner_type=?")
+            params.append(owner_type)
+        if owner_id:
+            clauses.append("b.owner_id=?")
+            params.append(owner_id)
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY m.created_at DESC LIMIT ?"
+    params.append(max(1, min(int(limit), 500)))
     with connect(home) as conn:
-        rows = conn.execute(
-            "SELECT * FROM media_assets ORDER BY created_at DESC LIMIT ?", (limit,)
-        ).fetchall()
+        rows = conn.execute(sql, params).fetchall()
     return [_media_row(row) for row in rows]
 
 
@@ -1985,6 +2101,10 @@ def get_agent_run(home: Path, run_id: str) -> dict[str, Any] | None:
         row = conn.execute("SELECT * FROM agent_runs WHERE run_id=?", (run_id,)).fetchone()
     if not row:
         return None
+    return _agent_run_row(row)
+
+
+def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "run_id": row["run_id"],
         "study_session_id": row["study_session_id"],
@@ -2025,15 +2145,15 @@ def list_agent_runs(
 ) -> list[dict[str, Any]]:
     initialise_database(home)
     params: list[Any] = []
-    sql = "SELECT run_id FROM agent_runs"
+    sql = "SELECT * FROM agent_runs"
     if study_session_id:
         sql += " WHERE study_session_id=?"
         params.append(study_session_id)
     sql += " ORDER BY created_at DESC LIMIT ?"
     params.append(max(1, min(int(limit), 500)))
     with connect(home) as conn:
-        ids = [str(row["run_id"]) for row in conn.execute(sql, params).fetchall()]
-    return [run for run_id in ids if (run := get_agent_run(home, run_id))]
+        rows = conn.execute(sql, params).fetchall()
+    return [_agent_run_row(row) for row in rows]
 
 
 def append_agent_run_event(

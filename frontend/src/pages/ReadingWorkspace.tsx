@@ -12,6 +12,13 @@ type ReadingSet = {
   questions: Question[]
   conformance?: Conformance
 }
+type ReadingHint = {
+  level: number
+  question_id?: string | null
+  question_type: string
+  message: string
+  answer_revealed: false
+}
 
 export function ReadingWorkspace() {
   const { sessionId = '' } = useParams()
@@ -24,6 +31,7 @@ export function ReadingWorkspace() {
   })
   const draft = useQuery({ queryKey: ['draft', sessionId, 'reading'], queryFn: () => api<Draft>(`/api/v1/sessions/${sessionId}/draft/reading`) })
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [hintQuestionId, setHintQuestionId] = useState('')
   const [draftRevision, setDraftRevision] = useState(0)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const initialized = useRef(false)
@@ -61,9 +69,13 @@ export function ReadingWorkspace() {
     mutationFn: () => api<SessionSummary>(`/api/v1/reading/${sessionId}/hints`, {
       method: 'POST',
       headers: { 'Idempotency-Key': idempotencyKey() },
-      body: jsonBody({ level: Math.min(Number(session.data?.hints_used ?? 0) + 1, 3), expected_revision: session.data?.revision ?? 0 }),
+      body: jsonBody({
+        level: Math.min(Number(session.data?.hints_used ?? 0) + 1, 3),
+        question_id: hintQuestionId || readingSet.data?.questions.find((item) => !answers[item.question_id])?.question_id,
+        expected_revision: session.data?.revision ?? 0,
+      }),
     }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['session', sessionId] }),
+    onSuccess: (value) => queryClient.setQueryData(['session', sessionId], value),
   })
   const submit = useMutation({
     mutationFn: () => {
@@ -93,6 +105,9 @@ export function ReadingWorkspace() {
   const locked = status === 'awaiting_feedback' || status === 'awaiting_revision' || status === 'completed'
   const practiceMode = String(session.data.practice_mode ?? 'section_practice')
   const conformanceStatus = String(session.data.conformance_status ?? readingSet.data?.conformance?.status ?? 'provisional')
+  const latestHint = session.data.latest_hint as ReadingHint | undefined
+  const hintTarget = questions.find((item) => item.question_id === hintQuestionId)
+    ?? questions.find((item) => !answers[item.question_id])
   return (
     <div className="workspace-page">
       <PageHeader
@@ -118,15 +133,20 @@ export function ReadingWorkspace() {
               index={index}
               value={answers[question.question_id] ?? ''}
               disabled={locked}
+              onFocus={() => setHintQuestionId(question.question_id)}
               onChange={(value) => setAnswers((current) => ({ ...current, [question.question_id]: value }))}
             />
           ))}
+          {latestHint && <aside className="reading-hint" aria-live="polite">
+            <div><Lightbulb size={18} /><strong>第 {latestHint.level} 级提示{latestHint.question_id ? ` · ${latestHint.question_id}` : ''}</strong></div>
+            <p>{latestHint.message}</p>
+            <small>本提示只提供解题策略，不包含答案。</small>
+          </aside>}
           <div className="questions-footer">
             <SaveState state={saveState} />
-            {!timed && Number(session.data.hints_used ?? 0) < 3 && !locked && <button className="button secondary" onClick={() => hint.mutate()} disabled={hint.isPending}><Lightbulb size={18} />记录提示 {Number(session.data.hints_used ?? 0) + 1}</button>}
+            {!timed && Number(session.data.hints_used ?? 0) < 3 && !locked && <button className="button secondary" onClick={() => hint.mutate()} disabled={hint.isPending}><Lightbulb size={18} />查看提示 {Number(session.data.hints_used ?? 0) + 1}{hintTarget?.question_number ? ` · 第 ${hintTarget.question_number} 题` : ''}</button>}
             <button className="button primary" onClick={() => submit.mutate()} disabled={!answered || submit.isPending || locked}><Send size={18} />提交答案</button>
           </div>
-          {hint.isSuccess && <p className="inline-note" aria-live="polite">提示级别已记录。答案仍保持锁定；Reading Agent 只负责基于原文解释，不负责猜答案键。</p>}
           {(hint.isError || submit.isError) && <ErrorState error={hint.error ?? submit.error} />}
         </section>
       </div>
@@ -136,11 +156,12 @@ export function ReadingWorkspace() {
   )
 }
 
-function ReadingQuestion({ question, index, value, disabled, onChange }: {
+function ReadingQuestion({ question, index, value, disabled, onFocus, onChange }: {
   question: Question
   index: number
   value: string
   disabled: boolean
+  onFocus: () => void
   onChange: (value: string) => void
 }) {
   const type = question.question_type ?? 'unknown'
@@ -149,7 +170,7 @@ function ReadingQuestion({ question, index, value, disabled, onChange }: {
   const optionSet = truthOptions?.map((item) => ({ key: item, text: item })) ?? options
   const wordLimit = question.answer_constraints?.word_limit
   return (
-    <fieldset className="reading-question" disabled={disabled}>
+    <fieldset className="reading-question" disabled={disabled} onFocus={onFocus}>
       <legend><strong>{question.question_number ?? index + 1}</strong><span>{question.content}</span></legend>
       {optionSet.length > 0 ? (
         <div className="answer-options">

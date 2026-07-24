@@ -16,7 +16,7 @@ def _resource_file(relative: str):
     return resources.files("ielts_coach.resources").joinpath(relative)
 
 
-def install_starter_corpus(home: Path, force: bool = False) -> None:
+def install_starter_corpus(home: Path, force: bool = False) -> bool:
     """Install the project-owned corpus, upgrading stale bundled files safely.
 
     The starter corpus is managed by the application rather than user-owned.
@@ -26,6 +26,7 @@ def install_starter_corpus(home: Path, force: bool = False) -> None:
     target = home / "corpus" / "starter-open"
     target.mkdir(parents=True, exist_ok=True)
     source_dir = _resource_file("starter-corpus")
+    changed = False
     for item in source_dir.iterdir():
         if not item.is_file():
             continue
@@ -33,6 +34,54 @@ def install_starter_corpus(home: Path, force: bool = False) -> None:
         with resources.as_file(item) as source_path:
             if force or not destination.exists() or source_path.read_bytes() != destination.read_bytes():
                 shutil.copy2(source_path, destination)
+                changed = True
+    return changed
+
+
+def corpus_index_is_complete(home: Path, manifest_path: Path) -> bool:
+    """Cheap launch guard that avoids re-indexing an unchanged managed corpus."""
+    if not manifest_path.exists():
+        return False
+    manifest = load_manifest(manifest_path)
+    corpus_id = str(manifest["corpus_id"])
+    base = _resolve_base(manifest, manifest_path)
+    expected = {"passages": 0, "questions": 0, "assessment_packs": 0}
+    for file_spec in manifest.get("files") or []:
+        kind = str(file_spec.get("kind") or "questions")
+        if kind not in expected or not file_spec.get("path"):
+            continue
+        path = (base / str(file_spec["path"])).resolve()
+        if not path.exists():
+            return False
+        with path.open("r", encoding="utf-8") as handle:
+            expected[kind] += sum(1 for line in handle if line.strip())
+    with connect(home) as conn:
+        registered = conn.execute(
+            "SELECT 1 FROM corpora WHERE corpus_id=?", (corpus_id,)
+        ).fetchone()
+        if not registered:
+            return False
+        actual = {
+            "passages": int(
+                conn.execute(
+                    "SELECT COUNT(*) FROM question_passages WHERE corpus_id=?",
+                    (corpus_id,),
+                ).fetchone()[0]
+            ),
+            "questions": int(
+                conn.execute(
+                    "SELECT COUNT(*) FROM questions WHERE corpus_id=?",
+                    (corpus_id,),
+                ).fetchone()[0]
+            ),
+            "assessment_packs": int(
+                conn.execute(
+                    "SELECT COUNT(*) FROM assessment_packs WHERE corpus_id=?",
+                    (corpus_id,),
+                ).fetchone()[0]
+            ),
+        }
+    return actual == expected
 
 
 def load_manifest(path: Path) -> dict[str, Any]:

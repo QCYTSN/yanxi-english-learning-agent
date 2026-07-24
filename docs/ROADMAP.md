@@ -74,7 +74,7 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - capability-probed Claude Code and OpenCode local process adapters with explicit consent and no shell execution
 - Runtime-driven Today 70/30 plan with target gaps, content readiness and fallback practice
 - structured four-module Progress dashboard with eligible trends and separately labelled training observations
-- schema v13 coaching artifacts and recoverable Agent execution metadata
+- schema v14 media bindings, performance indexes, coaching artifacts and recoverable Agent execution metadata
 - Windows/Linux and Python 3.10-3.12 CI matrix, frontend quality gates, E2E and wheel smoke install
 
 ## Post-1.0 increments

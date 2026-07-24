@@ -40,13 +40,27 @@ export function AssessmentRunnerPage() {
     }),
     onSuccess: (value) => queryClient.setQueryData(['assessment-run', runId], value),
   })
+  const autoSubmitted = useRef(false)
+  useEffect(() => {
+    const value = run.data
+    if (
+      !value
+      || value.status !== 'active'
+      || !value.timer.expired
+      || autoSubmitted.current
+      || submit.isPending
+    ) return
+    autoSubmitted.current = true
+    submit.mutate()
+  }, [run.data, submit])
   if (run.isPending) return <LoadingState label="正在恢复完整模考" />
   if (run.isError) return <ErrorState error={run.error} />
   const value = run.data
   const current = value.pack_snapshot.questions.find((item) => item.question_id === questionId)
   const answered = value.responses.filter((item) => hasAnswer(item.response)).length
   const total = value.pack_snapshot.questions.length
-  const terminal = ['submitted', 'completed', 'reviewing', 'expired', 'cancelled'].includes(value.status) || value.timer.expired
+  const terminal = ['submitted', 'completed', 'reviewing', 'expired', 'cancelled'].includes(value.status)
+  const answersLocked = terminal || value.timer.expired
   const remaining = displayedRemaining(value, clock)
   return <div className="assessment-page">
     <PageHeader
@@ -76,11 +90,11 @@ export function AssessmentRunnerPage() {
                   const response = value.responses.find((item) => item.question_id === question.question_id)
                   return <button key={question.question_id} className={`${questionId === question.question_id ? 'active' : ''} ${hasAnswer(response?.response) ? 'answered' : ''} ${response?.flagged ? 'flagged' : ''}`} onClick={() => { setQuestionId(question.question_id); void saveNavigation(value, sectionKey, question.question_id) }}>{question.question_number ?? index + 1}</button>
                 })}</div>
-                {current && <AssessmentQuestion run={value} question={current} disabled={terminal} onSaved={() => void run.refetch()} />}
+                {current && <AssessmentQuestion run={value} question={current} disabled={answersLocked} onSaved={() => void run.refetch()} />}
                 {!current && value.module === 'speaking' && <SpeakingHandoffPanel run={value} onCreated={() => void run.refetch()} />}
               </section>
             </div>}
-    {!terminal && <div className="assessment-submit-bar"><div><strong>提交整套答案</strong><p>提交后答案键和证据才会解锁；未答题会按未作答保存。</p></div><button className="button primary" disabled={submit.isPending} onClick={() => window.confirm(`确认提交？当前已答 ${answered}/${total} 题。`) && submit.mutate()}><Send size={18} />提交模考</button></div>}
+    {!terminal && <div className="assessment-submit-bar"><div><strong>{value.timer.expired ? '时间到，正在提交' : '提交整套答案'}</strong><p>{value.timer.expired ? '答案已冻结；Runtime 会保存已答和未答状态，提交按钮不会消失。' : '提交后答案键和证据才会解锁；未答题会按未作答保存。'}</p></div><button className="button primary" disabled={submit.isPending} onClick={() => (value.timer.expired || window.confirm(`确认提交？当前已答 ${answered}/${total} 题。`)) && submit.mutate()}><Send size={18} />{submit.isPending ? '提交中' : '提交模考'}</button></div>}
     {submit.isError && <ErrorState error={submit.error} />}
   </div>
 }
@@ -184,13 +198,20 @@ function ObjectiveResult({ run }: { run: AssessmentRun }) {
 
 function WritingScorePanel({ run }: { run: AssessmentRun }) {
   const queryClient = useQueryClient()
-  const [scores, setScores] = useState<Record<string, number>>({ TA: 6, TR: 6, CC1: 6, LR1: 6, GRA1: 6, CC2: 6, LR2: 6, GRA2: 6 })
-  const [evidence, setEvidence] = useState('')
+  const [scores, setScores] = useState<Record<string, string>>({ TA: '', TR: '', CC1: '', LR1: '', GRA1: '', CC2: '', LR2: '', GRA2: '' })
+  const [task1Evidence, setTask1Evidence] = useState('')
+  const [task2Evidence, setTask2Evidence] = useState('')
+  const [evaluator, setEvaluator] = useState('')
+  const scoreKeys = ['TA', 'TR', 'CC1', 'LR1', 'GRA1', 'CC2', 'LR2', 'GRA2']
+  const complete = Boolean(scoreKeys.every((key) => scores[key] !== '') && task1Evidence.trim() && task2Evidence.trim() && evaluator.trim())
   const save = useMutation({
-    mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/writing-score`, { method: 'POST', body: jsonBody({ task1: { criteria: { TA: scores.TA, CC: scores.CC1, LR: scores.LR1, GRA: scores.GRA1 }, evidence: [evidence], confidence: 'medium' }, task2: { criteria: { TR: scores.TR, CC: scores.CC2, LR: scores.LR2, GRA: scores.GRA2 }, evidence: [evidence], confidence: 'medium' } }) }),
+    mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/writing-score`, { method: 'POST', body: jsonBody({
+      task1: { criteria: { TA: Number(scores.TA), CC: Number(scores.CC1), LR: Number(scores.LR1), GRA: Number(scores.GRA1) }, evidence: [task1Evidence], confidence: 'medium', evaluator_model: evaluator, calibration_status: 'unknown', rubric_version: 'IELTS Writing descriptors' },
+      task2: { criteria: { TR: Number(scores.TR), CC: Number(scores.CC2), LR: Number(scores.LR2), GRA: Number(scores.GRA2) }, evidence: [task2Evidence], confidence: 'medium', evaluator_model: evaluator, calibration_status: 'unknown', rubric_version: 'IELTS Writing descriptors' },
+    }) }),
     onSuccess: (value) => queryClient.setQueryData(['assessment-run', run.run_id], value),
   })
-  return <section className="settings-section"><p className="eyebrow">Evidence review</p><h2>Task 1 与 Task 2 分项复评</h2><p>这里只导入基于 IELTS descriptors 的分项结论；最终 1:2 权重由 Runtime 计算。</p><div className="score-grid compact">{['TA', 'TR', 'CC1', 'LR1', 'GRA1', 'CC2', 'LR2', 'GRA2'].map((key) => <label key={key}>{key}<select value={scores[key]} onChange={(event) => setScores({ ...scores, [key]: Number(event.target.value) })}>{Array.from({ length: 19 }, (_, index) => index * 0.5).map((value) => <option key={value}>{value}</option>)}</select></label>)}</div><label>评分证据<textarea value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="粘贴 Task 1/Task 2 的原文证据与判断依据" /></label><button className="button primary" disabled={!evidence.trim() || save.isPending} onClick={() => save.mutate()}>保存复评并按 1:2 汇总</button>{save.isError && <ErrorState error={save.error} />}</section>
+  return <section className="settings-section"><p className="eyebrow">Validated evaluator import</p><h2>Task 1 与 Task 2 分项复评</h2><p>这里不再预填 6 分，也不是学习者自评。请从真实 Agent 或人工 IELTS 评阅结果逐项导入；Runtime 负责校验并按 1:2 汇总。</p><label>评阅来源 / 模型<input value={evaluator} onChange={(event) => setEvaluator(event.target.value)} placeholder="例如 Claude Code · 实际模型名，或人工评阅者" /></label><div className="score-grid compact">{scoreKeys.map((key) => <label key={key}>{key}<select value={scores[key]} onChange={(event) => setScores({ ...scores, [key]: event.target.value })}><option value="">未评分</option>{Array.from({ length: 19 }, (_, index) => index * 0.5).map((value) => <option key={value} value={value}>{value.toFixed(1)}</option>)}</select></label>)}</div><label>Task 1 评分证据<textarea value={task1Evidence} onChange={(event) => setTask1Evidence(event.target.value)} placeholder="引用原文并说明 TA / CC / LR / GRA 判断依据" /></label><label>Task 2 评分证据<textarea value={task2Evidence} onChange={(event) => setTask2Evidence(event.target.value)} placeholder="引用原文并说明 TR / CC / LR / GRA 判断依据" /></label><button className="button primary" disabled={!complete || save.isPending} onClick={() => save.mutate()}>验证复评并按 1:2 汇总</button>{save.isError && <ErrorState error={save.error} />}</section>
 }
 
 function SpeakingHandoffPanel({ run, onCreated }: { run: AssessmentRun; onCreated: () => void }) {

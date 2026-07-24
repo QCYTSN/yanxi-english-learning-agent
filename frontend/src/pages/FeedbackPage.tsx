@@ -24,13 +24,17 @@ export function FeedbackPage() {
   })
   if (session.isPending) return <LoadingState />
   if (session.isError) return <ErrorState error={session.error} />
+  if (runs.isPending) return <LoadingState label="正在核对反馈来源" />
+  if (runs.isError) return <ErrorState error={runs.error} />
   const isWriting = session.data.module === 'writing'
+  const latestRun = runs.data?.[0]
+  const mockOnly = latestRun?.adapter_id === 'mock'
   return (
     <div className="page">
       <PageHeader eyebrow={sessionId} title={isWriting ? '写作反馈' : '阅读复盘'} description="正式反馈来自已经通过 Schema 和语义验证的 Session 数据。" action={session.data.status !== 'completed' ? <button className="button secondary" onClick={() => finish.mutate()}><CheckCircle2 size={18} />完成本次练习</button> : <StatusBadge tone="success">已完成</StatusBadge>} />
       {finish.isError && <ErrorState error={finish.error} />}
-      {runs.data?.[0] && <AgentIdentityCard run={runs.data[0]} />}
-      {isWriting ? <WritingFeedback session={session.data} /> : <ReadingFeedback session={session.data} />}
+      {latestRun && <AgentIdentityCard run={latestRun} />}
+      {isWriting ? <WritingFeedback session={session.data} mockOnly={mockOnly} /> : <ReadingFeedback session={session.data} mockOnly={mockOnly} />}
     </div>
   )
 }
@@ -38,16 +42,17 @@ export function FeedbackPage() {
 function AgentIdentityCard({ run }: { run: AgentRun }) {
   const deterministic = run.launcher_kind === 'deterministic_local'
   return <section className="agent-identity-card">
-    <div><p className="eyebrow">Result provenance</p><h2>{deterministic ? '本地确定性测试结果' : 'Agent 生成结果'}</h2></div>
+    <div><p className="eyebrow">Result provenance</p><h2>{deterministic ? '管线自检结果（不是评分）' : 'Agent 生成结果'}</h2>{deterministic && <p>没有连接模型；该结果不得作为雅思能力判断。</p>}</div>
     <dl><div><dt>Adapter</dt><dd>{run.adapter_id}</dd></div><div><dt>Agent</dt><dd>{run.agent_provider ?? '未知'}</dd></div><div><dt>模型</dt><dd>{deterministic ? '未使用模型' : run.model_display_name ?? run.model_id ?? '未知'}</dd></div><div><dt>生成时间</dt><dd>{new Date(run.completed_at ?? run.created_at).toLocaleString('zh-CN')}</dd></div><div><dt>校准</dt><dd>{run.calibration_status}</dd></div></dl>
   </section>
 }
 
-function WritingFeedback({ session }: { session: SessionSummary }) {
+function WritingFeedback({ session, mockOnly }: { session: SessionSummary; mockOnly: boolean }) {
   const review = session.writing_review as WritingReview | undefined
   const versions = (session.versions as Array<{ label: string; content: string }> | undefined) ?? []
   const scored = versions.find((item) => item.label === session.scored_version) ?? versions.at(-1)
   if (!review || !scored) return <div className="empty-state"><h2>反馈尚未准备好</h2><p>返回工作区提交作文并生成反馈。</p></div>
+  if (mockOnly) return <section className="empty-state"><h2>这里没有有效雅思评分</h2><p>这是旧版 Mock 管线产生的占位结果，没有调用 Agent。6.0–6.5 等占位数字已被界面撤销，不会进入正式进度。</p><Link className="button primary" to="/practice">新建练习并选择真实 Agent</Link></section>
   const primaryAnchor = review.priority_issues.find((item) => item.anchor)?.anchor
   return (
     <>
@@ -69,8 +74,9 @@ function WritingFeedback({ session }: { session: SessionSummary }) {
   )
 }
 
-function ReadingFeedback({ session }: { session: SessionSummary }) {
+function ReadingFeedback({ session, mockOnly }: { session: SessionSummary; mockOnly: boolean }) {
   const review = session.reading_review as ReadingReview | undefined
+  if (mockOnly) return <section className="empty-state"><h2>这里没有有效阅读讲解</h2><p>这是旧版 Mock 管线结果，没有调用 Agent，也不属于学习证据。</p><Link className="button primary" to="/practice">返回练习</Link></section>
   if (!review) return <div className="empty-state"><h2>复盘尚未准备好</h2><p>提交答案并生成结构化复盘后再查看。</p></div>
   return <div className="reading-review-list">{review.items.map((item, index) => <article key={`${item.question_number}-${index}`}><div className="review-number">{item.question_number ?? index + 1}</div><div><div className="answer-line"><span>你的答案 <strong>{String(item.user_answer ?? '—')}</strong></span><span>正确答案 <strong>{String(item.correct_answer ?? '—')}</strong></span></div><p className="evidence-location">{item.evidence_location}</p><p>{item.evidence}</p><p>{item.reasoning}</p><div className="next-rule"><Target size={17} /><span>{item.next_rule}</span></div></div></article>)}</div>
 }

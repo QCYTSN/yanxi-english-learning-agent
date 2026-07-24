@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .config import DEFAULT_PROFILE, DEFAULT_SETTINGS, migrate_configuration, write_yaml
-from .corpus import import_manifest, install_starter_corpus
+from .corpus import corpus_index_is_complete, import_manifest, install_starter_corpus
 from .storage import initialise_database
 from .rubrics import ensure_default_rubrics
 from .listening_corpus import install_starter_listening
@@ -29,9 +29,11 @@ def initialise_home(home: Path, force: bool = False) -> None:
     initialise_database(home)
     install_starter_listening(home)
     ensure_default_rubrics(home)
-    install_starter_corpus(home, force=force)
+    starter_changed = install_starter_corpus(home, force=force)
     manifest_path = home / "corpus" / "starter-open" / "manifest.yaml"
-    if manifest_path.exists():
+    if manifest_path.exists() and (
+        force or starter_changed or not corpus_index_is_complete(home, manifest_path)
+    ):
         import_manifest(
             home,
             manifest_path,
@@ -39,4 +41,5 @@ def initialise_home(home: Path, force: bool = False) -> None:
             force=force,
             refresh_reviews=False,
         )
+    if manifest_path.exists():
         ensure_bundled_content_reviews(home, corpus_id="ielts-ai-coach-starter")

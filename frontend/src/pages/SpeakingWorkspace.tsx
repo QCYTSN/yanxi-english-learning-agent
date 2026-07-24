@@ -3,6 +3,7 @@ import { Clipboard, ExternalLink, Mic2, Plus, ShieldCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type SessionSummary } from '../api/client'
+import { AgentPanel } from '../components/AgentPanel'
 import { ConformanceBadge, ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
 type HandoffQuestion = { question_id: string; part: number | string; topic?: string; content: string }
@@ -124,6 +125,15 @@ export function SpeakingWorkspace() {
       )}
 
       {active?.speaking_report && <SpeakingReportView report={active.speaking_report} />}
+      {active?.status === 'awaiting_feedback' && <AgentPanel
+        sessionId={active.session_id}
+        contract="speaking-evaluation@1"
+        action="transcript_review"
+        onPersisted={() => {
+          setSession(null)
+          void queryClient.invalidateQueries({ queryKey: ['session', active.session_id] })
+        }}
+      />}
       <StoryBank stories={stories.data ?? []} pending={stories.isPending} error={stories.error} />
     </div>
   )

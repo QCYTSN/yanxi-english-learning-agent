@@ -94,6 +94,7 @@ class WritingVersionSubmit(BaseModel):
 
 class ReadingHintSubmit(BaseModel):
     level: int | None = Field(default=None, ge=1, le=3)
+    question_id: str | None = Field(default=None, min_length=1, max_length=200)
     expected_revision: int | None = Field(default=None, ge=0)
 
 
@@ -149,7 +150,7 @@ class AgentRunCreate(BaseModel):
         "diagnostic-summary@1",
         "weekly-coaching@1",
     ]
-    timeout_seconds: int = Field(default=120, ge=5, le=1800)
+    timeout_seconds: int = Field(default=300, ge=5, le=1800)
     source_type: str | None = None
     explicit_consent: bool = False
     agent_provider: str | None = Field(default=None, max_length=100)

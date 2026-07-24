@@ -122,7 +122,7 @@ def test_speaking_voice_handoff_report_and_story_bank(tmp_path: Path) -> None:
         },
     )
     assert imported.status_code == 200
-    assert imported.json()["status"] == "completed"
+    assert imported.json()["status"] == "awaiting_feedback"
     assert imported.json()["band"] is None
     assert imported.json()["score_kind"] == "partial_profile"
     assert imported.json()["speaking_report"]["local_evaluation"]["status"] == "pending"

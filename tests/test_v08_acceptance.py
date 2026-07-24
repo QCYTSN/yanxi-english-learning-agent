@@ -162,8 +162,8 @@ def test_onboarding_diagnostics_settings_and_agent_provenance_api(tmp_path: Path
         },
     )
     assert run.status_code == 200
-    provenance = _wait_agent(client, run.json()["run_id"], {"persisted"})
-    assert provenance["status"] == "persisted"
+    provenance = _wait_agent(client, run.json()["run_id"], {"test_passed"})
+    assert provenance["status"] == "test_passed"
     assert provenance["agent_provider"] == "ielts-ai-coach"
     assert provenance["model_id"] is None
     assert provenance["launcher_kind"] == "deterministic_local"

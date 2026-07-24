@@ -129,10 +129,14 @@ class MockAdapter:
         criteria = [
             {
                 "criterion": name,
-                "score_low": 6.0,
-                "score_high": 6.5,
-                "evidence_support": ["The response presents a clear attempt to address the task."],
-                "evidence_limit": ["Development and precision are not yet consistent throughout."],
+                "score_low": 0.0,
+                "score_high": 0.0,
+                "evidence_support": [
+                    "Mock pipeline fixture: no IELTS judgment was performed."
+                ],
+                "evidence_limit": [
+                    "No model was called, so this value is not a learner score."
+                ],
                 "anchors": [anchor],
             }
             for name in names
@@ -143,9 +147,8 @@ class MockAdapter:
             "stage": "first_review" if version["label"] == "v1" else "version_comparison",
             "task": task,
             "version_label": version["label"],
-            "score_kind": "ai_training_estimate",
+            "score_kind": "mock_fixture",
             "confidence": "low",
-            "estimated_band": {"low": 6.0, "high": 6.5},
             "rubric": {
                 "rubric_id": "ielts-writing-public-descriptors",
                 "publisher": "IELTS",
@@ -156,14 +159,14 @@ class MockAdapter:
             "criteria": criteria,
             "priority_issues": [
                 {
-                    "tag": "TR_DEVELOPMENT",
-                    "evidence": "One central idea needs fuller explanation and a concrete example.",
-                    "learner_action": "Add one reason and one specific example before changing wording.",
+                    "tag": "MOCK_ONLY",
+                    "evidence": "The local UI-to-Runtime contract pipeline completed.",
+                    "learner_action": "Choose Claude Code, OpenCode, or Manual for real feedback.",
                     "anchor": anchor,
                 }
             ],
             "full_model_answer": None,
-            "next_action": "Revise the response using the priority issue before requesting an alternative.",
+            "next_action": "Choose a real Agent or Manual handoff for IELTS feedback.",
         }
 
     def _reading_review(self, session: dict[str, Any]) -> dict[str, Any]:

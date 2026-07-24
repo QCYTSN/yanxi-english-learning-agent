@@ -8,13 +8,44 @@ type BackupSummary = { backup_id: string; kind: string; created_at: string | nul
 type Health = { status: 'ok' | 'degraded' | 'failed'; checks: Record<string, unknown>; errors: string[]; warnings: string[] }
 type Rubric = { rubric_id: string; module: string; publisher: string; standard: string; version?: string | null; source_reference: string; availability: string }
 type Telemetry = { module: string; events: number; input_tokens: number; output_tokens: number; average_latency_ms?: number | null; tool_calls: number }
+type Performance = {
+  requests: {
+    sample_count: number
+    average_ms: number | null
+    p50_ms: number | null
+    p95_ms: number | null
+    slowest_routes: Array<{ route: string; requests: number; average_ms: number; p95_ms: number }>
+  }
+  database: {
+    size_bytes: number
+    reclaimable_bytes: number
+    pragmas: { journal_mode: string; busy_timeout_ms: number; cache_size: number }
+    row_counts: Record<string, number>
+    native_acceleration: { enabled: boolean; decision: string; reason: string }
+  }
+}
+type AgentDiagnostic = Bootstrap['agents'][number] & {
+  diagnostics: {
+    executable_path?: string | null
+    version?: string | null
+    process_mode?: string
+    proxy_configured?: boolean
+    proxy_variables?: Record<string, string>
+    model_call_test: string
+    boundary: string
+  }
+}
 
 export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
+  const callableAgents = bootstrap.agents.filter((agent) => agent.identity.launcher_kind === 'local_process')
+  const availableCallableAgents = callableAgents.filter((agent) => agent.available)
   const queryClient = useQueryClient()
   const backups = useQuery({ queryKey: ['backups'], queryFn: () => api<BackupSummary[]>('/api/v1/backups') })
   const health = useQuery({ queryKey: ['system-health'], queryFn: () => api<Health>('/api/v1/system/health') })
   const rubrics = useQuery({ queryKey: ['rubrics'], queryFn: () => api<Rubric[]>('/api/v1/rubrics') })
   const telemetry = useQuery({ queryKey: ['telemetry'], queryFn: () => api<Telemetry[]>('/api/v1/telemetry/summary?days=30') })
+  const performance = useQuery({ queryKey: ['system-performance'], queryFn: () => api<Performance>('/api/v1/system/performance'), refetchInterval: 30_000 })
+  const agentDiagnostics = useQuery({ queryKey: ['agent-diagnostics'], queryFn: () => api<AgentDiagnostic[]>('/api/v1/agents/diagnostics') })
   const create = useMutation({ mutationFn: () => api<BackupSummary>('/api/v1/backups', { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
   const verify = useMutation({ mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/verify`, { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
   const restore = useMutation({
@@ -44,14 +75,25 @@ export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
       {backups.data?.length === 0 && <p className="muted">还没有本地备份。</p>}
     </section>
     <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Agent identity</p><h2>可用方式与身份边界</h2></div><StatusBadge tone="warning">未连接可调用 Process Agent</StatusBadge></div>
-      <p>桌面快捷方式只启动本地 Runtime 和 UI，不会猜测或静默启动 Claude、OpenCode、Codex。</p>
-      <div className="adapter-list">{bootstrap.agents.map((agent) => <article key={agent.id}><div><h3>{agent.label}</h3><p>{agent.identity.launcher_kind} · Provider {agent.identity.agent_provider ?? '未知'} · Model {agent.identity.model_display_name ?? agent.identity.model_id ?? '未知'}</p></div><StatusBadge tone={agent.available ? 'success' : 'warning'}>{agent.available ? '可用' : '不可用'}</StatusBadge></article>)}</div>
+      <div className="section-heading"><div><p className="eyebrow">Agent identity</p><h2>可用方式与身份边界</h2></div><StatusBadge tone={availableCallableAgents.length ? 'success' : 'warning'}>{availableCallableAgents.length ? `检测到 ${availableCallableAgents.length} 个可调用 CLI` : '未检测到可调用 CLI'}</StatusBadge></div>
+      <p>“可用”只表示系统找到了对应 CLI；完成一次真实反馈并显示“真实反馈已保存”，才证明认证、模型调用和结果回传全部连通。Claude Code 支持原生 JSON Schema，当前作为推荐直连；OpenCode 没有等价的原生约束，需由 Adapter 归一化后再验证，因此标记为实验性。桌面快捷方式本身不会静默启动 Agent。</p>
+      {agentDiagnostics.isPending && <LoadingState label="正在检查本地 CLI 与代理继承" />}{agentDiagnostics.error && <ErrorState error={agentDiagnostics.error} />}
+      <div className="adapter-list">{bootstrap.agents.map((agent) => {
+        const diagnostic = agentDiagnostics.data?.find((item) => item.id === agent.id)?.diagnostics
+        return <article key={agent.id}><div><h3>{agent.label}</h3><p>{agent.identity.launcher_kind} · Provider {agent.identity.agent_provider ?? '未知'} · Model {agent.identity.model_display_name ?? agent.identity.model_id ?? '未知'}</p>{diagnostic?.executable_path && <small><code>{diagnostic.executable_path}</code> · {diagnostic.version ?? '版本未知'} · {diagnostic.proxy_configured ? '已继承代理' : '未检测到代理变量'}</small>}</div><StatusBadge tone={agent.available ? 'success' : 'warning'}>{agent.available ? '本地预检通过' : '不可用'}</StatusBadge></article>
+      })}</div>
+      <p className="muted">本地预检不消耗 Token，也不代表中转 API 已认证；只有一次真实反馈任务能够证明端到端连接。</p>
     </section>
     <section className="settings-section">
       <div className="section-heading"><div><p className="eyebrow">Rubrics</p><h2>评分标准来源</h2></div><ShieldCheck /></div>
       {rubrics.isPending && <LoadingState />}{rubrics.error && <ErrorState error={rubrics.error} />}
       <div className="adapter-list">{rubrics.data?.map((rubric) => <article key={rubric.rubric_id}><div><h3>{rubric.standard}</h3><p>{rubric.publisher} · {rubric.module} · {rubric.version ?? '版本未注明'}</p><a href={rubric.source_reference} target="_blank" rel="noreferrer">查看来源</a></div><StatusBadge tone="success">{rubric.availability}</StatusBadge></article>)}</div>
+    </section>
+    <section className="settings-section">
+      <div className="section-heading"><div><p className="eyebrow">Runtime performance</p><h2>本地运行容量</h2></div><Activity /></div>
+      <p>只记录最近一段时间的路由耗时和数据库规模，不记录题目、作文或 Agent 提示词。</p>
+      {performance.isPending && <LoadingState label="正在读取性能快照" />}{performance.error && <ErrorState error={performance.error} />}
+      {performance.data && <><div className="baseline-grid"><div><span>API 请求样本</span><strong>{performance.data.requests.sample_count}</strong><small>rolling window</small></div><div><span>中位延迟</span><strong>{performance.data.requests.p50_ms ?? 0} ms</strong><small>p95 {performance.data.requests.p95_ms ?? 0} ms</small></div><div><span>数据库</span><strong>{formatBytes(performance.data.database.size_bytes)}</strong><small>{performance.data.database.pragmas.journal_mode.toUpperCase()} · busy {performance.data.database.pragmas.busy_timeout_ms} ms</small></div></div><details><summary>查看慢路由与数据规模</summary><div className="performance-details"><div>{performance.data.requests.slowest_routes.map((item) => <p key={item.route}><code>{item.route}</code><span>p95 {item.p95_ms} ms · {item.requests} 次</span></p>)}</div><div>{Object.entries(performance.data.database.row_counts).map(([key, value]) => <p key={key}><code>{key}</code><span>{value.toLocaleString('zh-CN')} rows</span></p>)}</div></div></details><p className="muted">原生加速：{performance.data.database.native_acceleration.enabled ? '已启用' : '暂不需要'}。{performance.data.database.native_acceleration.reason}</p></>}
     </section>
     <section className="settings-section">
       <div className="section-heading"><div><p className="eyebrow">Telemetry · 30 days</p><h2>本地元数据统计</h2></div><Activity /></div>

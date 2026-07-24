@@ -5,6 +5,7 @@ import hmac
 import json
 import secrets
 import threading
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -18,7 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from .. import __version__
 from ..agent_contracts import CONTRACT_SKILLS, persist_agent_contract
-from ..agent_gateway import adapter_descriptors, get_adapter
+from ..agent_gateway import adapter_descriptors, adapter_diagnostics, get_adapter
 from ..agent_jobs import AgentJobManager
 from ..assessment_builder import assemble_assessment_pack
 from ..assessment_runtime import (
@@ -44,6 +45,7 @@ from ..content_imports import create_import, imports as list_content_imports, pr
 from ..content_inventory import build_content_readiness, content_requirements
 from ..content_reviews import (
     get_target_review,
+    get_target_review_statuses,
     list_content_reviews,
     list_review_queue,
     record_content_review,
@@ -67,6 +69,7 @@ from ..listening_corpus import (
 from ..onboarding import complete_onboarding, onboarding_status, update_profile
 from ..paths import resolve_home
 from ..privacy import check_processing_permission
+from ..performance import RequestPerformanceMonitor, database_performance_status
 from ..profiles import build_learning_profile
 from ..progress_dashboard import build_progress_dashboard
 from ..question_bank import search_questions, show_question, show_reading_set
@@ -93,6 +96,7 @@ from ..storage import (
     list_assessment_packs,
     list_media_assets,
     list_sessions,
+    latest_active_session,
     save_study_draft,
     save_idempotency_record,
     telemetry_summary,
@@ -141,6 +145,7 @@ from .models import (
 
 TERMINAL_RUN_STATUSES = {
     "persisted",
+    "test_passed",
     "cancelled",
     "failed",
     "invalid_output",
@@ -155,6 +160,8 @@ class LoopbackSecurityMiddleware(BaseHTTPMiddleware):
         self.test_mode = test_mode
 
     async def dispatch(self, request: Request, call_next: Any) -> Response:
+        started = time.perf_counter()
+        request_id = uuid.uuid4().hex[:16]
         host = request.headers.get("host", "").split(":", 1)[0].lower()
         allowed_hosts = {"127.0.0.1"} | ({"testserver"} if self.test_mode else set())
         if host not in allowed_hosts:
@@ -167,6 +174,17 @@ class LoopbackSecurityMiddleware(BaseHTTPMiddleware):
                 response = _error_response(403, "ORIGIN_REQUIRED", "An Origin header is required.")
             else:
                 response = await call_next(request)
+        duration_ms = (time.perf_counter() - started) * 1000
+        if request.url.path.startswith("/api/") and request.url.path != "/api/health":
+            route = request.scope.get("route")
+            request.app.state.performance.record(
+                str(getattr(route, "path", request.url.path)),
+                request.method,
+                response.status_code,
+                duration_ms,
+            )
+        response.headers["X-Request-ID"] = request_id
+        response.headers["Server-Timing"] = f"app;dur={duration_ms:.1f}"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self'; "
             "img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; "
@@ -210,6 +228,50 @@ def _public_media(asset: dict[str, Any]) -> dict[str, Any]:
     return public
 
 
+def _agent_media_refs(
+    home: Path,
+    session_id: str,
+    *,
+    adapter_id: str,
+    image_input: bool,
+    audio_input: bool,
+) -> list[dict[str, Any]]:
+    refs = []
+    for asset in list_media_assets(
+        home,
+        limit=20,
+        owner_type="session",
+        owner_id=session_id,
+    ):
+        supported = (
+            asset["media_type"] == "image" and image_input
+        ) or (
+            asset["media_type"] == "audio" and audio_input
+        )
+        delivery = (
+            "adapter_input"
+            if supported
+            else "manual_attachment_required"
+            if adapter_id == "manual"
+            else "unsupported_by_adapter"
+        )
+        refs.append(
+            {
+                "media_id": asset["media_id"],
+                "media_type": asset["media_type"],
+                "mime_type": asset["mime_type"],
+                "content_hash": asset["content_hash"],
+                "width": asset.get("width"),
+                "height": asset.get("height"),
+                "alt_text": asset.get("alt_text"),
+                "privacy_status": asset["privacy_status"],
+                "delivery": delivery,
+                "available_to_agent": supported,
+            }
+        )
+    return refs
+
+
 def _idempotency_key(value: str | None) -> str:
     if not value or len(value) < 8 or len(value) > 200:
         raise HTTPException(status_code=400, detail="Idempotency-Key must contain 8-200 characters")
@@ -248,6 +310,7 @@ def create_app(
     app.state.control_token = control_token
     app.state.server = None
     app.state.agent_jobs = agent_jobs
+    app.state.performance = RequestPerformanceMonitor()
     app.add_middleware(
         LoopbackSecurityMiddleware, allowed_origin=allowed_origin, test_mode=test_mode
     )
@@ -330,14 +393,8 @@ def create_app(
                 },
             }
         profile = load_profile(target)
-        active = next(
-            (
-                dict(row)
-                for row in list_sessions(target, limit=100)
-                if row["status"] not in {"completed", "cancelled"}
-            ),
-            None,
-        )
+        active_row = latest_active_session(target)
+        active = dict(active_row) if active_row else None
         return {
             "api_version": 1,
             "core_version": __version__,
@@ -386,6 +443,23 @@ def create_app(
     @app.get("/api/v1/system/health", dependencies=[Depends(require_session)])
     def system_health_endpoint() -> dict[str, Any]:
         return audit_data_home(target)
+
+    @app.get("/api/v1/system/performance", dependencies=[Depends(require_session)])
+    def system_performance_endpoint() -> dict[str, Any]:
+        return {
+            "requests": app.state.performance.summary(),
+            "database": database_performance_status(target),
+            "architecture": {
+                "api": "FastAPI local process",
+                "runtime": "Python",
+                "frontend": "React + TypeScript",
+                "heavy_jobs": "bounded background workers",
+            },
+        }
+
+    @app.get("/api/v1/agents/diagnostics", dependencies=[Depends(require_session)])
+    def agent_diagnostics_endpoint() -> list[dict[str, object]]:
+        return adapter_diagnostics()
 
     @app.get("/api/v1/rubrics", dependencies=[Depends(require_session)])
     def rubrics_endpoint() -> list[dict[str, Any]]:
@@ -541,6 +615,7 @@ def create_app(
         practice_mode: str | None = None,
         conformance_status: str | None = None,
         limit: int = Query(100, ge=1, le=500),
+        offset: int = Query(0, ge=0),
     ) -> list[dict[str, Any]]:
         items = list_assessment_packs(
             target,
@@ -548,14 +623,17 @@ def create_app(
             practice_mode=practice_mode,
             conformance_status=conformance_status,
             limit=limit,
+            offset=offset,
+        )
+        statuses = get_target_review_statuses(
+            target,
+            "assessment_pack",
+            [str(item["pack_id"]) for item in items],
         )
         for item in items:
-            item["local_review_status"] = get_target_review(
-                target,
-                "assessment_pack",
-                str(item["pack_id"]),
-                include_material=False,
-            )["local_review_status"]
+            item["local_review_status"] = statuses.get(
+                str(item["pack_id"]), "unreviewed"
+            )
         return items
 
     @app.post("/api/v1/assessment-packs", dependencies=[Depends(require_session)])
@@ -763,8 +841,17 @@ def create_app(
         return bind_speaking_result(target, run_id, imported)
 
     @app.get("/api/v1/sessions", dependencies=[Depends(require_session)])
-    def sessions(module: str | None = None, limit: int = Query(50, ge=1, le=500)) -> list[dict[str, Any]]:
-        return [dict(row) for row in list_sessions(target, module=module, limit=limit)]
+    def sessions(
+        module: str | None = None,
+        limit: int = Query(50, ge=1, le=500),
+        offset: int = Query(0, ge=0),
+    ) -> list[dict[str, Any]]:
+        return [
+            dict(row)
+            for row in list_sessions(
+                target, module=module, limit=limit, offset=offset
+            )
+        ]
 
     @app.post("/api/v1/sessions", dependencies=[Depends(require_session)])
     def create_session_endpoint(
@@ -849,6 +936,7 @@ def create_app(
             target,
             session_id,
             level=payload.level,
+            question_id=payload.question_id,
             expected_revision=payload.expected_revision,
             idempotency_key=_idempotency_key(idempotency),
         )
@@ -997,6 +1085,7 @@ def create_app(
         passage_id: str | None = None,
         query: str | None = None,
         limit: int = Query(50, ge=1, le=500),
+        offset: int = Query(0, ge=0),
     ) -> list[dict[str, Any]]:
         items = search_questions(
             target,
@@ -1007,14 +1096,17 @@ def create_app(
             passage_id=passage_id,
             query=query,
             limit=limit,
+            offset=offset,
+        )
+        statuses = get_target_review_statuses(
+            target,
+            "question",
+            [str(item["question_id"]) for item in items],
         )
         for item in items:
-            item["local_review_status"] = get_target_review(
-                target,
-                "question",
-                str(item["question_id"]),
-                include_material=False,
-            )["local_review_status"]
+            item["local_review_status"] = statuses.get(
+                str(item["question_id"]), "unreviewed"
+            )
         return items
 
     @app.get("/api/v1/questions/{question_id}", dependencies=[Depends(require_session)])
@@ -1172,6 +1264,18 @@ def create_app(
                 "Private material requires one-time consent before Agent handoff.",
                 details=permission,
             )
+        media_refs = _agent_media_refs(
+            target,
+            payload.study_session_id,
+            adapter_id=payload.adapter_id,
+            image_input=capabilities.image_input,
+            audio_input=capabilities.audio_input,
+        )
+        canonical_session = dict(session)
+        canonical_session["registered_media"] = media_refs
+        canonical_session["media_evidence_sufficient"] = not media_refs or all(
+            item["available_to_agent"] for item in media_refs
+        )
         run_id = f"run_{uuid.uuid4().hex}"
         request_envelope = {
             "request_version": 1,
@@ -1183,6 +1287,7 @@ def create_app(
             "payload_refs": [
                 f"session:{payload.study_session_id}",
                 *([f"question:{session['question_id']}"] if session.get("question_id") else []),
+                *[f"media:{item['media_id']}" for item in media_refs],
             ],
             "output_contract": payload.output_contract,
             "privacy_decision": permission,
@@ -1195,7 +1300,8 @@ def create_app(
                 "agent_session_id": payload.agent_session_id,
                 "launcher_kind": adapter_identity.launcher_kind,
             },
-            "canonical_session": session if payload.adapter_id != "mock" else None,
+            "media_refs": media_refs,
+            "canonical_session": canonical_session if payload.adapter_id != "mock" else None,
         }
         run = create_agent_run(
             target,

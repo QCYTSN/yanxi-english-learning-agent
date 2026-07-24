@@ -158,10 +158,25 @@ th { color: var(--muted); font-size: 0.82rem; font-weight: 700; }
 .process-visual li span { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: white; font-weight: 800; }
 .questions-footer { margin-top: auto; flex-wrap: wrap; }
 .inline-note { margin: 12px 18px; padding: 10px 12px; background: var(--warning-soft); color: var(--warning); font-size: 0.86rem; }
+.reading-hint { margin: 18px; padding: 16px 18px; border: 1px solid #d8c98f; border-radius: 12px; background: #fffaf0; }
+.reading-hint > div { display: flex; align-items: center; gap: 8px; }
+.reading-hint p { margin: 9px 0 6px; }
 
 .agent-panel { margin-top: 22px; display: grid; grid-template-columns: minmax(220px, 0.65fr) minmax(360px, 1.35fr); gap: 28px; padding: 26px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .agent-panel p { color: var(--muted); }
 .agent-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.mock-test-callout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-subtle);
+}
+.mock-test-callout span { color: var(--muted); font-size: 0.84rem; }
 .consent { width: 100%; display: flex; align-items: flex-start; gap: 9px; color: var(--muted); font-size: 0.88rem; }
 .consent input { width: 18px; height: 18px; margin-top: 2px; }
 .manual-handoff { grid-column: 1 / -1; padding-top: 22px; border-top: 1px solid var(--border); }
@@ -449,6 +464,7 @@ th { color: var(--muted); font-size: 0.82rem; font-weight: 700; }
   .review-queue { position: static; max-height: none; }
   .score-grid, .baseline-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .diagnostic-mode-grid, .manual-identity-fields, .agent-identity-card { grid-template-columns: 1fr; }
+  .mock-test-callout { grid-template-columns: 1fr; }
   .agent-identity-card dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .diagnostic-callout, .onboarding-actions { align-items: stretch; flex-direction: column; }
   .listening-categories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -521,10 +537,15 @@ th { color: var(--muted); font-size: 0.82rem; font-weight: 700; }
   padding: .65rem 0;
 }
 .agent-run-status { padding: .8rem 0; color: var(--muted); }
+.agent-error-detail { width: 100%; color: var(--danger); overflow-wrap: anywhere; }
+.performance-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+.performance-details p { display: flex; justify-content: space-between; gap: 12px; margin: 6px 0; }
+.load-more { display: flex; margin: 18px auto 0; }
 
 @media (max-width: 760px) {
   .today-task-grid, .progress-module-grid, .progress-detail-grid { grid-template-columns: 1fr; }
   .task-metrics { grid-template-columns: 1fr; }
+  .performance-details { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

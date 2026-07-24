@@ -39,7 +39,13 @@ def _wait_agent(client: TestClient, run_id: str) -> dict:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         run = client.get(f"/api/v1/agent-runs/{run_id}").json()
-        if run["status"] in {"persisted", "failed", "cancelled", "awaiting_import"}:
+        if run["status"] in {
+            "persisted",
+            "test_passed",
+            "failed",
+            "cancelled",
+            "awaiting_import",
+        }:
             return run
         time.sleep(0.03)
     raise AssertionError("Agent run did not reach a terminal state")
@@ -243,10 +249,11 @@ def test_media_registry_and_mock_agent_round_trip(tmp_path: Path):
     )
     assert run.status_code == 200
     persisted = _wait_agent(client, run.json()["run_id"])
-    assert persisted["status"] == "persisted"
+    assert persisted["status"] == "test_passed"
+    assert persisted["result"]["score_kind"] == "mock_fixture"
     canonical = client.get(f"/api/v1/sessions/{session_id}").json()
-    assert canonical["status"] == "awaiting_revision"
-    assert canonical["writing_review"]["priority_issues"][0]["anchor"]["offset_encoding"] == "unicode_code_points"
+    assert canonical["status"] == "awaiting_feedback"
+    assert "writing_review" not in canonical
 
     buffer = io.BytesIO()
     Image.new("RGB", (24, 16), "white").save(buffer, format="PNG")

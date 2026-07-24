@@ -39,7 +39,7 @@ def import_speaking_report_data(
     fields: dict[str, Any] = {
         "session_id": session_id,
         "module": "speaking",
-        "status": "completed",
+        "status": "completed" if local_band is not None else "awaiting_feedback",
         "occurred_at": report.get("occurred_at") or existing.get("occurred_at") or datetime.now(timezone.utc).isoformat(),
         "duration_minutes": report.get("duration_minutes"),
         "band": local_band,

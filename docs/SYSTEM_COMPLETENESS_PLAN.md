@@ -309,7 +309,7 @@ Runner 交付物：
 
 ## 7. V1.0：AI 学习闭环与发布
 
-实施状态：已完成 V1.0 本地工程验收。Schema v13、统一 ScoreResult 准入、
+实施状态：已完成 V1.0 本地工程验收，并在后续运行优化中升级到 Schema v14。统一 ScoreResult 准入、
 七类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
 Runtime 驱动的 Today 与结构化 Progress 已交付。正式题库数量仍由
 `CONTENT_ACQUISITION_PLAN.md` 独立管理；最终品牌视觉仍按原计划后置。

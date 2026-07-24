@@ -1,18 +1,95 @@
 from __future__ import annotations
 
 import json
+import locale
+import os
 import re
+import signal
 import shutil
 import subprocess
+import tempfile
 import threading
-from importlib import resources
+import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from .. import __version__
 from ..agent_contracts import CONTRACT_SCHEMAS
 from ..validation import load_schema
 from .base import AgentCapabilities, AgentIdentity
+
+
+_PROXY_ENVIRONMENT_KEYS = (
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+)
+
+
+def _normalise_proxy_url(value: str, *, socks: bool = False) -> str:
+    value = value.strip()
+    if not value or "://" in value:
+        return value
+    return f"{'socks5' if socks else 'http'}://{value}"
+
+
+def _proxy_environment_from_windows_value(value: str) -> dict[str, str]:
+    """Translate the WinINET ProxyServer value into CLI-friendly variables."""
+    value = value.strip()
+    if not value:
+        return {}
+    proxies: dict[str, str] = {}
+    if "=" not in value:
+        proxy = _normalise_proxy_url(value)
+        proxies.update({"HTTP_PROXY": proxy, "HTTPS_PROXY": proxy})
+    else:
+        entries = {}
+        for item in value.split(";"):
+            protocol, separator, endpoint = item.partition("=")
+            if separator and endpoint.strip():
+                entries[protocol.strip().lower()] = endpoint.strip()
+        if entries.get("http"):
+            proxies["HTTP_PROXY"] = _normalise_proxy_url(entries["http"])
+        if entries.get("https"):
+            proxies["HTTPS_PROXY"] = _normalise_proxy_url(entries["https"])
+        if entries.get("socks"):
+            proxies["ALL_PROXY"] = _normalise_proxy_url(
+                entries["socks"], socks=True
+            )
+    for key, proxy in list(proxies.items()):
+        proxies[key.lower()] = proxy
+    return proxies
+
+
+def _windows_system_proxy_environment() -> dict[str, str]:
+    if os.name != "nt":
+        return {}
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Internet Settings",
+        ) as key:
+            enabled = int(winreg.QueryValueEx(key, "ProxyEnable")[0])
+            value = str(winreg.QueryValueEx(key, "ProxyServer")[0])
+    except (ImportError, OSError, TypeError, ValueError):
+        return {}
+    return _proxy_environment_from_windows_value(value) if enabled else {}
+
+
+def _process_environment(overrides: dict[str, str]) -> dict[str, str]:
+    environment = dict(os.environ)
+    system_proxy = _windows_system_proxy_environment()
+    for key in _PROXY_ENVIRONMENT_KEYS:
+        if system_proxy.get(key):
+            environment.setdefault(key, system_proxy[key])
+    environment.update(overrides)
+    return environment
 
 
 class LocalProcessAdapter:
@@ -23,9 +100,10 @@ class LocalProcessAdapter:
     label: str
 
     def __init__(self) -> None:
-        self._processes: dict[str, subprocess.Popen[str]] = {}
+        self._processes: dict[str, subprocess.Popen[bytes]] = {}
         self._runtime_identities: dict[str, dict[str, str | None]] = {}
         self._lock = threading.Lock()
+        self._version_cache: tuple[float, str | None] | None = None
 
     def _path(self) -> str | None:
         return shutil.which(self.executable)
@@ -61,31 +139,44 @@ class LocalProcessAdapter:
         if not executable:
             raise ValueError(f"{self.label} CLI is not installed or not on PATH")
         prompt = self._prompt(request)
-        command = self._command(executable, prompt, request["output_contract"])
-        process = subprocess.Popen(
-            command,
-            cwd=home,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            shell=False,
-            creationflags=(
+        command, stdin_text, environment, cleanup_paths = self._prepare_invocation(
+            home, executable, prompt, request["output_contract"]
+        )
+        try:
+            creation_flags = (
                 subprocess.CREATE_NO_WINDOW
                 if hasattr(subprocess, "CREATE_NO_WINDOW")
                 else 0
-            ),
-        )
+            )
+            if os.name == "nt" and hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
+                creation_flags |= subprocess.CREATE_NEW_PROCESS_GROUP
+            process = subprocess.Popen(
+                command,
+                cwd=home,
+                stdin=subprocess.PIPE if stdin_text is not None else subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=_process_environment(environment),
+                shell=False,
+                creationflags=creation_flags,
+                start_new_session=os.name != "nt",
+            )
+        except BaseException:
+            _remove_temporary_paths(cleanup_paths)
+            raise
         execution_ref = str(request["request_id"])
         with self._lock:
             self._processes[execution_ref] = process
         try:
-            stdout, stderr = process.communicate()
+            stdout_bytes, stderr_bytes = process.communicate(
+                input=stdin_text.encode("utf-8") if stdin_text is not None else None
+            )
         finally:
             with self._lock:
                 self._processes.pop(execution_ref, None)
+            _remove_temporary_paths(cleanup_paths)
+        stdout = _decode_process_output(stdout_bytes)
+        stderr = _decode_process_output(stderr_bytes)
         if process.returncode:
             detail = stderr.strip()[-1500:] or stdout.strip()[-1500:]
             raise RuntimeError(
@@ -106,8 +197,7 @@ class LocalProcessAdapter:
             process = self._processes.get(execution_ref)
         if not process or process.poll() is not None:
             return False
-        process.terminate()
-        return True
+        return _terminate_process_tree(process)
 
     def resume(
         self, home: Path, execution_ref: str, request: dict[str, Any]
@@ -118,22 +208,55 @@ class LocalProcessAdapter:
         with self._lock:
             return dict(self._runtime_identities.pop(execution_ref, {}))
 
+    def diagnostics(self) -> dict[str, Any]:
+        executable = self._path()
+        environment = _process_environment({})
+        proxies = {
+            key: _safe_proxy_endpoint(environment[key])
+            for key in _PROXY_ENVIRONMENT_KEYS
+            if environment.get(key)
+        }
+        return {
+            "available": executable is not None,
+            "executable_path": executable,
+            "version": self._version(),
+            "process_mode": "direct_no_shell",
+            "proxy_variables": proxies,
+            "proxy_configured": bool(proxies),
+            "model_call_test": "not_run",
+            "boundary": (
+                "This preflight verifies local process configuration only. "
+                "A real feedback run is still required to verify provider authentication."
+            ),
+        }
+
     def _prompt(self, request: dict[str, Any]) -> str:
         contract = request["output_contract"]
         schema = load_schema(CONTRACT_SCHEMAS[contract])
         envelope = json.dumps(request, ensure_ascii=False)
         return (
             "You are an IELTS Academic evaluation worker. Return only one JSON "
-            "object that validates against the supplied schema. Do not modify local "
-            "files, do not call tools, and do not reveal answers before the learning "
-            "stage encoded in the request permits it.\n\n"
+            "object that validates against every required field and cardinality in "
+            "the supplied schema. Never return a readiness or error envelope. If "
+            "learner evidence is extremely short, irrelevant, or insufficient, "
+            "still populate all required rubric criteria with the lowest justified "
+            "values and explicit evidence limitations; never invent positive "
+            "evidence and never return an empty required array. For Writing, return "
+            "exactly four task-appropriate criteria even for a non-answer. Do not "
+            "modify local files, do not call tools, and do not reveal answers before "
+            "the learning stage encoded in the request permits it.\n\n"
             f"REQUEST:\n{envelope}\n\n"
             f"OUTPUT_SCHEMA:\n{json.dumps(schema, ensure_ascii=False)}"
         )
 
     def _version(self) -> str | None:
+        cached = self._version_cache
+        now = time.monotonic()
+        if cached and now - cached[0] < 60:
+            return cached[1]
         executable = self._path()
         if not executable:
+            self._version_cache = (now, None)
             return None
         try:
             result = subprocess.run(
@@ -151,8 +274,11 @@ class LocalProcessAdapter:
                 ),
             )
         except (OSError, subprocess.SubprocessError):
+            self._version_cache = (now, None)
             return None
-        return result.stdout.strip().splitlines()[0] if result.returncode == 0 else None
+        version = result.stdout.strip().splitlines()[0] if result.returncode == 0 else None
+        self._version_cache = (now, version)
+        return version
 
     @staticmethod
     def _wrap_powershell(executable: str, args: list[str]) -> list[str]:
@@ -165,6 +291,15 @@ class LocalProcessAdapter:
         self, executable: str, prompt: str, output_contract: str
     ) -> list[str]:
         raise NotImplementedError
+
+    def _prepare_invocation(
+        self,
+        home: Path,
+        executable: str,
+        prompt: str,
+        output_contract: str,
+    ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
+        return self._command(executable, prompt, output_contract), None, {}, []
 
     def _parse_output(self, output: str) -> dict[str, Any]:
         raise NotImplementedError
@@ -181,7 +316,9 @@ class ClaudeProcessAdapter(LocalProcessAdapter):
     def _command(
         self, executable: str, prompt: str, output_contract: str
     ) -> list[str]:
-        schema = json.dumps(load_schema(CONTRACT_SCHEMAS[output_contract]))
+        schema_data = dict(load_schema(CONTRACT_SCHEMAS[output_contract]))
+        schema_data.pop("$schema", None)
+        schema = json.dumps(schema_data)
         return self._wrap_powershell(
             executable,
             [
@@ -194,9 +331,17 @@ class ClaudeProcessAdapter(LocalProcessAdapter):
                 "dontAsk",
                 "--tools",
                 "",
-                prompt,
             ],
         )
+
+    def _prepare_invocation(
+        self,
+        home: Path,
+        executable: str,
+        prompt: str,
+        output_contract: str,
+    ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
+        return self._command(executable, prompt, output_contract), prompt, {}, []
 
     def _parse_output(self, output: str) -> dict[str, Any]:
         envelope = json.loads(output)
@@ -217,10 +362,11 @@ class ClaudeProcessAdapter(LocalProcessAdapter):
             return {}
         usage = envelope.get("modelUsage") or envelope.get("model_usage") or {}
         model = next(iter(usage), None) if isinstance(usage, dict) else None
+        cleaned_model = _strip_ansi(str(model)) if model else None
         return {
             "agent_provider": "claude",
-            "model_id": str(model) if model else None,
-            "model_display_name": str(model) if model else None,
+            "model_id": cleaned_model,
+            "model_display_name": cleaned_model,
             "agent_session_id": envelope.get("session_id"),
         }
 
@@ -238,6 +384,59 @@ class OpenCodeProcessAdapter(LocalProcessAdapter):
             ["run", "--format", "json", "--pure", prompt],
         )
 
+    def _prepare_invocation(
+        self,
+        home: Path,
+        executable: str,
+        prompt: str,
+        output_contract: str,
+    ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
+        runtime = home / "runtime"
+        runtime.mkdir(parents=True, exist_ok=True)
+        request_fd, request_name = tempfile.mkstemp(
+            prefix="agent-request-", suffix=".txt", dir=runtime
+        )
+        config_fd, config_name = tempfile.mkstemp(
+            prefix="opencode-locked-", suffix=".json", dir=runtime
+        )
+        os.close(request_fd)
+        os.close(config_fd)
+        request_path = Path(request_name)
+        config_path = Path(config_name)
+        request_path.write_text(prompt, encoding="utf-8")
+        config_path.write_text(
+            json.dumps(
+                {
+                    "$schema": "https://opencode.ai/config.json",
+                    "permission": "deny",
+                }
+            ),
+            encoding="utf-8",
+        )
+        instruction = (
+            "The attached UTF-8 text file is the complete IELTS evaluation "
+            "request and output schema. Follow it exactly and return only the "
+            "required JSON object."
+        )
+        command = self._wrap_powershell(
+            executable,
+            [
+                "run",
+                instruction,
+                "--format",
+                "json",
+                "--pure",
+                "--file",
+                str(request_path),
+            ],
+        )
+        return (
+            command,
+            None,
+            {"OPENCODE_CONFIG": str(config_path)},
+            [request_path, config_path],
+        )
+
     def _parse_output(self, output: str) -> dict[str, Any]:
         candidates: list[str] = []
         for line in output.splitlines():
@@ -247,10 +446,10 @@ class OpenCodeProcessAdapter(LocalProcessAdapter):
                 continue
             candidates.extend(_text_values(event))
             if isinstance(event, dict) and "contract_version" in event:
-                return event
+                return _normalise_opencode_result(event)
         for candidate in reversed(candidates):
             try:
-                return _parse_json_text(candidate)
+                return _normalise_opencode_result(_parse_json_text(candidate))
             except ValueError:
                 continue
         raise ValueError("OpenCode CLI did not return a parseable JSON result")
@@ -285,6 +484,16 @@ def _text_values(value: Any) -> list[str]:
     return found
 
 
+def _safe_proxy_endpoint(value: str) -> str:
+    try:
+        parsed = urlsplit(value if "://" in value else f"http://{value}")
+        host = parsed.hostname or "configured"
+        port = f":{parsed.port}" if parsed.port else ""
+        return f"{parsed.scheme or 'http'}://{host}{port}"
+    except ValueError:
+        return "configured (invalid URL syntax)"
+
+
 def _identity_fields(value: Any) -> dict[str, str]:
     aliases = {
         "modelID": "model_id",
@@ -299,7 +508,7 @@ def _identity_fields(value: Any) -> dict[str, str]:
         for key, item in value.items():
             target = aliases.get(str(key))
             if target and isinstance(item, str) and item:
-                found.setdefault(target, item)
+                found.setdefault(target, _strip_ansi(item))
             elif isinstance(item, (dict, list)):
                 nested = _identity_fields(item)
                 for nested_key, nested_value in nested.items():
@@ -324,3 +533,160 @@ def _parse_json_text(value: str) -> dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError("Agent output must be one JSON object")
     return parsed
+
+
+def _normalise_opencode_result(value: dict[str, Any]) -> dict[str, Any]:
+    """Translate common provider field aliases without weakening validation."""
+    criterion_aliases = {
+        "task_achievement": "TA",
+        "task_response": "TR",
+        "coherence_cohesion": "CC",
+        "coherence_and_cohesion": "CC",
+        "lexical_resource": "LR",
+        "grammatical_range_accuracy": "GRA",
+        "grammatical_range_and_accuracy": "GRA",
+    }
+    criteria = value.get("criteria")
+    if isinstance(criteria, list):
+        for criterion in criteria:
+            if not isinstance(criterion, dict):
+                continue
+            criterion_id = str(
+                criterion.get("criterion") or criterion.get("criterion_id") or ""
+            )
+            criterion["criterion"] = criterion_aliases.get(
+                criterion_id.lower(), criterion_id.upper()
+            )
+            exact_score = criterion.get("band", criterion.get("score"))
+            if "score_low" not in criterion and exact_score is not None:
+                criterion["score_low"] = exact_score
+            if "score_high" not in criterion and exact_score is not None:
+                criterion["score_high"] = exact_score
+            evidence = criterion.get("evidence")
+            narrative = (
+                criterion.get("rationale")
+                or criterion.get("feedback")
+                or criterion.get("reason")
+                or criterion.get("explanation")
+            )
+            if not criterion.get("evidence_support") and narrative:
+                criterion["evidence_support"] = [str(narrative)]
+            if (
+                not criterion.get("evidence_support")
+                and isinstance(evidence, list)
+                and evidence
+                and all(isinstance(item, str) for item in evidence)
+            ):
+                criterion["evidence_support"] = evidence
+            if not criterion.get("evidence_limit"):
+                limitations = criterion.get("evidence_limitations") or criterion.get(
+                    "limitations"
+                )
+                if isinstance(limitations, list) and limitations:
+                    criterion["evidence_limit"] = [
+                        str(item) for item in limitations
+                    ]
+                elif narrative:
+                    criterion["evidence_limit"] = [str(narrative)]
+            if (
+                not criterion.get("anchors")
+                and isinstance(evidence, list)
+                and all(isinstance(item, dict) for item in evidence)
+            ):
+                criterion["anchors"] = evidence
+    issues = value.get("priority_issues")
+    if isinstance(issues, list):
+        for index, issue in enumerate(issues):
+            if isinstance(issue, str) and issue.strip():
+                issues[index] = {
+                    "tag": f"AGENT_PRIORITY_{index + 1}",
+                    "evidence": issue.strip(),
+                    "learner_action": issue.strip(),
+                }
+                continue
+            if not isinstance(issue, dict):
+                continue
+            if not issue.get("tag"):
+                issue["tag"] = (
+                    issue.get("issue_id")
+                    or issue.get("criterion_id")
+                    or issue.get("id")
+                    or issue.get("category")
+                )
+            if not issue.get("evidence"):
+                issue["evidence"] = (
+                    issue.get("description")
+                    or issue.get("rationale")
+                    or issue.get("issue")
+                )
+            if not issue.get("learner_action"):
+                issue["learner_action"] = (
+                    issue.get("action")
+                    or issue.get("recommendation")
+                    or issue.get("next_step")
+                )
+        del issues[3:]
+    return value
+
+
+def _remove_temporary_paths(paths: list[Path]) -> None:
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def _decode_process_output(value: bytes) -> str:
+    encodings = ["utf-8", locale.getpreferredencoding(False), "gb18030"]
+    for encoding in dict.fromkeys(encodings):
+        try:
+            return value.decode(encoding)
+        except (LookupError, UnicodeDecodeError):
+            continue
+    return value.decode("utf-8", errors="replace")
+
+
+def _strip_ansi(value: str) -> str:
+    cleaned = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", value)
+    return re.sub(r"\[[0-9;]*m\]?", "", cleaned).strip()
+
+
+def _terminate_process_tree(process: subprocess.Popen[bytes]) -> bool:
+    try:
+        if os.name == "nt":
+            completed = subprocess.run(
+                [
+                    "taskkill",
+                    "/PID",
+                    str(process.pid),
+                    "/T",
+                    "/F",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                creationflags=(
+                    subprocess.CREATE_NO_WINDOW
+                    if hasattr(subprocess, "CREATE_NO_WINDOW")
+                    else 0
+                ),
+            )
+            stopped = completed.returncode == 0
+        else:
+            os.killpg(process.pid, signal.SIGTERM)
+            stopped = True
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+        return stopped or process.poll() is not None
+    except (OSError, subprocess.SubprocessError):
+        try:
+            process.kill()
+            process.wait(timeout=5)
+            return True
+        except (OSError, subprocess.SubprocessError):
+            return False

@@ -108,6 +108,98 @@ def get_target_review(
     return result
 
 
+def get_target_review_statuses(
+    home: Path,
+    target_type: str,
+    target_ids: list[str],
+) -> dict[str, str]:
+    """Resolve current local review states in bounded queries for list views."""
+    _validate_target_type(target_type)
+    ids = list(dict.fromkeys(str(value) for value in target_ids if value))
+    if not ids:
+        return {}
+    initialise_database(home)
+    table, key = {
+        "question": ("questions", "question_id"),
+        "passage": ("question_passages", "passage_id"),
+        "assessment_pack": ("assessment_packs", "pack_id"),
+    }[target_type]
+    placeholders = ",".join("?" for _ in ids)
+    with connect(home) as conn:
+        rows = conn.execute(
+            f"SELECT {key} target_id,payload_json FROM {table} WHERE {key} IN ({placeholders})",
+            ids,
+        ).fetchall()
+        passage_payloads: dict[str, dict[str, Any]] = {}
+        if target_type == "question":
+            materials = [json.loads(row["payload_json"]) for row in rows]
+            passage_ids = list(
+                dict.fromkeys(
+                    str(item["passage_id"])
+                    for item in materials
+                    if item.get("passage_id")
+                )
+            )
+            if passage_ids:
+                passage_placeholders = ",".join("?" for _ in passage_ids)
+                passage_payloads = {
+                    str(row["passage_id"]): json.loads(row["payload_json"])
+                    for row in conn.execute(
+                        f"""
+                        SELECT passage_id,payload_json FROM question_passages
+                        WHERE passage_id IN ({passage_placeholders})
+                        """,
+                        passage_ids,
+                    ).fetchall()
+                }
+        review_rows = conn.execute(
+            f"""
+            SELECT target_id,content_hash,decision,superseded_at
+            FROM content_reviews
+            WHERE target_type=? AND target_id IN ({placeholders})
+            """,
+            [target_type, *ids],
+        ).fetchall()
+
+    current_hashes: dict[str, str] = {}
+    for row in rows:
+        material = json.loads(row["payload_json"])
+        hash_material = dict(material)
+        if target_type == "question" and material.get("passage_id"):
+            passage = passage_payloads.get(str(material["passage_id"]))
+            if passage:
+                hash_material["_linked_passage"] = passage
+        current_hashes[str(row["target_id"])] = _content_digest(hash_material)
+
+    reviews: dict[str, list[Any]] = {}
+    for row in review_rows:
+        reviews.setdefault(str(row["target_id"]), []).append(row)
+    result: dict[str, str] = {}
+    for target_id in ids:
+        current_hash = current_hashes.get(target_id)
+        target_reviews = reviews.get(target_id, [])
+        current = next(
+            (
+                row
+                for row in target_reviews
+                if current_hash
+                and row["content_hash"] == current_hash
+                and row["superseded_at"] is None
+            ),
+            None,
+        )
+        result[target_id] = (
+            str(current["decision"])
+            if current
+            else (
+                "stale"
+                if any(row["content_hash"] != current_hash for row in target_reviews)
+                else "unreviewed"
+            )
+        )
+    return result
+
+
 def record_content_review(
     home: Path,
     *,
