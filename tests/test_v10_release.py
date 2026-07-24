@@ -201,10 +201,10 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
     }
 
 
-def test_schema15_and_restart_recovery(tmp_path: Path):
+def test_schema16_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 15
+    assert SCHEMA_VERSION == 16
     create_agent_run(
         home,
         {
@@ -231,7 +231,7 @@ def test_schema15_and_restart_recovery(tmp_path: Path):
         agent_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(agent_runs)")
         }
-    assert version == "15"
+    assert version == "16"
     assert {"timeout_seconds", "attempt_count", "cancel_requested"}.issubset(
         agent_columns
     )

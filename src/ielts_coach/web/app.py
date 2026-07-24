@@ -68,6 +68,17 @@ from ..listening_corpus import (
     listening_categories,
     listening_item,
 )
+from ..learning_orchestration import (
+    bind_practice_unit,
+    complete_practice_unit,
+    complete_review_task,
+    get_practice_unit,
+    list_practice_units,
+    list_review_tasks,
+    materialise_today_unit,
+    start_review_task,
+    sync_review_tasks,
+)
 from ..onboarding import complete_onboarding, onboarding_status, update_profile
 from ..paths import resolve_home
 from ..privacy import check_processing_permission
@@ -140,6 +151,7 @@ from .models import (
     SpeakingHandoffCreate,
     SpeakingReportImport,
     StoryCreate,
+    TodayMaterialise,
     WritingVersionSubmit,
     WritingAssessmentScore,
 )
@@ -425,7 +437,60 @@ def create_app(
 
     @app.get("/api/v1/today", dependencies=[Depends(require_session)])
     def today() -> dict[str, Any]:
-        return build_study_context(target)
+        context = build_study_context(target)
+        context["review_queue"] = {
+            "counts": sync_review_tasks(target),
+            "items": list_review_tasks(target, limit=3),
+        }
+        context["practice_units"] = list_practice_units(
+            target, scheduled_for=datetime.now().date().isoformat(), limit=10
+        )
+        return context
+
+    @app.post("/api/v1/today/materialise", dependencies=[Depends(require_session)])
+    def today_materialise(payload: TodayMaterialise) -> dict[str, Any]:
+        return materialise_today_unit(target, payload.slot)
+
+    @app.get("/api/v1/practice-units", dependencies=[Depends(require_session)])
+    def practice_units(
+        scheduled_for: str | None = None,
+        limit: int = Query(50, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_practice_units(
+            target, scheduled_for=scheduled_for, limit=limit
+        )
+
+    @app.get(
+        "/api/v1/practice-units/{unit_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def practice_unit(unit_id: str) -> dict[str, Any]:
+        return get_practice_unit(target, unit_id)
+
+    @app.get("/api/v1/review-tasks", dependencies=[Depends(require_session)])
+    def review_tasks(
+        status: str = Query("pending"),
+        module: str | None = None,
+        limit: int = Query(100, ge=1, le=500),
+        offset: int = Query(0, ge=0),
+    ) -> list[dict[str, Any]]:
+        return list_review_tasks(
+            target, status=status, module=module, limit=limit, offset=offset
+        )
+
+    @app.post(
+        "/api/v1/review-tasks/{review_task_id}/start",
+        dependencies=[Depends(require_session)],
+    )
+    def review_task_start(review_task_id: str) -> dict[str, Any]:
+        return start_review_task(target, review_task_id)
+
+    @app.post(
+        "/api/v1/review-tasks/{review_task_id}/complete",
+        dependencies=[Depends(require_session)],
+    )
+    def review_task_complete(review_task_id: str) -> dict[str, Any]:
+        return complete_review_task(target, review_task_id)
 
     @app.get("/api/v1/profile", dependencies=[Depends(require_session)])
     def profile_endpoint() -> dict[str, Any]:
@@ -479,7 +544,14 @@ def create_app(
 
     @app.post("/api/v1/diagnostics", dependencies=[Depends(require_session)])
     def diagnostic_start_endpoint(payload: DiagnosticStart) -> dict[str, Any]:
-        return start_diagnostic(target, payload.mode)
+        diagnostic = start_diagnostic(target, payload.mode)
+        if payload.practice_unit_id:
+            bind_practice_unit(
+                target,
+                payload.practice_unit_id,
+                diagnostic_id=str(diagnostic["diagnostic_id"]),
+            )
+        return diagnostic
 
     @app.post(
         "/api/v1/diagnostics/{diagnostic_id}/sessions",
@@ -496,7 +568,9 @@ def create_app(
         dependencies=[Depends(require_session)],
     )
     def diagnostic_complete_endpoint(diagnostic_id: str) -> dict[str, Any]:
-        return complete_diagnostic(target, diagnostic_id)
+        result = complete_diagnostic(target, diagnostic_id)
+        complete_practice_unit(target, diagnostic_id=diagnostic_id)
+        return result
 
     @app.post(
         "/api/v1/diagnostics/{diagnostic_id}/cancel",
@@ -674,11 +748,19 @@ def create_app(
         payload: AssessmentRunCreate,
         idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
     ) -> dict[str, Any]:
-        return start_assessment_run(
+        run = start_assessment_run(
             target,
             payload.pack_id,
             idempotency_key=_idempotency_key(idempotency),
         )
+        if payload.practice_unit_id:
+            bind_practice_unit(
+                target,
+                payload.practice_unit_id,
+                assessment_run_id=str(run["run_id"]),
+            )
+            run = get_assessment_run(target, str(run["run_id"]))
+        return run
 
     @app.get(
         "/api/v1/assessment-runs/{run_id}",
@@ -745,11 +827,13 @@ def create_app(
         run_id: str,
         idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
     ) -> dict[str, Any]:
-        return submit_assessment_run(
+        result = submit_assessment_run(
             target,
             run_id,
             idempotency_key=_idempotency_key(idempotency),
         )
+        complete_practice_unit(target, assessment_run_id=run_id)
+        return result
 
     @app.post(
         "/api/v1/assessment-runs/{run_id}/audio/{media_id}/start",
@@ -884,6 +968,10 @@ def create_app(
             time_limit_minutes=payload.time_limit_minutes,
             idempotency_key=_idempotency_key(idempotency),
         )
+        if payload.practice_unit_id:
+            bind_practice_unit(
+                target, payload.practice_unit_id, session_id=path.stem
+            )
         return _session_or_404(target, path.stem)
 
     @app.get("/api/v1/sessions/{session_id}", dependencies=[Depends(require_session)])
@@ -900,7 +988,9 @@ def create_app(
     def finish_endpoint(session_id: str) -> dict[str, Any]:
         session = _session_or_404(target, session_id)
         path = target / "sessions" / session["module"] / f"{session_id}.md"
-        return finish_session(target, path)
+        result = finish_session(target, path)
+        complete_practice_unit(target, session_id=session_id)
+        return result
 
     @app.get("/api/v1/sessions/{session_id}/draft/{draft_kind}", dependencies=[Depends(require_session)])
     def get_draft_endpoint(session_id: str, draft_kind: str) -> dict[str, Any]:
@@ -1025,7 +1115,7 @@ def create_app(
         payload: SpeakingHandoffCreate,
         idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
     ) -> dict[str, Any]:
-        return create_speaking_handoff(
+        session = create_speaking_handoff(
             target,
             mode=payload.mode,
             provider=payload.provider,
@@ -1033,6 +1123,13 @@ def create_app(
             seed=payload.seed,
             idempotency_key=_idempotency_key(idempotency),
         )
+        if payload.practice_unit_id:
+            bind_practice_unit(
+                target,
+                payload.practice_unit_id,
+                session_id=str(session["session_id"]),
+            )
+        return session
 
     @app.post(
         "/api/v1/speaking/{session_id}/reports",

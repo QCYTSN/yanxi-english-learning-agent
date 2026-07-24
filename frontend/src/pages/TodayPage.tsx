@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowRight, RotateCcw } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { api, type Bootstrap, type StudyContext, type TodayPlanTask } from '../api/client'
+import { Link, useNavigate } from 'react-router-dom'
+import { api, jsonBody, type Bootstrap, type PracticeUnit, type StudyContext, type TodayPlanTask } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
 export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
+  const navigate = useNavigate()
   const active = bootstrap.active_session
   const activeWorkspace = active ? sessionDestination(active) : null
   const target = bootstrap.profile?.target
@@ -12,6 +13,13 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
     queryKey: ['today-context'],
     queryFn: () => api<StudyContext>('/api/v1/today'),
     enabled: !bootstrap.setup_required,
+  })
+  const materialise = useMutation({
+    mutationFn: (slot: 'primary' | 'consolidation' | 'diagnostic') => api<PracticeUnit>('/api/v1/today/materialise', {
+      method: 'POST',
+      body: jsonBody({ slot }),
+    }),
+    onSuccess: (unit) => navigate(unit.launch_url),
   })
   return (
     <div className="page page-narrow">
@@ -38,6 +46,7 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
       )}
       {context.isPending && <LoadingState />}
       {context.isError && <ErrorState error={context.error} />}
+      {materialise.isError && <ErrorState error={materialise.error} />}
       {context.data?.today_plan && !active && (
         <section className="today-plan" aria-labelledby="today-plan-heading">
           <div className="section-heading">
@@ -48,9 +57,25 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
             <span className="muted">正式模考可用：{context.data.today_plan.verified_full_mock_count} 套</span>
           </div>
           <div className="today-task-grid">
-            <TodayTask task={context.data.today_plan.primary} label="70% 弱项主任务" primary />
-            <TodayTask task={context.data.today_plan.consolidation} label="30% 巩固任务" />
+            <TodayTask task={context.data.today_plan.primary} label="70% 弱项主任务" primary slot="primary" start={(slot) => materialise.mutate(slot)} pending={materialise.isPending} />
+            <TodayTask task={context.data.today_plan.consolidation} label="30% 巩固任务" slot="consolidation" start={(slot) => materialise.mutate(slot)} pending={materialise.isPending} />
           </div>
+        </section>
+      )}
+      {context.data?.review_queue && (
+        <section className="settings-section">
+          <div className="section-heading">
+            <div><p className="eyebrow">Review Queue</p><h2>统一待复习队列</h2></div>
+            <Link to="/history">查看全部 {context.data.review_queue.counts.pending ?? 0} 项</Link>
+          </div>
+          {context.data.review_queue.items.length === 0 ? <p className="muted">当前没有到期复习任务。</p> : (
+            <div className="adapter-list">{context.data.review_queue.items.map((task) => (
+              <article key={task.review_task_id}>
+                <div><h3>{task.title}</h3><p>{task.action}</p></div>
+                <StatusBadge tone={task.priority >= 80 ? 'warning' : 'neutral'}>{moduleLabel(task.module)}</StatusBadge>
+              </article>
+            ))}</div>
+          )}
         </section>
       )}
       <section className="focus-section">
@@ -74,7 +99,9 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
       </section>
       <section className="diagnostic-callout">
         <div><p className="eyebrow">Baseline</p><h2>四科摸底：{bootstrap.onboarding?.baseline_status === 'complete' ? '基线已完整' : '仍有证据缺口'}</h2><p>用真实完成的 Session 建立当前基线；不确定的科目保持未知。</p></div>
-        <Link className="button secondary" to="/diagnostic">{bootstrap.onboarding?.baseline_status === 'complete' ? '查看摸底' : '继续摸底'}<ArrowRight size={17} /></Link>
+        {bootstrap.onboarding?.baseline_status === 'complete'
+          ? <Link className="button secondary" to="/diagnostic">查看摸底<ArrowRight size={17} /></Link>
+          : <button className="button secondary" disabled={materialise.isPending} onClick={() => materialise.mutate('diagnostic')}>继续摸底<ArrowRight size={17} /></button>}
       </section>
       {target && (
         <section className="target-strip" aria-label="目标分数">
@@ -88,7 +115,7 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
   )
 }
 
-function TodayTask({ task, label, primary = false }: { task: TodayPlanTask; label: string; primary?: boolean }) {
+function TodayTask({ task, label, slot, start, pending, primary = false }: { task: TodayPlanTask; label: string; slot: 'primary' | 'consolidation'; start: (slot: 'primary' | 'consolidation') => void; pending: boolean; primary?: boolean }) {
   return (
     <article className={primary ? 'today-task-card primary-card' : 'today-task-card'}>
       <div>
@@ -104,7 +131,7 @@ function TodayTask({ task, label, primary = false }: { task: TodayPlanTask; labe
           <div><dt>训练模式</dt><dd>{task.practice_mode}</dd></div>
         </dl>
       </div>
-      <Link className={primary ? 'button primary' : 'button secondary'} to={task.route}>开始任务<ArrowRight size={17} /></Link>
+      <button className={primary ? 'button primary' : 'button secondary'} disabled={pending} onClick={() => start(slot)}>开始任务<ArrowRight size={17} /></button>
     </article>
   )
 }

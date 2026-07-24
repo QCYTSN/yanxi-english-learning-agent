@@ -11,7 +11,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 15
+SCHEMA_VERSION = 16
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     question_id TEXT,
     passage_id TEXT,
     assessment_pack_id TEXT,
+    practice_unit_id TEXT,
     mode TEXT,
     practice_mode TEXT,
     conformance_status TEXT,
@@ -320,7 +321,8 @@ CREATE TABLE IF NOT EXISTS diagnostic_runs (
     completed_at TEXT,
     session_ids_json TEXT NOT NULL DEFAULT '[]',
     plan_json TEXT NOT NULL,
-    result_json TEXT NOT NULL DEFAULT '{}'
+    result_json TEXT NOT NULL DEFAULT '{}',
+    practice_unit_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS rubric_registry (
@@ -500,6 +502,7 @@ CREATE TABLE IF NOT EXISTS assessment_runs (
     run_id TEXT PRIMARY KEY,
     pack_id TEXT NOT NULL,
     session_id TEXT NOT NULL UNIQUE,
+    practice_unit_id TEXT,
     module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
     practice_mode TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN (
@@ -570,6 +573,63 @@ CREATE TABLE IF NOT EXISTS audio_playback_leases (
 CREATE INDEX IF NOT EXISTS idx_audio_playback_leases_run
 ON audio_playback_leases(run_id,media_id,expires_at DESC);
 
+CREATE TABLE IF NOT EXISTS practice_units (
+    unit_id TEXT PRIMARY KEY,
+    unit_kind TEXT NOT NULL CHECK(unit_kind IN ('diagnostic','practice','review')),
+    module TEXT CHECK(module IN ('listening','reading','writing','speaking') OR module IS NULL),
+    title TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('planned','in_progress','completed','cancelled')),
+    scheduled_for TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_key TEXT NOT NULL UNIQUE,
+    route TEXT NOT NULL,
+    estimated_minutes INTEGER,
+    diagnostic_id TEXT,
+    session_id TEXT,
+    assessment_run_id TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    revision INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    completed_at TEXT,
+    FOREIGN KEY(diagnostic_id) REFERENCES diagnostic_runs(diagnostic_id) ON DELETE SET NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    FOREIGN KEY(assessment_run_id) REFERENCES assessment_runs(run_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_practice_units_day
+ON practice_units(scheduled_for,status,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_practice_units_session
+ON practice_units(session_id);
+
+CREATE TABLE IF NOT EXISTS review_tasks (
+    review_task_id TEXT PRIMARY KEY,
+    stable_key TEXT NOT NULL UNIQUE,
+    module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
+    review_kind TEXT NOT NULL CHECK(review_kind IN (
+      'error_review','listening_expression','writing_revision','reading_wrong_answer'
+    )),
+    status TEXT NOT NULL CHECK(status IN ('pending','in_progress','completed','dismissed')),
+    priority INTEGER NOT NULL DEFAULT 50,
+    due_at TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    session_id TEXT,
+    title TEXT NOT NULL,
+    action TEXT NOT NULL,
+    route TEXT NOT NULL,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    practice_unit_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    completed_at TEXT,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY(practice_unit_id) REFERENCES practice_units(unit_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_review_tasks_queue
+ON review_tasks(status,due_at,priority DESC,created_at);
+CREATE INDEX IF NOT EXISTS idx_review_tasks_session
+ON review_tasks(session_id,status);
+
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -621,6 +681,7 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "question_id": "TEXT",
         "passage_id": "TEXT",
         "assessment_pack_id": "TEXT",
+        "practice_unit_id": "TEXT",
         "mode": "TEXT",
         "practice_mode": "TEXT",
         "conformance_status": "TEXT",
@@ -640,6 +701,12 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     for name, declaration in additions.items():
         if name not in session_columns:
             conn.execute(f"ALTER TABLE sessions ADD COLUMN {name} {declaration}")
+    diagnostic_columns = _columns(conn, "diagnostic_runs")
+    if "practice_unit_id" not in diagnostic_columns:
+        conn.execute("ALTER TABLE diagnostic_runs ADD COLUMN practice_unit_id TEXT")
+    assessment_columns = _columns(conn, "assessment_runs")
+    if "practice_unit_id" not in assessment_columns:
+        conn.execute("ALTER TABLE assessment_runs ADD COLUMN practice_unit_id TEXT")
     question_columns = _columns(conn, "questions")
     question_additions = {
         "practice_mode": "TEXT",

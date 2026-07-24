@@ -7,6 +7,7 @@ import { ConformanceBadge, ErrorState, LoadingState, PageHeader } from '../compo
 export function PracticePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const module = searchParams.get('module') ?? 'writing'
+  const practiceUnitId = searchParams.get('practice_unit_id')
   const navigate = useNavigate()
   const questions = useQuery({
     queryKey: ['questions', module],
@@ -20,7 +21,7 @@ export function PracticePage() {
     mutationFn: (packId: string) => api<AssessmentRun>('/api/v1/assessment-runs', {
       method: 'POST',
       headers: { 'Idempotency-Key': idempotencyKey() },
-      body: jsonBody({ pack_id: packId }),
+      body: jsonBody({ pack_id: packId, practice_unit_id: practiceUnitId }),
     }),
     onSuccess: (run) => navigate(`/assessment/${run.run_id}`),
   })
@@ -33,6 +34,7 @@ export function PracticePage() {
         question_id: question.question_id,
         passage_id: question.passage_id ?? null,
         mode: mode ?? (module === 'reading' ? 'guided-solving' : 'timed-practice'),
+        practice_unit_id: practiceUnitId,
       }),
     }),
     onSuccess: (session) => navigate(`/practice/${module}/${session.session_id}`),
@@ -47,7 +49,7 @@ export function PracticePage() {
         {startMock.isError && <ErrorState error={startMock.error} />}
         <section className="primary-card">
           <div><p className="eyebrow">{module}</p><h2>{module === 'speaking' ? 'Voice / Live 外部语音练习' : '高频场景听辨语料'}</h2><p>{module === 'speaking' ? '生成模考任务包，练习后导回转写或结构化报告。' : '通过系统语音听写高频表达，并记录错因和复习状态。'}</p></div>
-          <button className="button primary" onClick={() => navigate(`/practice/${module}`)}>{module === 'speaking' ? <Mic2 size={18} /> : <Headphones size={18} />}进入工作区</button>
+          <button className="button primary" onClick={() => navigate(`/practice/${module}${practiceUnitId ? `?practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)}>{module === 'speaking' ? <Mic2 size={18} /> : <Headphones size={18} />}进入工作区</button>
         </section>
       </div>
     )

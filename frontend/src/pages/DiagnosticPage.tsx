@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, ClipboardPlus, XCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useState } from 'react'
 import { api, jsonBody, type SessionSummary } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
@@ -19,13 +19,15 @@ type Diagnostic = {
 }
 
 export function DiagnosticPage() {
+  const [searchParams] = useSearchParams()
+  const practiceUnitId = searchParams.get('practice_unit_id')
   const queryClient = useQueryClient()
   const [mode, setMode] = useState<'quick' | 'full'>('quick')
   const [sessionId, setSessionId] = useState('')
   const diagnostic = useQuery({ queryKey: ['diagnostic'], queryFn: () => api<Diagnostic>('/api/v1/diagnostics/current') })
   const sessions = useQuery({ queryKey: ['diagnostic-sessions'], queryFn: () => api<SessionSummary[]>('/api/v1/sessions?limit=200') })
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['diagnostic'] })
-  const start = useMutation({ mutationFn: () => api<Diagnostic>('/api/v1/diagnostics', { method: 'POST', body: jsonBody({ mode }) }), onSuccess: refresh })
+  const start = useMutation({ mutationFn: () => api<Diagnostic>('/api/v1/diagnostics', { method: 'POST', body: jsonBody({ mode, practice_unit_id: practiceUnitId }) }), onSuccess: refresh })
   const attach = useMutation({
     mutationFn: () => api<Diagnostic>(`/api/v1/diagnostics/${diagnostic.data?.diagnostic_id}/sessions`, { method: 'POST', body: jsonBody({ session_id: sessionId }) }),
     onSuccess: () => { setSessionId(''); void refresh() },

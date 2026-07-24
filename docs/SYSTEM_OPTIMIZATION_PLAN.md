@@ -40,7 +40,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 ## 3. 当前已完成的性能底座
 
-- Schema v15；
+- Schema v16；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
@@ -71,18 +71,24 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - Speaking 外部 Voice / Live 报告只作为来源证据，必须再运行 `speaking-evaluation@1`，最后在同一 AssessmentRun 中结束；
 - Schema v15 新增播放租约持久化，V1.0 数据可向后兼容迁移。
 
-## 6. 仍需完成的产品工作
+## 6. V1.2 已完成的学习编排层
+
+- `PracticeUnit`、`AssessmentRun`、`ReviewTask` 已成为独立、可持久化、可关联的一等领域对象；
+- Today 的主任务、巩固任务和摸底入口会幂等创建正式学习单元，而不是只生成一个页面链接；
+- Session、完整模考和 Diagnostic 可以反向绑定所属 PracticeUnit，完成时同步关闭相关学习单元；
+- 统一 Review Queue 从正式数据自动汇总活动错误、到期 Listening 语料、Writing V2 和 Reading 错题；
+- Today 显示前三项到期复习，History/Progress 提供完整队列、开始和完成操作；
+- Settings 对旧版或部分性能响应进行安全归一化，全局页面错误边界提供可恢复入口。
+
+## 7. 仍需完成的产品工作
 
 ### P1：从工具集合升级为学习系统
 
-1. 将 `PracticeUnit`、`AssessmentRun`、`ReviewTask` 分成三类一等领域对象；
-2. 今日任务直接创建并绑定 Diagnostic / Practice / Review，不再让用户手工关联；
-3. 建立统一待复习队列：错误、到期听力语料、Writing V2、Reading 错题；
-4. Progress 增加真实趋势图、周报、错误收件箱和可执行下一步；
-5. Learner Library 与 Content Studio 分离；
-6. Content Studio 增加 PDF 预览、结构化进度、校验错误定位和人工审核工作台；
-7. 所有长列表改为游标分页，前端使用虚拟列表或窗口化渲染；
-8. 大型导入、PDF 解析、备份和媒体分析进入可恢复后台任务队列。
+1. Progress 增加真实趋势图、周报和更完整的可执行下一步；
+2. Learner Library 与 Content Studio 分离；
+3. Content Studio 增加 PDF 预览、结构化进度、校验错误定位和人工审核工作台；
+4. 所有长列表改为游标分页，前端使用虚拟列表或窗口化渲染；
+5. 大型导入、PDF 解析、备份和媒体分析进入可恢复后台任务队列。
 
 ### P2：规模化和桌面体验
 
@@ -93,7 +99,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 5. 快捷方式启动器显示服务、Agent、模型和代理状态；
 6. 视觉设计系统和最终交互优化。
 
-## 7. 是否新增 Rust、Go 或其他语言
+## 8. 是否新增 Rust、Go 或其他语言
 
 当前不新增语言。原因不是 Python/TypeScript 永远足够，而是现有瓶颈来自连接生命周期、N+1 查询、无分页和重任务边界；这些问题换语言仍然存在。
 
@@ -112,7 +118,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 无论新增何种语言，都不能复制 IELTS 规则、绕过 Schema、直接写数据库或改变数据权威关系。
 
-## 8. 验收闸门
+## 9. 验收闸门
 
 每一阶段必须同时通过：
 

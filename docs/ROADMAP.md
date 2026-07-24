@@ -4,7 +4,7 @@ System completeness work after V0.7 is tracked authoritatively in
 [SYSTEM_COMPLETENESS_PLAN.md](SYSTEM_COMPLETENESS_PLAN.md). Content inventory
 targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 
-## Delivered through V1.1
+## Delivered through V1.2
 
 - six-Skill architecture
 - independent Reading coach
@@ -81,8 +81,12 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - short-lived, renewable Listening playback leases that support HTTP Range requests without counting extra plays
 - external Speaking source evidence followed by local Agent re-evaluation on the same AssessmentRun
 - schema v15 audio-lease persistence and restart-safe enforcement
+- schema v16 first-class PracticeUnit and ReviewTask persistence
+- idempotent Today materialisation with Diagnostic, Practice and Review bindings
+- unified review queue for active errors, due Listening expressions, Writing V2 and Reading wrong answers
+- recoverable page-level rendering boundary and backward-compatible Settings diagnostics
 
-## Post-1.1 increments
+## Post-1.2 increments
 
 The detailed dependencies, deliverables and acceptance criteria live in the
 system completeness plan. Version-level intent is:

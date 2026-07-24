@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { api, type Bootstrap } from './api/client'
 import { ErrorState, LoadingState } from './components/Common'
+import { RouteErrorBoundary } from './components/PageErrorBoundary'
 import { Shell } from './components/Shell'
 import { FeedbackPage } from './pages/FeedbackPage'
 import { AssessmentRunnerPage } from './pages/AssessmentRunnerPage'
@@ -45,22 +46,24 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
 
   return (
     <Shell>
-      <Routes>
-        <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
-        <Route path="/practice" element={<PracticePage />} />
-        <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
-        <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
-        <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
-        <Route path="/practice/listening" element={<ListeningWorkspace />} />
-        <Route path="/practice/listening/:sessionId" element={<ListeningWorkspace />} />
-        <Route path="/practice/speaking" element={<SpeakingWorkspace />} />
-        <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
-        <Route path="/diagnostic" element={<DiagnosticPage />} />
-        <Route path="/library" element={<LibraryPage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
-        <Route path="*" element={<Navigate to="/today" replace />} />
-      </Routes>
+      <RouteErrorBoundary>
+        <Routes>
+          <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
+          <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
+          <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
+          <Route path="/practice/listening" element={<ListeningWorkspace />} />
+          <Route path="/practice/listening/:sessionId" element={<ListeningWorkspace />} />
+          <Route path="/practice/speaking" element={<SpeakingWorkspace />} />
+          <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
+          <Route path="/diagnostic" element={<DiagnosticPage />} />
+          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
+          <Route path="*" element={<Navigate to="/today" replace />} />
+        </Routes>
+      </RouteErrorBoundary>
     </Shell>
   )
 }

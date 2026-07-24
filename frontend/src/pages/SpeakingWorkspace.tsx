@@ -27,6 +27,7 @@ type Story = { story_id: string; title: string; events: string[]; usable_topics:
 export function SpeakingWorkspace() {
   const [params, setParams] = useSearchParams()
   const sessionId = params.get('session')
+  const practiceUnitId = params.get('practice_unit_id')
   const [mode, setMode] = useState<'full_mock' | 'part2'>('full_mock')
   const [provider, setProvider] = useState('ChatGPT Voice / Live')
   const [session, setSession] = useState<SpeakingSession | null>(null)
@@ -45,7 +46,7 @@ export function SpeakingWorkspace() {
     mutationFn: () => api<SpeakingSession>('/api/v1/speaking/handoffs', {
       method: 'POST',
       headers: { 'Idempotency-Key': idempotencyKey() },
-      body: jsonBody({ mode, provider }),
+      body: jsonBody({ mode, provider, practice_unit_id: practiceUnitId }),
     }),
     onSuccess: (value) => {
       setSession(value)

@@ -1,12 +1,24 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
-import { api, type ProgressDashboard, type SessionSummary } from '../api/client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CheckCircle2, Play } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { api, type PracticeUnit, type ProgressDashboard, type ReviewTask, type SessionSummary } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
 export function HistoryPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<SessionSummary[]>('/api/v1/sessions?limit=100') })
   const allocation = useQuery({ queryKey: ['allocation'], queryFn: () => api<{ allocation: Record<string, number>; reasons: string[] }>('/api/v1/progress/allocation') })
   const dashboard = useQuery({ queryKey: ['progress-dashboard'], queryFn: () => api<ProgressDashboard>('/api/v1/progress/dashboard?days=90') })
+  const reviewTasks = useQuery({ queryKey: ['review-tasks'], queryFn: () => api<ReviewTask[]>('/api/v1/review-tasks?status=pending&limit=100') })
+  const startReview = useMutation({
+    mutationFn: (reviewTaskId: string) => api<PracticeUnit>(`/api/v1/review-tasks/${reviewTaskId}/start`, { method: 'POST' }),
+    onSuccess: (unit) => navigate(unit.launch_url),
+  })
+  const completeReview = useMutation({
+    mutationFn: (reviewTaskId: string) => api<ReviewTask>(`/api/v1/review-tasks/${reviewTaskId}/complete`, { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['review-tasks'] }),
+  })
   return (
     <div className="page">
       <PageHeader eyebrow="History" title="历史与下一步" description="正式 Session、错误和训练分配来自本地 Runtime，而不是 Agent 聊天记录。" />
@@ -67,6 +79,20 @@ export function HistoryPage() {
           </section>
         </>
       )}
+      <section className="settings-section">
+        <div className="section-heading"><div><p className="eyebrow">Review Queue</p><h2>待复习任务</h2></div><StatusBadge tone={reviewTasks.data?.length ? 'warning' : 'success'}>{reviewTasks.data?.length ?? 0} 项</StatusBadge></div>
+        <p>Writing V2、Reading 错题、到期听力语料和仍在活动中的错误都从正式记录自动汇总。</p>
+        {reviewTasks.isPending && <LoadingState label="正在整理复习队列" />}
+        {reviewTasks.isError && <ErrorState error={reviewTasks.error} />}
+        {(startReview.isError || completeReview.isError) && <ErrorState error={startReview.error ?? completeReview.error} />}
+        <div className="adapter-list">{reviewTasks.data?.map((task) => (
+          <article key={task.review_task_id}>
+            <div><div className="row-actions"><StatusBadge tone={task.priority >= 80 ? 'warning' : 'neutral'}>{task.module}</StatusBadge><small>{reviewKindLabel(task.review_kind)}</small></div><h3>{task.title}</h3><p>{task.action}</p></div>
+            <div className="row-actions"><button className="button primary" disabled={startReview.isPending} onClick={() => startReview.mutate(task.review_task_id)}><Play size={16} />开始</button><button className="button secondary" disabled={completeReview.isPending} onClick={() => completeReview.mutate(task.review_task_id)}><CheckCircle2 size={16} />标记完成</button></div>
+          </article>
+        ))}</div>
+        {reviewTasks.data?.length === 0 && <p className="muted">当前没有待复习任务。</p>}
+      </section>
       {sessions.isPending && <LoadingState />}
       {sessions.isError && <ErrorState error={sessions.error} />}
       <div className="session-table table-scroll" tabIndex={0}>
@@ -94,4 +120,13 @@ function sessionDestination(session: SessionSummary) {
 function formatDate(value?: string) {
   if (!value) return '—'
   return new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium' }).format(new Date(value))
+}
+
+function reviewKindLabel(value: ReviewTask['review_kind']) {
+  return ({
+    error_review: '错误复盘',
+    listening_expression: '听力到期复习',
+    writing_revision: 'Writing V2',
+    reading_wrong_answer: 'Reading 错题',
+  } as Record<ReviewTask['review_kind'], string>)[value]
 }

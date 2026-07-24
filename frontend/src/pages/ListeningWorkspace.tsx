@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Headphones, Play, RotateCcw, Volume2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type SessionSummary } from '../api/client'
 import { ConformanceBadge, ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
@@ -12,6 +12,9 @@ type AttemptResponse = { session: SessionSummary; attempt: { is_correct: boolean
 
 export function ListeningWorkspace() {
   const { sessionId } = useParams()
+  const [searchParams] = useSearchParams()
+  const practiceUnitId = searchParams.get('practice_unit_id')
+  const requestedItemId = searchParams.get('item')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [category, setCategory] = useState('')
@@ -25,9 +28,14 @@ export function ListeningWorkspace() {
   useEffect(() => { if (sessionQuery.data) setSession(sessionQuery.data) }, [sessionQuery.data])
   const categories = useQuery({ queryKey: ['listening-categories'], queryFn: () => api<Category[]>('/api/v1/listening/categories') })
   const items = useQuery({ queryKey: ['listening-items', category], queryFn: () => api<ListeningItem[]>(`/api/v1/listening/items?limit=200${category ? `&category=${encodeURIComponent(category)}` : ''}`) })
+  useEffect(() => {
+    if (!requestedItemId || !items.data) return
+    const requestedIndex = items.data.findIndex((item) => item.item_id === requestedItemId)
+    if (requestedIndex >= 0) setIndex(requestedIndex)
+  }, [items.data, requestedItemId])
   const current = items.data?.[index % Math.max(items.data.length, 1)]
   const create = useMutation({
-    mutationFn: () => api<SessionSummary>('/api/v1/sessions', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: jsonBody({ module: 'listening', mode: 'high-frequency-drill', source_id: 'starter-high-frequency' }) }),
+    mutationFn: () => api<SessionSummary>('/api/v1/sessions', { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: jsonBody({ module: 'listening', mode: 'high-frequency-drill', source_id: 'starter-high-frequency', practice_unit_id: practiceUnitId }) }),
     onSuccess: (value) => { setSession(value); navigate(`/practice/listening/${value.session_id}`, { replace: true }) },
   })
   const attempt = useMutation({

@@ -46,7 +46,7 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
         assert conn.execute("SELECT band,status FROM sessions WHERE session_id='W-OLD'").fetchone() == (6.0, "completed")
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("15",)
+        ).fetchone() == ("16",)
         assert {"assessment_pack_id", "practice_mode", "conformance_status"}.issubset(columns)
         assert conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='listening_items'"
@@ -65,12 +65,12 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
         assert {"content_import_jobs", "content_import_files", "content_reviews"}.issubset(tables)
     backups = list_backups(home)
     assert len(backups) == 1
-    assert backups[0]["kind"] == "pre-migration-legacy-to-15"
+    assert backups[0]["kind"] == "pre-migration-legacy-to-16"
     assert verify_backup(home, backups[0]["backup_id"])["valid"] is True
 
 
 @pytest.mark.parametrize("version", ["1", "5", "9"])
-def test_historical_version_markers_migrate_to_v15(version: str, tmp_path: Path):
+def test_historical_version_markers_migrate_to_v16(version: str, tmp_path: Path):
     home = tmp_path / f"schema-{version}"
     path = db_path(home)
     path.parent.mkdir(parents=True)
@@ -102,12 +102,12 @@ def test_historical_version_markers_migrate_to_v15(version: str, tmp_path: Path)
     with sqlite3.connect(path) as conn:
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("15",)
+        ).fetchone() == ("16",)
         assert conn.execute(
             "SELECT session_id FROM sessions WHERE session_id=?", (f"R-{version}",)
         ).fetchone() == (f"R-{version}",)
     backups = list_backups(home)
-    assert backups[0]["kind"] == f"pre-migration-{version}-to-15"
+    assert backups[0]["kind"] == f"pre-migration-{version}-to-16"
     assert verify_backup(home, backups[0]["backup_id"])["valid"] is True
 
 
@@ -190,7 +190,7 @@ def test_interrupted_migration_creates_recoverable_snapshot(
     with pytest.raises(RuntimeError, match="simulated interruption"):
         initialise_database(home)
     backup = list_backups(home)[0]
-    assert backup["kind"] == "pre-migration-legacy-to-15"
+    assert backup["kind"] == "pre-migration-legacy-to-16"
     assert verify_backup(home, backup["backup_id"])["valid"] is True
 
     monkeypatch.setattr(storage, "_migrate", original_migrate)

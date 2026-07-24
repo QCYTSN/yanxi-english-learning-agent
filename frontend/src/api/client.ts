@@ -121,6 +121,37 @@ export type TodayPlanTask = {
   route: string
 }
 
+export type PracticeUnit = {
+  unit_id: string
+  unit_kind: 'diagnostic' | 'practice' | 'review'
+  module: 'listening' | 'reading' | 'writing' | 'speaking' | null
+  title: string
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled'
+  scheduled_for: string
+  route: string
+  launch_url: string
+  estimated_minutes: number | null
+  diagnostic_id: string | null
+  session_id: string | null
+  assessment_run_id: string | null
+  payload: Record<string, unknown>
+}
+
+export type ReviewTask = {
+  review_task_id: string
+  module: 'listening' | 'reading' | 'writing' | 'speaking'
+  review_kind: 'error_review' | 'listening_expression' | 'writing_revision' | 'reading_wrong_answer'
+  status: 'pending' | 'in_progress' | 'completed' | 'dismissed'
+  priority: number
+  due_at: string
+  session_id: string | null
+  title: string
+  action: string
+  route: string
+  payload: Record<string, unknown>
+  practice_unit_id: string | null
+}
+
 export type StudyContext = {
   context_version: number
   next_action: string
@@ -132,6 +163,11 @@ export type StudyContext = {
     consolidation: TodayPlanTask
     verified_full_mock_count: number
   }
+  review_queue?: {
+    counts: Record<string, number>
+    items: ReviewTask[]
+  }
+  practice_units?: PracticeUnit[]
 }
 
 export type ProgressDashboard = {

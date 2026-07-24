@@ -18,6 +18,7 @@ class SessionCreate(BaseModel):
     source_id: str | None = None
     mode: str | None = None
     time_limit_minutes: float | None = Field(default=None, gt=0)
+    practice_unit_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
 class AssessmentPackCreate(BaseModel):
@@ -28,6 +29,7 @@ class AssessmentPackCreate(BaseModel):
 
 class AssessmentRunCreate(BaseModel):
     pack_id: str = Field(min_length=1, max_length=200)
+    practice_unit_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
 class AssessmentResponseSave(BaseModel):
@@ -70,6 +72,11 @@ class ProfileUpdate(BaseModel):
 
 class DiagnosticStart(BaseModel):
     mode: Literal["quick", "full"] = "quick"
+    practice_unit_id: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+class TodayMaterialise(BaseModel):
+    slot: Literal["primary", "consolidation", "diagnostic"]
 
 
 class DiagnosticAttach(BaseModel):
@@ -115,6 +122,7 @@ class SpeakingHandoffCreate(BaseModel):
     provider: str = Field(default="external_voice_live", min_length=1, max_length=100)
     question_ids: list[str] | None = Field(default=None, max_length=20)
     seed: int | None = None
+    practice_unit_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
 class SpeakingReportImport(BaseModel):

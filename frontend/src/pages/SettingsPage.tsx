@@ -3,27 +3,12 @@ import { Activity, Archive, CheckCircle2, RotateCcw, Save, ShieldCheck } from 'l
 import { useState } from 'react'
 import { api, jsonBody, type Bootstrap } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
+import { normalisePerformance, type PerformanceResponse } from './settingsPerformance'
 
 type BackupSummary = { backup_id: string; kind: string; created_at: string | null; schema_version?: string | null; file_count: number; size_bytes: number; status: string; error?: string }
 type Health = { status: 'ok' | 'degraded' | 'failed'; checks: Record<string, unknown>; errors: string[]; warnings: string[] }
 type Rubric = { rubric_id: string; module: string; publisher: string; standard: string; version?: string | null; source_reference: string; availability: string }
 type Telemetry = { module: string; events: number; input_tokens: number; output_tokens: number; average_latency_ms?: number | null; tool_calls: number }
-type Performance = {
-  requests: {
-    sample_count: number
-    average_ms: number | null
-    p50_ms: number | null
-    p95_ms: number | null
-    slowest_routes: Array<{ route: string; requests: number; average_ms: number; p95_ms: number }>
-  }
-  database: {
-    size_bytes: number
-    reclaimable_bytes: number
-    pragmas: { journal_mode: string; busy_timeout_ms: number; cache_size: number }
-    row_counts: Record<string, number>
-    native_acceleration: { enabled: boolean; decision: string; reason: string }
-  }
-}
 type AgentDiagnostic = Bootstrap['agents'][number] & {
   diagnostics: {
     executable_path?: string | null
@@ -37,14 +22,15 @@ type AgentDiagnostic = Bootstrap['agents'][number] & {
 }
 
 export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
-  const callableAgents = bootstrap.agents.filter((agent) => agent.identity.launcher_kind === 'local_process')
+  const agents = Array.isArray(bootstrap.agents) ? bootstrap.agents : []
+  const callableAgents = agents.filter((agent) => agent.identity?.launcher_kind === 'local_process')
   const availableCallableAgents = callableAgents.filter((agent) => agent.available)
   const queryClient = useQueryClient()
   const backups = useQuery({ queryKey: ['backups'], queryFn: () => api<BackupSummary[]>('/api/v1/backups') })
   const health = useQuery({ queryKey: ['system-health'], queryFn: () => api<Health>('/api/v1/system/health') })
   const rubrics = useQuery({ queryKey: ['rubrics'], queryFn: () => api<Rubric[]>('/api/v1/rubrics') })
   const telemetry = useQuery({ queryKey: ['telemetry'], queryFn: () => api<Telemetry[]>('/api/v1/telemetry/summary?days=30') })
-  const performance = useQuery({ queryKey: ['system-performance'], queryFn: () => api<Performance>('/api/v1/system/performance'), refetchInterval: 30_000 })
+  const performance = useQuery({ queryKey: ['system-performance'], queryFn: () => api<PerformanceResponse>('/api/v1/system/performance'), refetchInterval: 30_000 })
   const agentDiagnostics = useQuery({ queryKey: ['agent-diagnostics'], queryFn: () => api<AgentDiagnostic[]>('/api/v1/agents/diagnostics') })
   const create = useMutation({ mutationFn: () => api<BackupSummary>('/api/v1/backups', { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
   const verify = useMutation({ mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/verify`, { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
@@ -58,13 +44,14 @@ export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
   function confirmRestore(backupId: string) {
     if (window.confirm(`恢复 ${backupId} 会替换当前学习数据。系统会先自动创建安全备份并在恢复后运行健康检查。是否继续？`)) restore.mutate(backupId)
   }
+  const performanceSnapshot = normalisePerformance(performance.data)
   return <div className="page page-narrow">
     <PageHeader eyebrow="Settings" title="设置与可信运行状态" description="管理本地 Profile，并检查 Agent、Rubric、Storage、Telemetry 和数据健康状态。" />
     <ProfileSection bootstrap={bootstrap} />
     <section className="settings-section">
       <div className="section-heading"><div><p className="eyebrow">Doctor</p><h2>系统健康</h2></div>{health.data && <StatusBadge tone={health.data.status === 'ok' ? 'success' : 'warning'}>{health.data.status}</StatusBadge>}</div>
       {health.isPending && <LoadingState label="正在执行只读健康检查" />}{health.error && <ErrorState error={health.error} />}
-      {health.data && <><dl className="definition-list"><div><dt>Core 版本</dt><dd>{bootstrap.core_version}</dd></div><div><dt>数据目录</dt><dd><code>{bootstrap.storage.data_home}</code></dd></div><div><dt>数据库</dt><dd>{String(health.data.checks.database_integrity ?? 'unknown')}</dd></div><div><dt>Schema</dt><dd>v{String(health.data.checks.schema_version ?? 'unknown')}</dd></div></dl>{health.data.errors.map((item) => <p className="import-error" key={item}>{item}</p>)}{health.data.warnings.map((item) => <p className="muted" key={item}>提醒：{item}</p>)}</>}
+      {health.data && <><dl className="definition-list"><div><dt>Core 版本</dt><dd>{bootstrap.core_version}</dd></div><div><dt>数据目录</dt><dd><code>{bootstrap.storage.data_home}</code></dd></div><div><dt>数据库</dt><dd>{String(health.data.checks?.database_integrity ?? 'unknown')}</dd></div><div><dt>Schema</dt><dd>v{String(health.data.checks?.schema_version ?? 'unknown')}</dd></div></dl>{(health.data.errors ?? []).map((item) => <p className="import-error" key={item}>{item}</p>)}{(health.data.warnings ?? []).map((item) => <p className="muted" key={item}>提醒：{item}</p>)}</>}
     </section>
     <section className="settings-section">
       <div className="section-heading"><div><p className="eyebrow">Recovery</p><h2>本地备份与恢复</h2></div><button className="button primary" onClick={() => create.mutate()} disabled={create.isPending}><Archive size={17} />创建备份</button></div>
@@ -78,7 +65,7 @@ export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
       <div className="section-heading"><div><p className="eyebrow">Agent identity</p><h2>可用方式与身份边界</h2></div><StatusBadge tone={availableCallableAgents.length ? 'success' : 'warning'}>{availableCallableAgents.length ? `检测到 ${availableCallableAgents.length} 个可调用 CLI` : '未检测到可调用 CLI'}</StatusBadge></div>
       <p>“可用”只表示系统找到了对应 CLI；完成一次真实反馈并显示“真实反馈已保存”，才证明认证、模型调用和结果回传全部连通。Claude Code 支持原生 JSON Schema，当前作为推荐直连；OpenCode 没有等价的原生约束，需由 Adapter 归一化后再验证，因此标记为实验性。桌面快捷方式本身不会静默启动 Agent。</p>
       {agentDiagnostics.isPending && <LoadingState label="正在检查本地 CLI 与代理继承" />}{agentDiagnostics.error && <ErrorState error={agentDiagnostics.error} />}
-      <div className="adapter-list">{bootstrap.agents.map((agent) => {
+      <div className="adapter-list">{agents.map((agent) => {
         const diagnostic = agentDiagnostics.data?.find((item) => item.id === agent.id)?.diagnostics
         return <article key={agent.id}><div><h3>{agent.label}</h3><p>{agent.identity.launcher_kind} · Provider {agent.identity.agent_provider ?? '未知'} · Model {agent.identity.model_display_name ?? agent.identity.model_id ?? '未知'}</p>{diagnostic?.executable_path && <small><code>{diagnostic.executable_path}</code> · {diagnostic.version ?? '版本未知'} · {diagnostic.proxy_configured ? '已继承代理' : '未检测到代理变量'}</small>}</div><StatusBadge tone={agent.available ? 'success' : 'warning'}>{agent.available ? '本地预检通过' : '不可用'}</StatusBadge></article>
       })}</div>
@@ -93,7 +80,7 @@ export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
       <div className="section-heading"><div><p className="eyebrow">Runtime performance</p><h2>本地运行容量</h2></div><Activity /></div>
       <p>只记录最近一段时间的路由耗时和数据库规模，不记录题目、作文或 Agent 提示词。</p>
       {performance.isPending && <LoadingState label="正在读取性能快照" />}{performance.error && <ErrorState error={performance.error} />}
-      {performance.data && <><div className="baseline-grid"><div><span>API 请求样本</span><strong>{performance.data.requests.sample_count}</strong><small>rolling window</small></div><div><span>中位延迟</span><strong>{performance.data.requests.p50_ms ?? 0} ms</strong><small>p95 {performance.data.requests.p95_ms ?? 0} ms</small></div><div><span>数据库</span><strong>{formatBytes(performance.data.database.size_bytes)}</strong><small>{performance.data.database.pragmas.journal_mode.toUpperCase()} · busy {performance.data.database.pragmas.busy_timeout_ms} ms</small></div></div><details><summary>查看慢路由与数据规模</summary><div className="performance-details"><div>{performance.data.requests.slowest_routes.map((item) => <p key={item.route}><code>{item.route}</code><span>p95 {item.p95_ms} ms · {item.requests} 次</span></p>)}</div><div>{Object.entries(performance.data.database.row_counts).map(([key, value]) => <p key={key}><code>{key}</code><span>{value.toLocaleString('zh-CN')} rows</span></p>)}</div></div></details><p className="muted">原生加速：{performance.data.database.native_acceleration.enabled ? '已启用' : '暂不需要'}。{performance.data.database.native_acceleration.reason}</p></>}
+      {performance.data && <><div className="baseline-grid"><div><span>API 请求样本</span><strong>{performanceSnapshot.sampleCount}</strong><small>rolling window</small></div><div><span>中位延迟</span><strong>{performanceSnapshot.p50Ms} ms</strong><small>p95 {performanceSnapshot.p95Ms} ms</small></div><div><span>数据库</span><strong>{formatBytes(performanceSnapshot.databaseSizeBytes)}</strong><small>{performanceSnapshot.journalMode} · busy {performanceSnapshot.busyTimeoutMs} ms</small></div></div><details><summary>查看慢路由与数据规模</summary><div className="performance-details"><div>{performanceSnapshot.slowestRoutes.map((item) => <p key={item.route}><code>{item.route}</code><span>p95 {item.p95_ms} ms · {item.requests} 次</span></p>)}</div><div>{Object.entries(performanceSnapshot.rowCounts).map(([key, value]) => <p key={key}><code>{key}</code><span>{value.toLocaleString('zh-CN')} rows</span></p>)}</div></div></details><p className="muted">原生加速：{performanceSnapshot.nativeAccelerationEnabled ? '已启用' : '暂不需要'}。{performanceSnapshot.nativeAccelerationReason}</p></>}
     </section>
     <section className="settings-section">
       <div className="section-heading"><div><p className="eyebrow">Telemetry · 30 days</p><h2>本地元数据统计</h2></div><Activity /></div>

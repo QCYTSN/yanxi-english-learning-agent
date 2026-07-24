@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V1.1.0 已实现
+## V1.2.0 已实现
 
 ### 六个 Skill
 
@@ -51,7 +51,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - Speaking 生成 Voice/Live 任务包，导回转写/结构化报告，并维护 Story Bank
 - Listening 用浏览器系统语音训练原创高频场景表达，记录错因和间隔复习状态
 - Mock、Manual、Claude Code CLI 与 OpenCode CLI Adapter；不解析任何 Agent 的终端展示文本
-- Schema v15 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
+- Schema v16 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
 - 完整 Writing Mock 的双任务 `writing-mock-review@1` 契约；Task 1/Task 2 分别留证，Runtime 按 1:2 汇总
 - OpenCode 与 Manual Adapter 的受控 Task 1 图片附件；不支持图片的 Adapter 明确降级为证据不足
 - Listening 单次播放租约：支持浏览器 Range 请求、短时续租和断点续播，令牌不可跨运行复用
@@ -69,6 +69,10 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - Agent 后台队列、真实状态事件、超时、取消、重试、重启中断识别和 SSE 游标恢复
 - Today 直接消费 Runtime 的 70/30 推荐、目标差距、内容可用性与无 verified Pack 降级任务
 - Progress 展示四科可信趋势/训练观察、写口分项、阅读题型与耗时、听力场景/错因和错误状态
+- `PracticeUnit / AssessmentRun / ReviewTask` 三类一等领域对象，今日推荐不再只是跳转链接
+- Today 会幂等创建并绑定 Diagnostic、Practice 或 Review；Session 和完整模考可回写所属学习单元
+- 统一待复习队列自动汇总 Writing V2、Reading 错题、到期 Listening 语料和活动错误
+- Settings 兼容旧进程的部分诊断响应，所有页面都有可恢复错误边界，不再直接白屏
 
 ## 明确不包含
 
