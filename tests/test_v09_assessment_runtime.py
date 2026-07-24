@@ -5,19 +5,25 @@ import wave
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 
+from ielts_coach.agent_contracts import persist_agent_contract
 from ielts_coach.assessment_builder import assemble_assessment_pack
 from ielts_coach.assessment_runtime import (
     bind_speaking_result,
     create_speaking_handoff,
     get_assessment_run,
     pause_assessment_run,
+    persist_writing_mock_review,
     record_writing_score,
+    register_speaking_source_report,
+    renew_audio_playback_lease,
     save_response,
     start_assessment_run,
     start_audio_playback,
     submit_assessment_run,
     update_audio_playback,
+    validate_audio_playback_lease,
 )
 from ielts_coach.conformance import enrich_question_conformance
 from ielts_coach.content_reviews import get_target_review, record_content_review
@@ -25,6 +31,7 @@ from ielts_coach.init_home import initialise_home
 from ielts_coach.media import import_audio_bytes
 from ielts_coach.question_bank import content_hash
 from ielts_coach.session_io import load_session_file
+from ielts_coach.speaking_io import import_speaking_report_data
 from ielts_coach.storage import (
     connect,
     get_assessment_pack,
@@ -33,6 +40,8 @@ from ielts_coach.storage import (
     upsert_passage,
     upsert_question,
 )
+from ielts_coach.web.app import create_app
+from ielts_coach.web.auth import AuthState
 
 
 def _approve(home: Path, target_type: str, target_id: str) -> None:
@@ -124,6 +133,48 @@ def _wav_bytes(seconds: float = 1.0, rate: int = 8000) -> bytes:
         target.setframerate(rate)
         target.writeframes(b"\x00\x00" * int(seconds * rate))
     return stream.getvalue()
+
+
+def _writing_mock_review(session_id: str, run_id: str) -> dict[str, object]:
+    def task(task_name: str, first: str, score: float) -> dict[str, object]:
+        return {
+            "task": task_name,
+            "confidence": "medium",
+            "criteria": [
+                {
+                    "criterion": criterion,
+                    "score": score,
+                    "evidence_support": [f"{criterion} support"],
+                    "evidence_limit": [f"{criterion} limitation"],
+                }
+                for criterion in (first, "CC", "LR", "GRA")
+            ],
+            "priority_issues": [],
+        }
+
+    return {
+        "contract_version": 1,
+        "session_id": session_id,
+        "assessment_run_id": run_id,
+        "score_kind": "ai_training_estimate",
+        "confidence": "medium",
+        "rubric": {
+            "rubric_id": "ielts-writing-public-descriptors",
+            "publisher": "IELTS",
+            "standard": "IELTS Writing Band Descriptors",
+            "version": "updated-2023",
+            "source_reference": "https://ielts.org/cdn/ielts-guides/ielts-writing-band-descriptors.pdf",
+        },
+        "visual_evidence": {
+            "status": "sufficient",
+            "sources": ["structured_task_data"],
+            "media_ids": [],
+            "limitations": [],
+        },
+        "task1": task("task1", "TA", 6.0),
+        "task2": task("task2", "TR", 7.0),
+        "next_action": "Revise the three highest-impact issues.",
+    }
 
 
 def test_reading_run_freezes_pack_hides_answers_and_grades_only_after_submit(
@@ -281,6 +332,119 @@ def test_writing_run_uses_one_session_and_runtime_owns_task_weighting(
     assert session["assessment_run_id"] == run["run_id"]
 
 
+def test_writing_agent_review_keeps_tasks_separate_and_runtime_aggregates(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    pack = assemble_assessment_pack(
+        home,
+        module="writing",
+        title="V1.1 writing Agent review",
+        question_ids=["START-WT1-001", "START-WT2-001"],
+    )
+    _approve(home, "assessment_pack", pack["pack_id"])
+    run = start_assessment_run(home, pack["pack_id"])
+    for question_id, task in (
+        ("START-WT1-001", "task1"),
+        ("START-WT2-001", "task2"),
+    ):
+        save_response(
+            home,
+            run["run_id"],
+            question_id,
+            {"text": f"Learner response for {task}."},
+            section_key=task,
+        )
+    reviewing = submit_assessment_run(home, run["run_id"])
+    path = home / "sessions" / "writing" / f"{run['session_id']}.md"
+    revision = int(load_session_file(path)["revision"])
+    review = _writing_mock_review(run["session_id"], run["run_id"])
+    completed = persist_writing_mock_review(
+        home,
+        review,
+        expected_revision=revision,
+        agent_request={
+            "media_refs": [],
+            "canonical_session": {
+                "assessment_context": {
+                    "tasks": [
+                        {
+                            "task": "task1",
+                            "task_data": next(
+                                item["task_data"]
+                                for item in reviewing["pack_snapshot"]["questions"]
+                                if item.get("task") == "task1"
+                            ),
+                        }
+                    ]
+                }
+            },
+        },
+        evaluator_identity={
+            "agent_provider": "test-agent",
+            "model_id": "test-model",
+            "calibration_status": "unknown",
+        },
+    )
+    assert reviewing["status"] == "reviewing"
+    assert completed["status"] == "completed"
+    assert completed["score_result"]["task1"]["band"] == 6.0
+    assert completed["score_result"]["task2"]["band"] == 7.0
+    assert completed["score_result"]["band"] == 6.5
+    session = load_session_file(path)
+    assert session["writing_mock_review"]["assessment_run_id"] == run["run_id"]
+    assert session["writing_assessment_result"]["evaluator_model"] == "test-model"
+
+
+def test_writing_agent_review_without_visual_keeps_partial_profile(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    pack = assemble_assessment_pack(
+        home,
+        module="writing",
+        title="V1.1 partial Writing review",
+        question_ids=["START-WT1-001", "START-WT2-001"],
+    )
+    _approve(home, "assessment_pack", pack["pack_id"])
+    run = start_assessment_run(home, pack["pack_id"])
+    for question_id, task in (
+        ("START-WT1-001", "task1"),
+        ("START-WT2-001", "task2"),
+    ):
+        save_response(
+            home,
+            run["run_id"],
+            question_id,
+            {"text": f"Learner response for {task}."},
+            section_key=task,
+        )
+    submit_assessment_run(home, run["run_id"])
+    path = home / "sessions" / "writing" / f"{run['session_id']}.md"
+    review = _writing_mock_review(run["session_id"], run["run_id"])
+    review["visual_evidence"] = {
+        "status": "insufficient",
+        "sources": [],
+        "media_ids": [],
+        "limitations": ["The visual was not delivered to this Agent."],
+    }
+    review["task1"]["criteria"][0]["score"] = None
+    partial = persist_writing_mock_review(
+        home,
+        review,
+        expected_revision=int(load_session_file(path)["revision"]),
+        agent_request={"media_refs": []},
+    )
+    assert partial["status"] == "reviewing"
+    assert partial["score_result"]["band"] is None
+    assert partial["score_result"]["eligibility_reason"] == (
+        "task1_visual_evidence_insufficient"
+    )
+    assert load_session_file(path)["status"] == "awaiting_feedback"
+
+
 def test_listening_audio_is_registered_frozen_and_can_only_start_once(
     tmp_path: Path,
 ) -> None:
@@ -328,6 +492,48 @@ def test_listening_audio_is_registered_frozen_and_can_only_start_once(
     assert "transcript_timestamp" not in run["pack_snapshot"]["questions"][0]
     started = start_audio_playback(home, run["run_id"], media_ids[0])
     assert started["media_state"][media_ids[0]]["play_count"] == 1
+    first_lease = started["playback_lease"]["token"]
+    assert validate_audio_playback_lease(
+        home, run["run_id"], media_ids[0], first_lease
+    )["media_id"] == media_ids[0]
+    renewed = renew_audio_playback_lease(home, run["run_id"], media_ids[0])
+    renewed_lease = renewed["playback_lease"]["token"]
+    assert renewed_lease != first_lease
+    with pytest.raises(ValueError, match="expired, or revoked"):
+        validate_audio_playback_lease(
+            home, run["run_id"], media_ids[0], first_lease
+        )
+    assert validate_audio_playback_lease(
+        home, run["run_id"], media_ids[0], renewed_lease
+    )["run_id"] == run["run_id"]
+    second_run = start_assessment_run(home, pack["pack_id"])
+    with pytest.raises(ValueError, match="expired, or revoked"):
+        validate_audio_playback_lease(
+            home, second_run["run_id"], media_ids[0], renewed_lease
+        )
+    app = create_app(
+        home=home,
+        auth=AuthState(launch_token="v11-listening-test-token-long-enough"),
+        allowed_origin="http://testserver",
+        test_mode=True,
+    )
+    with TestClient(app) as client:
+        client.headers.update({"Origin": "http://testserver"})
+        assert client.post(
+            "/api/auth/exchange",
+            json={"token": "v11-listening-test-token-long-enough"},
+        ).status_code == 200
+        content_url = (
+            f"/api/v1/assessment-runs/{run['run_id']}/audio/"
+            f"{media_ids[0]}/content?lease={renewed_lease}"
+        )
+        ranged = client.get(content_url, headers={"Range": "bytes=0-15"})
+        assert ranged.status_code == 206
+        assert ranged.headers["content-range"].startswith("bytes 0-15/")
+        assert client.get(
+            f"/api/v1/assessment-runs/{run['run_id']}/audio/"
+            f"{media_ids[0]}/content"
+        ).status_code == 422
     progressed = update_audio_playback(
         home,
         run["run_id"],
@@ -399,3 +605,88 @@ def test_speaking_handoff_and_result_stay_bound_to_authoritative_session(
     assert completed["status"] == "completed"
     assert completed["score_result"]["pronunciation_evidence_sufficient"] is True
     assert get_assessment_run(home, run["run_id"])["session_id"] == run["session_id"]
+
+
+def test_speaking_source_report_requires_local_agent_re_evaluation(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    pack = assemble_assessment_pack(
+        home,
+        module="speaking",
+        title="V1.1 speaking full mock review",
+        question_ids=[
+            "START-SP1-001",
+            "START-SP1-006",
+            "START-SP2-001",
+            "START-SP3-001",
+            "START-SP3-002",
+        ],
+    )
+    _approve(home, "assessment_pack", pack["pack_id"])
+    run = start_assessment_run(home, pack["pack_id"])
+    create_speaking_handoff(home, run["run_id"])
+    submit_assessment_run(home, run["run_id"])
+    imported = import_speaking_report_data(
+        home,
+        {
+            "provider": "external_voice_live",
+            "mode": "full_mock",
+            "transcript": "Learner: This is a transcript-only mock response.",
+        },
+        session_id=run["session_id"],
+    )
+    assert imported["status"] == "awaiting_feedback"
+    assert imported["band"] is None
+    still_reviewing = register_speaking_source_report(
+        home, run["run_id"], imported
+    )
+    assert still_reviewing["status"] == "reviewing"
+    assert still_reviewing["navigation"]["speaking_source_report"]["status"] == (
+        "imported"
+    )
+    canonical = persist_agent_contract(
+        home,
+        {
+            "run_id": "run-speaking-review",
+            "study_session_id": run["session_id"],
+            "output_contract": "speaking-evaluation@1",
+            "base_revision": imported["revision"],
+            "request": {},
+        },
+        {
+            "contract_version": 1,
+            "session_id": run["session_id"],
+            "score_kind": "partial_profile",
+            "confidence": "medium",
+            "band": None,
+            "rubric": {
+                "publisher": "IELTS",
+                "standard": "IELTS Speaking Band Descriptors",
+                "version": "current-public",
+                "source_reference": "https://ielts.org/",
+            },
+            "criteria": [
+                {
+                    "criterion": criterion,
+                    "score": 6.0,
+                    "evidence": ["Transcript-grounded evidence."],
+                    "evidence_source": "transcript",
+                }
+                for criterion in ("FC", "LR", "GRA")
+            ],
+            "evidence_types": ["transcript"],
+            "priorities": ["Collect audio evidence for Pronunciation."],
+            "next_action": "Complete one recorded speaking drill.",
+        },
+    )
+    assert canonical["assessment_status"] == "completed"
+    completed = get_assessment_run(home, run["run_id"])
+    assert completed["status"] == "completed"
+    assert completed["score_result"]["band"] is None
+    session = load_session_file(
+        home / "sessions" / "speaking" / f"{run['session_id']}.md"
+    )
+    assert session["speaking_evaluation"]["score_kind"] == "partial_profile"
+    assert session["status"] == "completed"

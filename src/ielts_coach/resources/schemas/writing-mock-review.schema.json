@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "rubric": {
+      "type": "object",
+      "required": ["rubric_id", "publisher", "standard", "version", "source_reference"],
+      "properties": {
+        "rubric_id": {"const": "ielts-writing-public-descriptors"},
+        "publisher": {"const": "IELTS"},
+        "standard": {"const": "IELTS Writing Band Descriptors"},
+        "version": {"type": "string", "minLength": 1},
+        "source_reference": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "criterion": {
+      "type": "object",
+      "required": ["criterion", "score", "evidence_support", "evidence_limit"],
+      "properties": {
+        "criterion": {"enum": ["TA", "TR", "CC", "LR", "GRA"]},
+        "score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 9,
+          "multipleOf": 0.5
+        },
+        "evidence_support": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "evidence_limit": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "anchors": {
+          "type": "array",
+          "items": {"type": "object"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "priority": {
+      "type": "object",
+      "required": ["tag", "evidence", "learner_action"],
+      "properties": {
+        "tag": {"type": "string", "minLength": 1},
+        "evidence": {"type": "string", "minLength": 1},
+        "learner_action": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "taskReview": {
+      "type": "object",
+      "required": ["task", "confidence", "criteria", "priority_issues"],
+      "properties": {
+        "task": {"enum": ["task1", "task2"]},
+        "confidence": {"enum": ["low", "medium", "high"]},
+        "criteria": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {"$ref": "#/$defs/criterion"}
+        },
+        "priority_issues": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/priority"}
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "type": "object",
+  "required": [
+    "contract_version",
+    "session_id",
+    "assessment_run_id",
+    "score_kind",
+    "confidence",
+    "rubric",
+    "visual_evidence",
+    "task1",
+    "task2",
+    "next_action"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "assessment_run_id": {"type": "string", "minLength": 1},
+    "score_kind": {"enum": ["ai_training_estimate", "mock_fixture"]},
+    "confidence": {"enum": ["low", "medium", "high"]},
+    "rubric": {"$ref": "#/$defs/rubric"},
+    "visual_evidence": {
+      "type": "object",
+      "required": ["status", "sources", "media_ids", "limitations"],
+      "properties": {
+        "status": {"enum": ["sufficient", "insufficient"]},
+        "sources": {
+          "type": "array",
+          "items": {"enum": ["image_attachment", "structured_task_data"]}
+        },
+        "media_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "task1": {"$ref": "#/$defs/taskReview"},
+    "task2": {"$ref": "#/$defs/taskReview"},
+    "next_action": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

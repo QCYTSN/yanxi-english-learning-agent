@@ -36,19 +36,38 @@ def import_speaking_report_data(
     existing = show_session(home, session_id) or {}
     if existing and existing.get("module") != "speaking":
         raise ValueError("Speaking report target belongs to another module")
+    assessment_bound = bool(existing.get("assessment_run_id"))
     fields: dict[str, Any] = {
         "session_id": session_id,
         "module": "speaking",
-        "status": "completed" if local_band is not None else "awaiting_feedback",
+        "status": (
+            "awaiting_feedback"
+            if assessment_bound
+            else "completed"
+            if local_band is not None
+            else "awaiting_feedback"
+        ),
         "occurred_at": report.get("occurred_at") or existing.get("occurred_at") or datetime.now(timezone.utc).isoformat(),
         "duration_minutes": report.get("duration_minutes"),
-        "band": local_band,
-        "score_kind": "ai_training_estimate" if local_band is not None else "partial_profile",
-        "score_confidence": (report.get("local_evaluation") or {}).get("confidence"),
-        "rubric": (report.get("local_evaluation") or {}).get("rubric", {}),
+        "band": None if assessment_bound else local_band,
+        "score_kind": (
+            "partial_profile"
+            if assessment_bound or local_band is None
+            else "ai_training_estimate"
+        ),
+        "score_confidence": (
+            None
+            if assessment_bound
+            else (report.get("local_evaluation") or {}).get("confidence")
+        ),
+        "rubric": (
+            {}
+            if assessment_bound
+            else (report.get("local_evaluation") or {}).get("rubric", {})
+        ),
         "speaking_report": report,
         "speaking_raw_report": raw_report,
-        "criterion_scores": criterion_rows(report),
+        "criterion_scores": [] if assessment_bound else criterion_rows(report),
         "errors": report.get("errors", []),
     }
     if not existing:

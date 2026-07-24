@@ -6,7 +6,7 @@ import { ErrorState, StatusBadge } from './Common'
 
 export function AgentPanel({ sessionId, contract, action, onPersisted }: {
   sessionId: string
-  contract: 'writing-review@1' | 'reading-review@1' | 'listening-review@1' | 'speaking-evaluation@1'
+  contract: 'writing-review@1' | 'writing-mock-review@1' | 'reading-review@1' | 'listening-review@1' | 'speaking-evaluation@1'
   action: string
   onPersisted: () => void
 }) {
@@ -115,6 +115,8 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
       {request && (
         <div className="manual-handoff">
           <div className="manual-heading"><h3>复制任务包</h3><StatusBadge tone="warning">等待导入</StatusBadge></div>
+          {activeRun?.result?.package_path && <p><strong>本地任务包：</strong>{activeRun.result.package_path}</p>}
+          {activeRun?.result?.attachments?.length ? <p>已安全复制 {activeRun.result.attachments.length} 个媒体附件；请与 request.json 一起交给 Agent。</p> : null}
           <pre>{JSON.stringify(request, null, 2)}</pre>
           <button className="button secondary" onClick={() => void navigator.clipboard.writeText(JSON.stringify(request, null, 2))}><ClipboardCopy size={17} />复制</button>
           <label>粘贴 Agent 返回的结构化 JSON<textarea value={manualResult} onChange={(event) => setManualResult(event.target.value)} rows={10} placeholder="{ ... }" /></label>

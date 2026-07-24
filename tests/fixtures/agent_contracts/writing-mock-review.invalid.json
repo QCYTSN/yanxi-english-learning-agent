@@ -1,0 +1,43 @@
+{
+  "contract_version": 1,
+  "session_id": "S-example",
+  "assessment_run_id": "AR-example",
+  "score_kind": "ai_training_estimate",
+  "confidence": "high",
+  "rubric": {
+    "rubric_id": "ielts-writing-public-descriptors",
+    "publisher": "IELTS",
+    "standard": "IELTS Writing Band Descriptors",
+    "version": "updated-2023",
+    "source_reference": "https://ielts.org/"
+  },
+  "visual_evidence": {
+    "status": "insufficient",
+    "sources": [],
+    "media_ids": [],
+    "limitations": []
+  },
+  "task1": {
+    "task": "task1",
+    "confidence": "high",
+    "criteria": [
+      {"criterion": "TA", "score": 7.0, "evidence_support": ["Invented visual claim."], "evidence_limit": ["No visual was available."]},
+      {"criterion": "CC", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]},
+      {"criterion": "LR", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]},
+      {"criterion": "GRA", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]}
+    ],
+    "priority_issues": []
+  },
+  "task2": {
+    "task": "task2",
+    "confidence": "high",
+    "criteria": [
+      {"criterion": "TR", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]},
+      {"criterion": "CC", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]},
+      {"criterion": "LR", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]},
+      {"criterion": "GRA", "score": 7.0, "evidence_support": ["text"], "evidence_limit": ["text"]}
+    ],
+    "priority_issues": []
+  },
+  "next_action": "Continue."
+}

@@ -9,11 +9,16 @@ from .study_runtime import (
     apply_writing_review,
     mutate_session,
 )
+from .assessment_runtime import (
+    bind_speaking_result,
+    persist_writing_mock_review,
+)
 from .validation import validate_data
 
 
 CONTRACT_SCHEMAS = {
     "writing-review@1": "writing-review",
+    "writing-mock-review@1": "writing-mock-review",
     "reading-review@1": "reading-review",
     "listening-review@1": "listening-review",
     "speaking-evaluation@1": "speaking-evaluation",
@@ -24,6 +29,7 @@ CONTRACT_SCHEMAS = {
 
 CONTRACT_SKILLS = {
     "writing-review@1": "ielts-writing",
+    "writing-mock-review@1": "ielts-writing",
     "reading-review@1": "ielts-reading",
     "listening-review@1": "ielts-progress",
     "speaking-evaluation@1": "ielts-speaking",
@@ -61,12 +67,52 @@ def persist_agent_contract(
     }
     if contract == "writing-review@1":
         return apply_writing_review(home, str(session_id), result, **common)
+    if contract == "writing-mock-review@1":
+        return persist_writing_mock_review(
+            home,
+            result,
+            expected_revision=run.get("base_revision"),
+            idempotency_key=f"agent:{run['run_id']}",
+            agent_request=run.get("request") or {},
+            evaluator_identity={
+                "agent_provider": run.get("agent_provider"),
+                "agent_version": run.get("agent_version"),
+                "model_id": run.get("model_id"),
+                "model_display_name": run.get("model_display_name"),
+                "calibration_status": run.get("calibration_status"),
+            },
+        )
     if contract == "reading-review@1":
         return apply_reading_review(home, str(session_id), result, **common)
     if contract == "listening-review@1":
         return _persist_listening_review(home, str(session_id), result, **common)
     if contract == "speaking-evaluation@1":
-        return _persist_speaking_evaluation(home, str(session_id), result, **common)
+        canonical = _persist_speaking_evaluation(
+            home,
+            str(session_id),
+            result,
+            evaluator_identity={
+                "agent_provider": run.get("agent_provider"),
+                "agent_version": run.get("agent_version"),
+                "model_id": run.get("model_id"),
+                "model_display_name": run.get("model_display_name"),
+                "agent_session_id": run.get("agent_session_id"),
+                "calibration_status": run.get("calibration_status"),
+            },
+            **common,
+        )
+        assessment_run_id = canonical.get("assessment_run_id")
+        if assessment_run_id:
+            completed = bind_speaking_result(
+                home, str(assessment_run_id), canonical
+            )
+            return {
+                "session_id": session_id,
+                "assessment_run_id": assessment_run_id,
+                "revision": canonical.get("revision"),
+                "assessment_status": completed["status"],
+            }
+        return canonical
 
     artifact = save_coaching_artifact(
         home,
@@ -118,8 +164,12 @@ def _persist_speaking_evaluation(
     home: Path,
     session_id: str,
     result: dict[str, Any],
+    *,
+    evaluator_identity: dict[str, Any] | None = None,
     **common: Any,
 ) -> dict[str, Any]:
+    identity = evaluator_identity or {}
+
     def apply(data: dict[str, Any]) -> None:
         if data["module"] != "speaking":
             raise ValueError("Speaking evaluation requires a Speaking Session")
@@ -128,6 +178,13 @@ def _persist_speaking_evaluation(
         data["score_confidence"] = result["confidence"]
         data["band"] = result.get("band")
         data["rubric"] = result["rubric"]
+        data["evaluator_model"] = identity.get("model_display_name") or identity.get(
+            "model_id"
+        )
+        data["agent_identity"] = identity
+        data["calibration_status"] = (
+            identity.get("calibration_status") or "unknown"
+        )
         data["criterion_scores"] = [
             {
                 **item,
@@ -147,7 +204,9 @@ def _persist_speaking_evaluation(
 
 
 def _semantic_validation(contract: str, data: dict[str, Any]) -> None:
-    if contract == "listening-review@1":
+    if contract == "writing-mock-review@1":
+        _validate_writing_mock(data)
+    elif contract == "listening-review@1":
         numbers = [str(item["question_number"]) for item in data["items"]]
         if len(numbers) != len(set(numbers)):
             raise ValueError("Listening review question numbers must be unique")
@@ -180,3 +239,35 @@ def _semantic_validation(contract: str, data: dict[str, Any]) -> None:
             "speaking",
         }:
             raise ValueError("Diagnostic summary requires exactly four IELTS modules")
+
+
+def _validate_writing_mock(data: dict[str, Any]) -> None:
+    if data["task1"]["task"] != "task1" or data["task2"]["task"] != "task2":
+        raise ValueError("Writing mock reviews must keep Task 1 and Task 2 separate")
+    for task_name, required in (("task1", {"TA", "CC", "LR", "GRA"}), ("task2", {"TR", "CC", "LR", "GRA"})):
+        criteria = data[task_name]["criteria"]
+        names = [str(item["criterion"]) for item in criteria]
+        if len(names) != len(set(names)) or set(names) != required:
+            raise ValueError(
+                f"{task_name} requires exactly {', '.join(sorted(required))}"
+            )
+    visual = data["visual_evidence"]
+    task1_scores = {
+        str(item["criterion"]): item.get("score")
+        for item in data["task1"]["criteria"]
+    }
+    if visual["status"] == "insufficient":
+        if task1_scores["TA"] is not None:
+            raise ValueError(
+                "Task 1 TA must be null when visual evidence is insufficient"
+            )
+        if not visual["limitations"]:
+            raise ValueError(
+                "Insufficient Task 1 visual evidence requires an explicit limitation"
+            )
+    elif any(value is None for value in task1_scores.values()):
+        raise ValueError(
+            "Sufficient Task 1 visual evidence requires all four criterion scores"
+        )
+    if any(item.get("score") is None for item in data["task2"]["criteria"]):
+        raise ValueError("Task 2 requires all four criterion scores")

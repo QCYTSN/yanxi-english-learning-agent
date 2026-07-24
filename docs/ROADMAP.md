@@ -4,7 +4,7 @@ System completeness work after V0.7 is tracked authoritatively in
 [SYSTEM_COMPLETENESS_PLAN.md](SYSTEM_COMPLETENESS_PLAN.md). Content inventory
 targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 
-## Delivered through V1.0
+## Delivered through V1.1
 
 - six-Skill architecture
 - independent Reading coach
@@ -76,8 +76,13 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - structured four-module Progress dashboard with eligible trends and separately labelled training observations
 - schema v14 media bindings, performance indexes, coaching artifacts and recoverable Agent execution metadata
 - Windows/Linux and Python 3.10-3.12 CI matrix, frontend quality gates, E2E and wheel smoke install
+- `writing-mock-review@1` with separate Task 1/Task 2 evidence and Runtime-owned 1:2 aggregation
+- controlled Task 1 image packages for OpenCode and Manual without exposing original media paths
+- short-lived, renewable Listening playback leases that support HTTP Range requests without counting extra plays
+- external Speaking source evidence followed by local Agent re-evaluation on the same AssessmentRun
+- schema v15 audio-lease persistence and restart-safe enforcement
 
-## Post-1.0 increments
+## Post-1.1 increments
 
 The detailed dependencies, deliverables and acceptance criteria live in the
 system completeness plan. Version-level intent is:

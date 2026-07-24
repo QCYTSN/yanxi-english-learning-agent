@@ -45,6 +45,8 @@ class MockAdapter:
         contract = request["output_contract"]
         if contract == "writing-review@1":
             return self._writing_review(home, session)
+        if contract == "writing-mock-review@1":
+            return self._writing_mock_review(session)
         if contract == "reading-review@1":
             return self._reading_review(session)
         if contract == "listening-review@1":
@@ -167,6 +169,59 @@ class MockAdapter:
             ],
             "full_model_answer": None,
             "next_action": "Choose a real Agent or Manual handoff for IELTS feedback.",
+        }
+
+    def _writing_mock_review(self, session: dict[str, Any]) -> dict[str, Any]:
+        def task(task_name: str, first_criterion: str) -> dict[str, Any]:
+            return {
+                "task": task_name,
+                "confidence": "low",
+                "criteria": [
+                    {
+                        "criterion": name,
+                        "score": None if name == "TA" else 0.0,
+                        "evidence_support": [
+                            "Mock pipeline fixture: no IELTS judgment was performed."
+                        ],
+                        "evidence_limit": [
+                            "No model or Task 1 visual analysis was used."
+                        ],
+                    }
+                    for name in (first_criterion, "CC", "LR", "GRA")
+                ],
+                "priority_issues": [
+                    {
+                        "tag": "MOCK_ONLY",
+                        "evidence": "The dual-task contract validated.",
+                        "learner_action": "Choose a real Agent for IELTS feedback.",
+                    }
+                ],
+            }
+
+        return {
+            "contract_version": 1,
+            "session_id": session["session_id"],
+            "assessment_run_id": session["assessment_run_id"],
+            "score_kind": "mock_fixture",
+            "confidence": "low",
+            "rubric": {
+                "rubric_id": "ielts-writing-public-descriptors",
+                "publisher": "IELTS",
+                "standard": "IELTS Writing Band Descriptors",
+                "version": "updated-2023",
+                "source_reference": "https://ielts.org/cdn/ielts-guides/ielts-writing-band-descriptors.pdf",
+            },
+            "visual_evidence": {
+                "status": "insufficient",
+                "sources": [],
+                "media_ids": [],
+                "limitations": [
+                    "MockAdapter does not inspect Task 1 visual evidence."
+                ],
+            },
+            "task1": task("task1", "TA"),
+            "task2": task("task2", "TR"),
+            "next_action": "Choose Claude Code, OpenCode, or Manual for real feedback.",
         }
 
     def _reading_review(self, session: dict[str, Any]) -> dict[str, Any]:

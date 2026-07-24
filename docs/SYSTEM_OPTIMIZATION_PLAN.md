@@ -40,7 +40,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 ## 3. 当前已完成的性能底座
 
-- Schema v14；
+- Schema v15；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
@@ -62,21 +62,16 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - Session 媒体会进入 Agent request 的结构化证据清单；不支持图片/音频的 Adapter 明确标记证据不可用；
 - 设置页提供无 Token 的 CLI、版本与代理继承预检，并明确它不等于真实模型连通。
 
-## 5. 仍需完成的产品工作
+## 5. V1.1 已完成的可信学习闭环
 
-### P0：可信学习闭环
+- `writing-mock-review@1` 将 Task 1 与 Task 2 的证据、四项标准分和重点问题分开保存，由 Runtime 计算 1:2 总分；
+- Task 1 图片只从 Media Registry 复制到一次性受控附件目录。OpenCode 使用 CLI `--file`，Manual 生成包含清单的任务包；Claude Code 本机 CLI 不支持本地路径附件，因此保持 `image_input=false`；
+- Task 1 没有实际图片附件或结构化数据时，TA 必须为 `null`，AssessmentRun 保持待复评且不生成完整总分；
+- Listening 使用 AssessmentRun 专属的 20 分钟播放租约，允许浏览器 Range 请求、刷新续租和断点续播，旧租约会撤销且不能跨运行复用；
+- Speaking 外部 Voice / Live 报告只作为来源证据，必须再运行 `speaking-evaluation@1`，最后在同一 AssessmentRun 中结束；
+- Schema v15 新增播放租约持久化，V1.0 数据可向后兼容迁移。
 
-1. 完整 Writing Mock 的双任务 Agent 评阅协议  
-   需要新增 `writing-mock-review@1`，分别保存 Task 1/Task 2 证据，再由 Runtime 以 1:2 汇总。当前页面只提供严格的结构化评阅导入，不应冒充自动评阅。
-
-2. Agent 图片实际传输  
-   当前 Registry、owner 绑定、隐私判断和证据不足标记已完成。下一步为声明 `image_input=true` 的 Adapter 实现受控附件传输；不得向 Agent 暴露任意本地路径。
-
-3. Listening 单次播放服务端租约  
-   浏览器音频会产生 Range 请求，不能简单限制为一次 HTTP GET。需要一次 AssessmentRun 专属、短时有效、不可跨运行复用的播放租约，并保留断点续播。
-
-4. 完整 Speaking Mock 复评  
-   外部 Voice / Live 报告导回后，应在同一 AssessmentRun 内完成结构化本地评估，再结束运行。
+## 6. 仍需完成的产品工作
 
 ### P1：从工具集合升级为学习系统
 
@@ -98,7 +93,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 5. 快捷方式启动器显示服务、Agent、模型和代理状态；
 6. 视觉设计系统和最终交互优化。
 
-## 6. 是否新增 Rust、Go 或其他语言
+## 7. 是否新增 Rust、Go 或其他语言
 
 当前不新增语言。原因不是 Python/TypeScript 永远足够，而是现有瓶颈来自连接生命周期、N+1 查询、无分页和重任务边界；这些问题换语言仍然存在。
 
@@ -117,7 +112,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 无论新增何种语言，都不能复制 IELTS 规则、绕过 Schema、直接写数据库或改变数据权威关系。
 
-## 7. 验收闸门
+## 8. 验收闸门
 
 每一阶段必须同时通过：
 

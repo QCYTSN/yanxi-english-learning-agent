@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import errno
 import time
+import base64
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from ielts_coach.agent_contracts import CONTRACT_SCHEMAS, validate_agent_contract
 from ielts_coach.agent_gateway import adapter_descriptors
+from ielts_coach.agent_gateway.manual import ManualAdapter
 from ielts_coach.agent_gateway.process import (
     ClaudeProcessAdapter,
     OpenCodeProcessAdapter,
@@ -20,6 +22,7 @@ from ielts_coach.agent_gateway.process import (
 )
 from ielts_coach.agent_jobs import AgentJobManager
 from ielts_coach.init_home import initialise_home
+from ielts_coach.media import import_image_bytes
 from ielts_coach.session_manager import show_session, start_session
 from ielts_coach.study_runtime import submit_writing_version
 from ielts_coach.score_results import build_score_result
@@ -198,10 +201,10 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
     }
 
 
-def test_schema14_and_restart_recovery(tmp_path: Path):
+def test_schema15_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 14
+    assert SCHEMA_VERSION == 15
     create_agent_run(
         home,
         {
@@ -228,7 +231,7 @@ def test_schema14_and_restart_recovery(tmp_path: Path):
         agent_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(agent_runs)")
         }
-    assert version == "14"
+    assert version == "15"
     assert {"timeout_seconds", "attempt_count", "cancel_requested"}.issubset(
         agent_columns
     )
@@ -306,6 +309,61 @@ def test_process_adapters_keep_large_prompts_out_of_windows_command_line(
     finally:
         _remove_temporary_paths(cleanup)
     assert all(not path.exists() for path in cleanup)
+
+
+def test_manual_and_opencode_packages_copy_registered_images_without_source_path(
+    tmp_path: Path,
+):
+    home = tmp_path / "home"
+    initialise_home(home)
+    image = import_image_bytes(
+        home,
+        base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        ),
+        alt_text="Synthetic Task 1 visual",
+    )
+    request = {
+        "request_id": "run_attachment_test",
+        "study_session_id": "S-example",
+        "output_contract": "writing-mock-review@1",
+        "media_refs": [
+            {
+                "media_id": image["media_id"],
+                "media_type": "image",
+                "mime_type": image["mime_type"],
+                "content_hash": image["content_hash"],
+                "available_to_agent": True,
+            }
+        ],
+    }
+    manual = ManualAdapter().start(home, request)
+    package_path = Path(manual["package_path"])
+    package_text = package_path.read_text(encoding="utf-8")
+    assert package_path.is_file()
+    assert len(manual["attachments"]) == 1
+    assert (package_path.parent / manual["attachments"][0]["file"]).is_file()
+    assert str(image["local_path"]) not in package_text
+
+    adapter = OpenCodeProcessAdapter()
+    command, _, _, cleanup = adapter._prepare_invocation(
+        home,
+        "opencode.exe",
+        "synthetic prompt",
+        "writing-mock-review@1",
+        request,
+    )
+    attached = [
+        Path(command[index + 1])
+        for index, value in enumerate(command[:-1])
+        if value == "--file"
+    ]
+    try:
+        assert len(attached) == 2
+        assert any(path.suffix.lower() == ".png" for path in attached)
+        assert all(str(image["local_path"]) != str(path) for path in attached)
+    finally:
+        _remove_temporary_paths(cleanup)
 
 
 def test_windows_system_proxy_is_translated_for_cli_adapters():

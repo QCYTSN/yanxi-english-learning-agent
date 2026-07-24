@@ -100,6 +100,8 @@ export type AgentRun = {
   error_code?: string | null
   result?: {
     request?: Record<string, unknown>
+    package_path?: string
+    attachments?: Array<{ media_id: string; file: string; mime_type: string }>
     error?: { code: string; message: string }
   } | null
 }
@@ -234,6 +236,12 @@ export type AssessmentRun = {
   score_result: Record<string, unknown>
   sections: Array<{ section_key: string; status: string; payload: Record<string, unknown> }>
   responses: AssessmentResponse[]
+  playback_lease?: {
+    token: string
+    expires_at: string
+    run_id: string
+    media_id: string
+  }
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {

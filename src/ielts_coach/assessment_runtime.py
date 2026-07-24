@@ -3,9 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import secrets
 import unicodedata
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from .session_io import load_session_file
 from .session_manager import persist_session_atomic, start_session
 from .storage import (
     connect,
+    bind_media_asset,
     get_assessment_pack,
     get_idempotency_record,
     get_media_asset,
@@ -127,6 +129,14 @@ def start_assessment_run(
         data["status"] = "learner_working"
         data["revision"] = int(data.get("revision", 0)) + 1
         persist_session_atomic(home, path, data)
+    for media_id in _snapshot_media_ids(snapshot):
+        bind_media_asset(
+            home,
+            media_id,
+            owner_type="session",
+            owner_id=session_id,
+            purpose="assessment_evidence",
+        )
     if idempotency_key:
         save_idempotency_record(
             home, scope, idempotency_key, "assessment_run_start", {"run_id": run_id}
@@ -388,7 +398,74 @@ def start_audio_playback(
         )
         state[media_id] = current
         _update_media_state(home, run_id, state)
-    return get_assessment_run(home, run_id)
+        lease = _create_audio_playback_lease(home, run_id, media_id)
+    result = get_assessment_run(home, run_id)
+    result["playback_lease"] = lease
+    return result
+
+
+def renew_audio_playback_lease(
+    home: Path,
+    run_id: str,
+    media_id: str,
+) -> dict[str, Any]:
+    """Renew transport access without counting a second IELTS playback."""
+    with runtime_lock(home, f"assessment:{run_id}"):
+        run = _private_run(home, run_id)
+        _require_writable(run)
+        if run["module"] != "listening":
+            raise ValueError("Audio playback leases only apply to Listening")
+        current = dict((run.get("media_state") or {}).get(media_id) or {})
+        if int(current.get("play_count", 0)) != 1:
+            raise ValueError("Audio playback has not been started")
+        if current.get("completed"):
+            raise ValueError("Completed audio playback cannot be renewed")
+        lease = _create_audio_playback_lease(home, run_id, media_id)
+    result = get_assessment_run(home, run_id)
+    result["playback_lease"] = lease
+    return result
+
+
+def validate_audio_playback_lease(
+    home: Path,
+    run_id: str,
+    media_id: str,
+    token: str,
+) -> dict[str, Any]:
+    if not token or len(token) > 512:
+        raise ValueError("A valid audio playback lease is required")
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = _now()
+    with connect(home) as conn:
+        row = conn.execute(
+            """
+            SELECT l.*,a.status AS run_status
+            FROM audio_playback_leases l
+            JOIN assessment_runs a ON a.run_id=l.run_id
+            WHERE l.lease_hash=? AND l.run_id=? AND l.media_id=?
+            """,
+            (digest, run_id, media_id),
+        ).fetchone()
+        if (
+            not row
+            or row["revoked_at"] is not None
+            or row["run_status"] != "active"
+            or datetime.fromisoformat(str(row["expires_at"]).replace("Z", "+00:00"))
+            <= _now_dt()
+        ):
+            raise ValueError("Audio playback lease is missing, expired, or revoked")
+        conn.execute(
+            """
+            UPDATE audio_playback_leases SET last_accessed_at=?
+            WHERE lease_hash=?
+            """,
+            (now, digest),
+        )
+    return {
+        "run_id": run_id,
+        "media_id": media_id,
+        "expires_at": row["expires_at"],
+    }
 
 
 def update_audio_playback(
@@ -418,6 +495,8 @@ def update_audio_playback(
         current["updated_at"] = _now()
         state[media_id] = current
         _update_media_state(home, run_id, state)
+        if completed:
+            _revoke_audio_playback_leases(home, run_id, media_id)
     return get_assessment_run(home, run_id)
 
 
@@ -469,6 +548,13 @@ def submit_assessment_run(
                 """,
                 (now, now, run_id),
             )
+            conn.execute(
+                """
+                UPDATE audio_playback_leases SET revoked_at=?
+                WHERE run_id=? AND revoked_at IS NULL
+                """,
+                (now, run_id),
+            )
         _finalise_session(home, run, result, final_status, now)
     if idempotency_key:
         save_idempotency_record(
@@ -483,6 +569,8 @@ def record_writing_score(
     *,
     task1: dict[str, Any],
     task2: dict[str, Any],
+    expected_revision: int | None = None,
+    review_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Aggregate two evidence-based task reviews; Task 2 weight lives in Runtime."""
     with runtime_lock(home, f"assessment:{run_id}"):
@@ -535,6 +623,13 @@ def record_writing_score(
                 }
             ),
         }
+        _complete_review_session(
+            home,
+            run,
+            result,
+            expected_revision=expected_revision,
+            review_result=review_result,
+        )
         now = _now()
         with connect(home) as conn:
             conn.execute(
@@ -544,8 +639,100 @@ def record_writing_score(
                 """,
                 (json.dumps(result, ensure_ascii=False), now, run_id),
             )
-        _complete_review_session(home, run, result)
     return get_assessment_run(home, run_id)
+
+
+def persist_writing_mock_review(
+    home: Path,
+    review: dict[str, Any],
+    *,
+    expected_revision: int | None = None,
+    idempotency_key: str | None = None,
+    agent_request: dict[str, Any] | None = None,
+    evaluator_identity: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Persist a two-task review without trusting Agent-side aggregation."""
+    run_id = str(review["assessment_run_id"])
+    session_id = str(review["session_id"])
+    if review.get("score_kind") != "ai_training_estimate":
+        raise ValueError("Only a real AI training estimate can enter learning records")
+    scope = f"writing-mock-review:{run_id}"
+    if idempotency_key:
+        replay = get_idempotency_record(home, scope, idempotency_key)
+        if replay:
+            return get_assessment_run(home, run_id)
+    run = _private_run(home, run_id)
+    if run["module"] != "writing" or run["status"] != "reviewing":
+        raise ValueError("Writing mock review requires a submitted Writing AssessmentRun")
+    if str(run["session_id"]) != session_id:
+        raise ValueError("Writing mock review must use the AssessmentRun's Session")
+    _validate_agent_visual_evidence(run, review, agent_request or {})
+    identity = evaluator_identity or {}
+    rubric_version = str((review.get("rubric") or {}).get("version") or "")
+
+    def task_payload(task_name: str) -> dict[str, Any]:
+        source = review[task_name]
+        evidence = [
+            text
+            for criterion in source["criteria"]
+            for text in [
+                *(criterion.get("evidence_support") or []),
+                *(criterion.get("evidence_limit") or []),
+            ]
+        ]
+        return {
+            "criteria": {
+                str(item["criterion"]): item.get("score")
+                for item in source["criteria"]
+            },
+            "evidence": evidence,
+            "criterion_evidence": source["criteria"],
+            "priority_issues": source.get("priority_issues") or [],
+            "confidence": source["confidence"],
+            "evaluator_model": identity.get("model_display_name")
+            or identity.get("model_id"),
+            "evaluator_identity": identity,
+            "calibration_status": identity.get("calibration_status") or "unknown",
+            "rubric_version": rubric_version,
+        }
+
+    task1 = task_payload("task1")
+    task2 = task_payload("task2")
+    if review["visual_evidence"]["status"] == "insufficient":
+        partial = _persist_partial_writing_mock_review(
+            home,
+            run,
+            review,
+            task1=task1,
+            task2=task2,
+            expected_revision=expected_revision,
+        )
+        if idempotency_key:
+            save_idempotency_record(
+                home,
+                scope,
+                idempotency_key,
+                "writing_mock_review_partial",
+                {"run_id": run_id},
+            )
+        return partial
+    completed = record_writing_score(
+        home,
+        run_id,
+        task1=task1,
+        task2=task2,
+        expected_revision=expected_revision,
+        review_result=review,
+    )
+    if idempotency_key:
+        save_idempotency_record(
+            home,
+            scope,
+            idempotency_key,
+            "writing_mock_review_complete",
+            {"run_id": run_id},
+        )
+    return completed
 
 
 def bind_speaking_result(
@@ -562,12 +749,20 @@ def bind_speaking_result(
         if str(session_result.get("session_id")) != str(run["session_id"]):
             raise ValueError("Speaking result must use the AssessmentRun's authoritative Session")
         report = session_result.get("speaking_report") or {}
-        local = report.get("local_evaluation") or {}
-        evidence = set(report.get("evidence_types") or [])
+        evaluation = session_result.get("speaking_evaluation") or {}
+        evidence = set(report.get("evidence_types") or []) | set(
+            evaluation.get("evidence_types") or []
+        )
         band = session_result.get("band")
+        pronunciation_sources = {
+            str(item.get("evidence_source"))
+            for item in evaluation.get("criteria") or []
+            if item.get("criterion") == "PRON"
+        }
         if band is not None and not (
             {"audio", "voice_model_observation"} & evidence
-            or local.get("pronunciation_evidence") in {"audio", "voice_model_observation", "mixed"}
+            or pronunciation_sources
+            & {"audio", "voice_model_observation", "mixed"}
         ):
             raise ValueError("A Speaking overall estimate requires audio-based pronunciation evidence")
         result = {
@@ -583,6 +778,8 @@ def bind_speaking_result(
             "calibration_status": session_result.get("calibration_status") or "unknown",
             "pronunciation_evidence_sufficient": bool(
                 {"audio", "voice_model_observation"} & evidence
+                or pronunciation_sources
+                & {"audio", "voice_model_observation", "mixed"}
             ),
         }
         result = {
@@ -609,6 +806,55 @@ def bind_speaking_result(
                 revision=revision+1,updated_at=? WHERE run_id=?
                 """,
                 (json.dumps(result, ensure_ascii=False), now, now, run_id),
+            )
+        if session_result.get("speaking_evaluation"):
+            path = home / "sessions" / "speaking" / f"{run['session_id']}.md"
+            with runtime_lock(home, f"session:{run['session_id']}"):
+                data = load_session_file(path)
+                data["status"] = "completed"
+                data["score_result"] = result
+                data["revision"] = int(data.get("revision", 0)) + 1
+                persist_session_atomic(home, path, data)
+    return get_assessment_run(home, run_id)
+
+
+def register_speaking_source_report(
+    home: Path,
+    run_id: str,
+    session_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Mark external Voice/Live evidence as imported without treating it as local scoring."""
+    with runtime_lock(home, f"assessment:{run_id}"):
+        run = _private_run(home, run_id)
+        if run["module"] != "speaking" or run["status"] != "reviewing":
+            raise ValueError(
+                "Speaking source report requires a submitted Speaking AssessmentRun"
+            )
+        if str(session_result.get("session_id")) != str(run["session_id"]):
+            raise ValueError(
+                "Speaking source report must use the AssessmentRun's Session"
+            )
+        navigation = dict(run.get("navigation") or {})
+        navigation["speaking_source_report"] = {
+            "status": "imported",
+            "imported_at": _now(),
+            "evidence_types": (
+                session_result.get("speaking_report") or {}
+            ).get("evidence_types")
+            or [],
+        }
+        now = _now()
+        with connect(home) as conn:
+            conn.execute(
+                """
+                UPDATE assessment_runs SET navigation_json=?,revision=revision+1,
+                updated_at=? WHERE run_id=?
+                """,
+                (
+                    json.dumps(navigation, ensure_ascii=False),
+                    now,
+                    run_id,
+                ),
             )
     return get_assessment_run(home, run_id)
 
@@ -722,7 +968,37 @@ def _build_snapshot(home: Path, pack: dict[str, Any]) -> dict[str, Any]:
             asset, _ = resolve_media_file(home, media_id)
             if asset["media_type"] != "audio":
                 raise ValueError("Listening full mock media must be registered audio")
+    if pack.get("module") == "writing":
+        task1 = next(
+            (item for item in questions if item.get("task") == "task1"),
+            {},
+        )
+        for media_id in _question_media_ids(task1):
+            asset, _ = resolve_media_file(home, media_id)
+            if asset["media_type"] != "image":
+                raise ValueError("Writing Task 1 media must be a registered image")
     return {**pack, "questions": questions, "passages": passages}
+
+
+def _question_media_ids(question: dict[str, Any]) -> list[str]:
+    values = []
+    if question.get("media_id"):
+        values.append(str(question["media_id"]))
+    for value in question.get("media_ids") or []:
+        values.append(str(value))
+    return list(dict.fromkeys(values))
+
+
+def _snapshot_media_ids(snapshot: dict[str, Any]) -> list[str]:
+    values = [
+        media_id
+        for question in snapshot.get("questions") or []
+        for media_id in _question_media_ids(question)
+    ]
+    for part in (snapshot.get("structure") or {}).get("parts", []):
+        if part.get("audio_media_id"):
+            values.append(str(part["audio_media_id"]))
+    return list(dict.fromkeys(values))
 
 
 def _sections(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
@@ -838,6 +1114,62 @@ def _update_media_state(home: Path, run_id: str, state: dict[str, Any]) -> None:
             """,
             (json.dumps(state, ensure_ascii=False), now, run_id),
         )
+
+
+def _create_audio_playback_lease(
+    home: Path,
+    run_id: str,
+    media_id: str,
+) -> dict[str, Any]:
+    token = secrets.token_urlsafe(32)
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    created = _now_dt()
+    expires = created + timedelta(minutes=20)
+    with connect(home) as conn:
+        conn.execute(
+            """
+            UPDATE audio_playback_leases SET revoked_at=?
+            WHERE run_id=? AND media_id=? AND revoked_at IS NULL
+            """,
+            (created.isoformat(), run_id, media_id),
+        )
+        conn.execute(
+            """
+            INSERT INTO audio_playback_leases(
+              lease_hash,run_id,media_id,created_at,expires_at
+            ) VALUES(?,?,?,?,?)
+            """,
+            (
+                digest,
+                run_id,
+                media_id,
+                created.isoformat(),
+                expires.isoformat(),
+            ),
+        )
+    return {
+        "token": token,
+        "expires_at": expires.isoformat(),
+        "run_id": run_id,
+        "media_id": media_id,
+    }
+
+
+def _revoke_audio_playback_leases(
+    home: Path,
+    run_id: str,
+    media_id: str | None = None,
+) -> None:
+    sql = (
+        "UPDATE audio_playback_leases SET revoked_at=? "
+        "WHERE run_id=? AND revoked_at IS NULL"
+    )
+    params: list[Any] = [_now(), run_id]
+    if media_id is not None:
+        sql += " AND media_id=?"
+        params.append(media_id)
+    with connect(home) as conn:
+        conn.execute(sql, params)
 
 
 def _score_submission(run: dict[str, Any]) -> dict[str, Any]:
@@ -1068,11 +1400,27 @@ def _finalise_session(
 
 
 def _complete_review_session(
-    home: Path, run: dict[str, Any], result: dict[str, Any]
+    home: Path,
+    run: dict[str, Any],
+    result: dict[str, Any],
+    *,
+    expected_revision: int | None = None,
+    review_result: dict[str, Any] | None = None,
 ) -> None:
     path = home / "sessions" / run["module"] / f"{run['session_id']}.md"
     with runtime_lock(home, f"session:{run['session_id']}"):
         data = load_session_file(path)
+        current_revision = int(data.get("revision", 0))
+        if (
+            expected_revision is not None
+            and current_revision != int(expected_revision)
+        ):
+            error = ValueError(
+                f"Stale Session revision: expected {expected_revision}, "
+                f"found {current_revision}"
+            )
+            error.code = "SESSION_REVISION_CONFLICT"  # type: ignore[attr-defined]
+            raise error
         data["status"] = "completed"
         data["band"] = result["band"]
         data["score_kind"] = result["score_kind"]
@@ -1101,6 +1449,8 @@ def _complete_review_session(
             for criterion, score in (task_result.get("criteria") or {}).items()
         ]
         data["writing_assessment_result"] = result
+        if review_result is not None:
+            data["writing_mock_review"] = review_result
         data["score_result"] = {
             key: value
             for key, value in result.items()
@@ -1123,6 +1473,154 @@ def _complete_review_session(
         }
         data["revision"] = int(data.get("revision", 0)) + 1
         persist_session_atomic(home, path, data)
+
+
+def _persist_partial_writing_mock_review(
+    home: Path,
+    run: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    task1: dict[str, Any],
+    task2: dict[str, Any],
+    expected_revision: int | None,
+) -> dict[str, Any]:
+    result = {
+        "raw_score": None,
+        "score_kind": "partial_profile",
+        "band": None,
+        "band_range": None,
+        "confidence": "low",
+        "rubric_version": str((review.get("rubric") or {}).get("version") or ""),
+        "conversion_source": None,
+        "evidence_scope": "writing_mock_visual_evidence_insufficient",
+        "evaluator_model": task2.get("evaluator_model"),
+        "calibration_status": task2.get("calibration_status") or "unknown",
+        "eligible_for_progress": False,
+        "eligibility_reason": "task1_visual_evidence_insufficient",
+        "task1": {**task1, "band": None, "weight": 1},
+        "task2": {
+            **task2,
+            "band": _validate_task_score(task2, "TR"),
+            "weight": 2,
+        },
+        "aggregation": None,
+        "visual_evidence": review["visual_evidence"],
+    }
+    path = home / "sessions" / "writing" / f"{run['session_id']}.md"
+    with runtime_lock(home, f"assessment:{run['run_id']}"):
+        fresh = _private_run(home, str(run["run_id"]))
+        if fresh["status"] != "reviewing":
+            raise ValueError("Writing AssessmentRun is no longer awaiting review")
+        with runtime_lock(home, f"session:{run['session_id']}"):
+            data = load_session_file(path)
+            current_revision = int(data.get("revision", 0))
+            if (
+                expected_revision is not None
+                and current_revision != int(expected_revision)
+            ):
+                error = ValueError(
+                    f"Stale Session revision: expected {expected_revision}, "
+                    f"found {current_revision}"
+                )
+                error.code = "SESSION_REVISION_CONFLICT"  # type: ignore[attr-defined]
+                raise error
+            data["status"] = "awaiting_feedback"
+            data["writing_mock_review"] = review
+            data["writing_assessment_result"] = result
+            data["rubric"] = review["rubric"]
+            data["score_kind"] = "partial_profile"
+            data["score_confidence"] = "low"
+            data["band"] = None
+            data["criterion_scores"] = [
+                {
+                    "criterion": criterion,
+                    "version": f"{task_name}-v1",
+                    "score": score,
+                    "confidence": task_result.get("confidence"),
+                    "evidence": task_result.get("evidence"),
+                    "assessment_role": "local_rubric",
+                    "evidence_source": "text",
+                }
+                for task_name, task_result in (
+                    ("task1", task1),
+                    ("task2", task2),
+                )
+                for criterion, score in (task_result.get("criteria") or {}).items()
+                if score is not None
+            ]
+            data["score_result"] = result
+            data["revision"] = current_revision + 1
+            persist_session_atomic(home, path, data)
+        now = _now()
+        with connect(home) as conn:
+            conn.execute(
+                """
+                UPDATE assessment_runs SET score_result_json=?,
+                revision=revision+1,updated_at=? WHERE run_id=?
+                """,
+                (
+                    json.dumps(result, ensure_ascii=False),
+                    now,
+                    run["run_id"],
+                ),
+            )
+    return get_assessment_run(home, str(run["run_id"]))
+
+
+def _validate_agent_visual_evidence(
+    run: dict[str, Any],
+    review: dict[str, Any],
+    agent_request: dict[str, Any],
+) -> None:
+    visual = review["visual_evidence"]
+    if visual["status"] != "sufficient":
+        return
+    task1_question = next(
+        (
+            item
+            for item in run["pack_snapshot"].get("questions") or []
+            if item.get("task") == "task1"
+        ),
+        {},
+    )
+    request_task1 = next(
+        (
+            item
+            for item in (
+                (
+                    (agent_request.get("canonical_session") or {}).get(
+                        "assessment_context"
+                    )
+                    or {}
+                ).get("tasks")
+                or []
+            )
+            if item.get("task") == "task1"
+        ),
+        {},
+    )
+    sources = set(visual.get("sources") or [])
+    structured_available = bool(
+        "structured_task_data" in sources
+        and task1_question.get("task_data")
+        and request_task1.get("task_data") == task1_question.get("task_data")
+    )
+    available_media = {
+        str(item["media_id"])
+        for item in (agent_request.get("media_refs") or [])
+        if item.get("available_to_agent")
+    }
+    claimed_media = {str(value) for value in visual.get("media_ids") or []}
+    image_available = bool(
+        "image_attachment" in sources
+        and claimed_media
+        and claimed_media.issubset(available_media)
+    )
+    if not (structured_available or image_available):
+        raise ValueError(
+            "Agent claimed sufficient Task 1 visual evidence without a "
+            "delivered image or structured task data"
+        )
 
 
 def _validate_task_score(value: dict[str, Any], task_criterion: str) -> float:

@@ -143,6 +143,7 @@ class AgentRunCreate(BaseModel):
     action: str
     output_contract: Literal[
         "writing-review@1",
+        "writing-mock-review@1",
         "reading-review@1",
         "listening-review@1",
         "speaking-evaluation@1",

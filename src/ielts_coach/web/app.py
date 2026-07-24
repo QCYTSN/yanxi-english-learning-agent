@@ -23,12 +23,13 @@ from ..agent_gateway import adapter_descriptors, adapter_diagnostics, get_adapte
 from ..agent_jobs import AgentJobManager
 from ..assessment_builder import assemble_assessment_pack
 from ..assessment_runtime import (
-    bind_speaking_result,
     create_speaking_handoff as create_assessment_speaking_handoff,
     get_assessment_run,
     list_assessment_runs,
     pause_assessment_run,
     record_writing_score,
+    register_speaking_source_report,
+    renew_audio_playback_lease,
     resume_assessment_run,
     save_navigation,
     save_response,
@@ -36,6 +37,7 @@ from ..assessment_runtime import (
     start_audio_playback,
     submit_assessment_run,
     update_audio_playback,
+    validate_audio_playback_lease,
 )
 from ..allocation import recommend_allocation
 from ..backups import create_backup, list_backups, restore_backup, verify_backup
@@ -249,7 +251,9 @@ def _agent_media_refs(
             asset["media_type"] == "audio" and audio_input
         )
         delivery = (
-            "adapter_input"
+            "manual_package"
+            if supported and adapter_id == "manual"
+            else "adapter_input"
             if supported
             else "manual_attachment_required"
             if adapter_id == "manual"
@@ -771,15 +775,25 @@ def create_app(
             completed=payload.completed,
         )
 
+    @app.post(
+        "/api/v1/assessment-runs/{run_id}/audio/{media_id}/lease",
+        dependencies=[Depends(require_session)],
+    )
+    def assessment_audio_lease_endpoint(
+        run_id: str, media_id: str
+    ) -> dict[str, Any]:
+        return renew_audio_playback_lease(target, run_id, media_id)
+
     @app.get(
         "/api/v1/assessment-runs/{run_id}/audio/{media_id}/content",
         dependencies=[Depends(require_session)],
     )
-    def assessment_audio_content_endpoint(run_id: str, media_id: str) -> FileResponse:
-        run = get_assessment_run(target, run_id)
-        state = run.get("media_state", {}).get(media_id) or {}
-        if int(state.get("play_count", 0)) != 1:
-            raise ValueError("Audio playback must be authorised by this AssessmentRun")
+    def assessment_audio_content_endpoint(
+        run_id: str,
+        media_id: str,
+        lease: str = Query(min_length=20, max_length=512),
+    ) -> FileResponse:
+        validate_audio_playback_lease(target, run_id, media_id, lease)
         asset, path = resolve_media_file(target, media_id)
         if asset["media_type"] != "audio":
             raise ValueError("Requested media is not audio")
@@ -838,7 +852,7 @@ def create_app(
             expected_revision=payload.expected_revision,
             idempotency_key=_idempotency_key(idempotency),
         )
-        return bind_speaking_result(target, run_id, imported)
+        return register_speaking_source_report(target, run_id, imported)
 
     @app.get("/api/v1/sessions", dependencies=[Depends(require_session)])
     def sessions(
@@ -1276,6 +1290,44 @@ def create_app(
         canonical_session["media_evidence_sufficient"] = not media_refs or all(
             item["available_to_agent"] for item in media_refs
         )
+        if (
+            payload.output_contract == "writing-mock-review@1"
+            and session.get("assessment_run_id")
+        ):
+            assessment = get_assessment_run(
+                target, str(session["assessment_run_id"])
+            )
+            canonical_session["assessment_context"] = {
+                "assessment_run_id": assessment["run_id"],
+                "pack_id": assessment["pack_id"],
+                "practice_mode": assessment["practice_mode"],
+                "tasks": [
+                    {
+                        key: question.get(key)
+                        for key in (
+                            "question_id",
+                            "task",
+                            "content",
+                            "task_data",
+                            "media_id",
+                            "media_ids",
+                            "minimum_words",
+                        )
+                        if question.get(key) is not None
+                    }
+                    for question in assessment["pack_snapshot"].get("questions")
+                    or []
+                ],
+                "responses": [
+                    {
+                        "question_id": item["question_id"],
+                        "section_key": item["section_key"],
+                        "response": item["response"],
+                    }
+                    for item in assessment["responses"]
+                ],
+                "aggregation_rule": "Runtime computes (Task 1 + 2 × Task 2) / 3",
+            }
         run_id = f"run_{uuid.uuid4().hex}"
         request_envelope = {
             "request_version": 1,

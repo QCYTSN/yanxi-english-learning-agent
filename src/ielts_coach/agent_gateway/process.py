@@ -10,12 +10,14 @@ import subprocess
 import tempfile
 import threading
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
 from .. import __version__
 from ..agent_contracts import CONTRACT_SCHEMAS
+from ..media import resolve_media_file
 from ..validation import load_schema
 from .base import AgentCapabilities, AgentIdentity
 
@@ -140,7 +142,11 @@ class LocalProcessAdapter:
             raise ValueError(f"{self.label} CLI is not installed or not on PATH")
         prompt = self._prompt(request)
         command, stdin_text, environment, cleanup_paths = self._prepare_invocation(
-            home, executable, prompt, request["output_contract"]
+            home,
+            executable,
+            prompt,
+            request["output_contract"],
+            request,
         )
         try:
             creation_flags = (
@@ -242,7 +248,11 @@ class LocalProcessAdapter:
             "still populate all required rubric criteria with the lowest justified "
             "values and explicit evidence limitations; never invent positive "
             "evidence and never return an empty required array. For Writing, return "
-            "exactly four task-appropriate criteria even for a non-answer. Do not "
+            "exactly four task-appropriate criteria even for a non-answer. For a "
+            "Writing full mock, keep Task 1 and Task 2 separate and never calculate "
+            "the final weighted band; the Runtime owns that aggregation. If neither "
+            "a delivered image nor structured Task 1 data is available, mark visual "
+            "evidence insufficient and leave TA null. Do not "
             "modify local files, do not call tools, and do not reveal answers before "
             "the learning stage encoded in the request permits it.\n\n"
             f"REQUEST:\n{envelope}\n\n"
@@ -298,6 +308,7 @@ class LocalProcessAdapter:
         executable: str,
         prompt: str,
         output_contract: str,
+        request: dict[str, Any] | None = None,
     ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
         return self._command(executable, prompt, output_contract), None, {}, []
 
@@ -340,6 +351,7 @@ class ClaudeProcessAdapter(LocalProcessAdapter):
         executable: str,
         prompt: str,
         output_contract: str,
+        request: dict[str, Any] | None = None,
     ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
         return self._command(executable, prompt, output_contract), prompt, {}, []
 
@@ -376,6 +388,15 @@ class OpenCodeProcessAdapter(LocalProcessAdapter):
     label = "OpenCode CLI"
     executable = "opencode"
 
+    def probe(self) -> AgentCapabilities:
+        capabilities = super().probe()
+        return AgentCapabilities(
+            **{
+                **capabilities.__dict__,
+                "image_input": True,
+            }
+        )
+
     def _command(
         self, executable: str, prompt: str, output_contract: str
     ) -> list[str]:
@@ -390,6 +411,7 @@ class OpenCodeProcessAdapter(LocalProcessAdapter):
         executable: str,
         prompt: str,
         output_contract: str,
+        request: dict[str, Any] | None = None,
     ) -> tuple[list[str], str | None, dict[str, str], list[Path]]:
         runtime = home / "runtime"
         runtime.mkdir(parents=True, exist_ok=True)
@@ -413,28 +435,32 @@ class OpenCodeProcessAdapter(LocalProcessAdapter):
             ),
             encoding="utf-8",
         )
+        attachment_paths, attachment_cleanup = _materialise_media_attachments(
+            home, request or {}, media_type="image"
+        )
         instruction = (
             "The attached UTF-8 text file is the complete IELTS evaluation "
-            "request and output schema. Follow it exactly and return only the "
-            "required JSON object."
+            "request and output schema. Any additional attached image is a "
+            "registered Task 1 visual named by media_id in the request. Follow "
+            "the request exactly and return only the required JSON object."
         )
-        command = self._wrap_powershell(
-            executable,
-            [
-                "run",
-                instruction,
-                "--format",
-                "json",
-                "--pure",
-                "--file",
-                str(request_path),
-            ],
-        )
+        args = [
+            "run",
+            instruction,
+            "--format",
+            "json",
+            "--pure",
+            "--file",
+            str(request_path),
+        ]
+        for attachment_path in attachment_paths:
+            args.extend(["--file", str(attachment_path)])
+        command = self._wrap_powershell(executable, args)
         return (
             command,
             None,
             {"OPENCODE_CONFIG": str(config_path)},
-            [request_path, config_path],
+            [request_path, config_path, *attachment_cleanup],
         )
 
     def _parse_output(self, output: str) -> dict[str, Any]:
@@ -537,6 +563,10 @@ def _parse_json_text(value: str) -> dict[str, Any]:
 
 def _normalise_opencode_result(value: dict[str, Any]) -> dict[str, Any]:
     """Translate common provider field aliases without weakening validation."""
+    for key in ("task1", "task2"):
+        nested = value.get(key)
+        if isinstance(nested, dict):
+            _normalise_opencode_result(nested)
     criterion_aliases = {
         "task_achievement": "TA",
         "task_response": "TR",
@@ -558,6 +588,8 @@ def _normalise_opencode_result(value: dict[str, Any]) -> dict[str, Any]:
                 criterion_id.lower(), criterion_id.upper()
             )
             exact_score = criterion.get("band", criterion.get("score"))
+            if "score" not in criterion and criterion.get("band") is not None:
+                criterion["score"] = criterion["band"]
             if "score_low" not in criterion and exact_score is not None:
                 criterion["score_low"] = exact_score
             if "score_high" not in criterion and exact_score is not None:
@@ -630,11 +662,52 @@ def _normalise_opencode_result(value: dict[str, Any]) -> dict[str, Any]:
 
 
 def _remove_temporary_paths(paths: list[Path]) -> None:
-    for path in paths:
+    for path in reversed(paths):
         try:
-            path.unlink(missing_ok=True)
+            if path.is_dir():
+                path.rmdir()
+            else:
+                path.unlink(missing_ok=True)
         except OSError:
             pass
+
+
+def _materialise_media_attachments(
+    home: Path,
+    request: dict[str, Any],
+    *,
+    media_type: str,
+) -> tuple[list[Path], list[Path]]:
+    refs = [
+        item
+        for item in request.get("media_refs") or []
+        if item.get("available_to_agent") and item.get("media_type") == media_type
+    ]
+    if not refs:
+        return [], []
+    root = (home / "runtime" / "agent-media").resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    folder = (
+        root / f"{request['request_id']}-{uuid.uuid4().hex}"
+    ).resolve()
+    if root not in folder.parents:
+        raise ValueError("Invalid Agent attachment request id")
+    folder.mkdir(parents=True, exist_ok=False)
+    paths: list[Path] = []
+    cleanup: list[Path] = [folder]
+    try:
+        for index, ref in enumerate(refs, start=1):
+            asset, source = resolve_media_file(home, str(ref["media_id"]))
+            if asset["media_type"] != media_type:
+                raise ValueError("Agent attachment media type changed after validation")
+            target = folder / f"{ref['media_id']}-{index}{source.suffix.lower()}"
+            shutil.copy2(source, target)
+            paths.append(target)
+            cleanup.append(target)
+    except BaseException:
+        _remove_temporary_paths(cleanup)
+        raise
+    return paths, cleanup
 
 
 def _decode_process_output(value: bytes) -> str:

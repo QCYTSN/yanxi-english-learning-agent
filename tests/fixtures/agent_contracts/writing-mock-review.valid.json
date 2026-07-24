@@ -1,0 +1,43 @@
+{
+  "contract_version": 1,
+  "session_id": "S-example",
+  "assessment_run_id": "AR-example",
+  "score_kind": "ai_training_estimate",
+  "confidence": "medium",
+  "rubric": {
+    "rubric_id": "ielts-writing-public-descriptors",
+    "publisher": "IELTS",
+    "standard": "IELTS Writing Band Descriptors",
+    "version": "updated-2023",
+    "source_reference": "https://ielts.org/cdn/ielts-guides/ielts-writing-band-descriptors.pdf"
+  },
+  "visual_evidence": {
+    "status": "sufficient",
+    "sources": ["structured_task_data"],
+    "media_ids": [],
+    "limitations": []
+  },
+  "task1": {
+    "task": "task1",
+    "confidence": "medium",
+    "criteria": [
+      {"criterion": "TA", "score": 6.0, "evidence_support": ["Key features are selected."], "evidence_limit": ["Some comparisons are underdeveloped."]},
+      {"criterion": "CC", "score": 6.0, "evidence_support": ["Overview and details are separated."], "evidence_limit": ["Progression is occasionally mechanical."]},
+      {"criterion": "LR", "score": 6.0, "evidence_support": ["Data vocabulary is generally accurate."], "evidence_limit": ["Some repetition remains."]},
+      {"criterion": "GRA", "score": 6.0, "evidence_support": ["A mix of structures is attempted."], "evidence_limit": ["Agreement errors recur."]}
+    ],
+    "priority_issues": []
+  },
+  "task2": {
+    "task": "task2",
+    "confidence": "medium",
+    "criteria": [
+      {"criterion": "TR", "score": 7.0, "evidence_support": ["The position is clear and developed."], "evidence_limit": ["One example needs more specificity."]},
+      {"criterion": "CC", "score": 7.0, "evidence_support": ["Paragraph progression is logical."], "evidence_limit": ["One transition is abrupt."]},
+      {"criterion": "LR", "score": 7.0, "evidence_support": ["Vocabulary is flexible and precise."], "evidence_limit": ["A few collocations are awkward."]},
+      {"criterion": "GRA", "score": 7.0, "evidence_support": ["Complex forms are usually controlled."], "evidence_limit": ["Minor article errors remain."]}
+    ],
+    "priority_issues": []
+  },
+  "next_action": "Revise the three highest-impact issues before viewing an alternative."
+}

@@ -8,7 +8,7 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 
 它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
 
-## V1.0.0 已实现
+## V1.1.0 已实现
 
 ### 六个 Skill
 
@@ -51,7 +51,11 @@ Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力�
 - Speaking 生成 Voice/Live 任务包，导回转写/结构化报告，并维护 Story Bank
 - Listening 用浏览器系统语音训练原创高频场景表达，记录错因和间隔复习状态
 - Mock、Manual、Claude Code CLI 与 OpenCode CLI Adapter；不解析任何 Agent 的终端展示文本
-- Schema v14 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
+- Schema v15 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
+- 完整 Writing Mock 的双任务 `writing-mock-review@1` 契约；Task 1/Task 2 分别留证，Runtime 按 1:2 汇总
+- OpenCode 与 Manual Adapter 的受控 Task 1 图片附件；不支持图片的 Adapter 明确降级为证据不足
+- Listening 单次播放租约：支持浏览器 Range 请求、短时续租和断点续播，令牌不可跨运行复用
+- Speaking 外部 Voice/Live 来源报告与本地 Agent 复评分离，并在同一 AssessmentRun 内闭环
 - 四科共用的完整模考运行器：冻结已审核套题、服务端权威计时、逐题恢复、导航、标记、提交和正式 Session 落盘
 - Academic Reading 三篇/40题/60分钟严格运行，提交前答案锁与提交后逐题证据复盘
 - Academic Writing 同一60分钟运行中的 Task 1/Task 2 独立保存，以及由 Runtime 执行的 1:2 汇总

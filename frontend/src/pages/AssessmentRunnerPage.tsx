@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type AssessmentRun, type Question } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge, StructuredTaskVisual } from '../components/Common'
+import { AgentPanel } from '../components/AgentPanel'
 
 export function AssessmentRunnerPage() {
   const { runId = '' } = useParams()
@@ -77,8 +78,10 @@ export function AssessmentRunnerPage() {
     <nav className="section-rail" aria-label="模考部分">
       {value.sections.map((section, index) => <button key={section.section_key} className={sectionKey === section.section_key ? 'active' : ''} onClick={() => { setSectionKey(section.section_key); void saveNavigation(value, section.section_key, questionId) }}><strong>{index + 1}</strong><span>{sectionLabel(value.module, section.section_key)}</span></button>)}
     </nav>
-    {value.status === 'completed' && value.module !== 'writing' && value.module !== 'speaking'
-      ? <ObjectiveResult run={value} />
+    {value.status === 'completed'
+      ? value.module === 'writing' || value.module === 'speaking'
+        ? <ReviewedResult run={value} />
+        : <ObjectiveResult run={value} />
       : value.status === 'reviewing' && value.module === 'writing'
         ? <WritingScorePanel run={value} />
         : value.status === 'reviewing' && value.module === 'speaking'
@@ -173,21 +176,63 @@ function AudioPanel({ run, mediaId }: { run: AssessmentRun; mediaId: string }) {
   const queryClient = useQueryClient()
   const audioRef = useRef<HTMLAudioElement>(null)
   const state = run.media_state[mediaId] ?? {}
+  const [leaseToken, setLeaseToken] = useState(run.playback_lease?.token ?? '')
   const start = useMutation({
     mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}/start`, { method: 'POST' }),
-    onSuccess: (value) => queryClient.setQueryData(['assessment-run', run.run_id], value),
+    onSuccess: (value) => {
+      setLeaseToken(value.playback_lease?.token ?? '')
+      queryClient.setQueryData(['assessment-run', run.run_id], value)
+    },
+  })
+  const renew = useMutation({
+    mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}/lease`, { method: 'POST' }),
+    onSuccess: (value) => {
+      setLeaseToken(value.playback_lease?.token ?? '')
+      queryClient.setQueryData(['assessment-run', run.run_id], value)
+    },
   })
   const lastSent = useRef(Number(state.position_seconds ?? 0))
+  useEffect(() => {
+    if (state.play_count === 1 && !state.completed && !leaseToken && !renew.isPending && !renew.isError) renew.mutate()
+  }, [leaseToken, renew, state.completed, state.play_count])
   function update(completed = false) {
     const position = audioRef.current?.currentTime ?? lastSent.current
     if (!completed && position - lastSent.current < 5) return
     lastSent.current = position
-    void api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}`, { method: 'PUT', body: jsonBody({ position_seconds: position, completed }) })
-      .then((value) => queryClient.setQueryData(['assessment-run', run.run_id], value))
+    void api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}`, {
+      method: 'PUT',
+      body: jsonBody({ position_seconds: position, completed }),
+    }).then((value) => queryClient.setQueryData(['assessment-run', run.run_id], value))
   }
-  return <article className="assessment-context audio-runner"><Headphones size={28} /><p className="eyebrow">一次播放</p><h2>Listening audio</h2><p>刷新页面不会重置播放次数或已记录进度。开始后请保持此页面打开。</p>
-    {!state.play_count ? <button className="button primary" disabled={!mediaId || start.isPending} onClick={() => start.mutate()}><Volume2 size={18} />开始唯一一次播放</button> : <audio ref={audioRef} src={`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}/content`} controls={!state.completed} autoPlay onLoadedMetadata={(event) => { event.currentTarget.currentTime = Number(state.position_seconds ?? 0) }} onTimeUpdate={() => update(false)} onEnded={() => update(true)} onSeeking={(event) => { if (event.currentTarget.currentTime + 0.5 < Number(state.position_seconds ?? 0)) event.currentTarget.currentTime = Number(state.position_seconds ?? 0) }} />}
-    {state.completed && <StatusBadge tone="success">播放已完成</StatusBadge>}{start.isError && <ErrorState error={start.error} />}
+  return <article className="assessment-context audio-runner">
+    <Headphones size={28} />
+    <p className="eyebrow">一次播放 · 安全租约</p>
+    <h2>Listening audio</h2>
+    <p>浏览器可发起多次 Range 请求，但播放次数只计一次。刷新页面会从服务端记录的位置续播，租约不能跨 AssessmentRun 使用。</p>
+    {!state.play_count
+      ? <button className="button primary" disabled={!mediaId || start.isPending} onClick={() => start.mutate()}><Volume2 size={18} />开始唯一一次播放</button>
+      : leaseToken && !state.completed
+        ? <audio
+            ref={audioRef}
+            src={`/api/v1/assessment-runs/${run.run_id}/audio/${mediaId}/content?lease=${encodeURIComponent(leaseToken)}`}
+            controls
+            autoPlay
+            onLoadedMetadata={(event) => { event.currentTarget.currentTime = Number(state.position_seconds ?? 0) }}
+            onTimeUpdate={() => update(false)}
+            onEnded={() => update(true)}
+            onSeeking={(event) => {
+              if (event.currentTarget.currentTime + 0.5 < Number(state.position_seconds ?? 0)) {
+                event.currentTarget.currentTime = Number(state.position_seconds ?? 0)
+              }
+            }}
+            onError={() => { if (!renew.isPending) renew.mutate() }}
+          />
+        : !state.completed
+          ? <p>正在恢复本次播放的安全租约…</p>
+          : null}
+    {state.completed && <StatusBadge tone="success">播放已完成</StatusBadge>}
+    {start.isError && <ErrorState error={start.error} />}
+    {renew.isError && <ErrorState error={renew.error} />}
   </article>
 }
 
@@ -198,20 +243,17 @@ function ObjectiveResult({ run }: { run: AssessmentRun }) {
 
 function WritingScorePanel({ run }: { run: AssessmentRun }) {
   const queryClient = useQueryClient()
-  const [scores, setScores] = useState<Record<string, string>>({ TA: '', TR: '', CC1: '', LR1: '', GRA1: '', CC2: '', LR2: '', GRA2: '' })
-  const [task1Evidence, setTask1Evidence] = useState('')
-  const [task2Evidence, setTask2Evidence] = useState('')
-  const [evaluator, setEvaluator] = useState('')
-  const scoreKeys = ['TA', 'TR', 'CC1', 'LR1', 'GRA1', 'CC2', 'LR2', 'GRA2']
-  const complete = Boolean(scoreKeys.every((key) => scores[key] !== '') && task1Evidence.trim() && task2Evidence.trim() && evaluator.trim())
-  const save = useMutation({
-    mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/writing-score`, { method: 'POST', body: jsonBody({
-      task1: { criteria: { TA: Number(scores.TA), CC: Number(scores.CC1), LR: Number(scores.LR1), GRA: Number(scores.GRA1) }, evidence: [task1Evidence], confidence: 'medium', evaluator_model: evaluator, calibration_status: 'unknown', rubric_version: 'IELTS Writing descriptors' },
-      task2: { criteria: { TR: Number(scores.TR), CC: Number(scores.CC2), LR: Number(scores.LR2), GRA: Number(scores.GRA2) }, evidence: [task2Evidence], confidence: 'medium', evaluator_model: evaluator, calibration_status: 'unknown', rubric_version: 'IELTS Writing descriptors' },
-    }) }),
-    onSuccess: (value) => queryClient.setQueryData(['assessment-run', run.run_id], value),
-  })
-  return <section className="settings-section"><p className="eyebrow">Validated evaluator import</p><h2>Task 1 与 Task 2 分项复评</h2><p>这里不再预填 6 分，也不是学习者自评。请从真实 Agent 或人工 IELTS 评阅结果逐项导入；Runtime 负责校验并按 1:2 汇总。</p><label>评阅来源 / 模型<input value={evaluator} onChange={(event) => setEvaluator(event.target.value)} placeholder="例如 Claude Code · 实际模型名，或人工评阅者" /></label><div className="score-grid compact">{scoreKeys.map((key) => <label key={key}>{key}<select value={scores[key]} onChange={(event) => setScores({ ...scores, [key]: event.target.value })}><option value="">未评分</option>{Array.from({ length: 19 }, (_, index) => index * 0.5).map((value) => <option key={value} value={value}>{value.toFixed(1)}</option>)}</select></label>)}</div><label>Task 1 评分证据<textarea value={task1Evidence} onChange={(event) => setTask1Evidence(event.target.value)} placeholder="引用原文并说明 TA / CC / LR / GRA 判断依据" /></label><label>Task 2 评分证据<textarea value={task2Evidence} onChange={(event) => setTask2Evidence(event.target.value)} placeholder="引用原文并说明 TR / CC / LR / GRA 判断依据" /></label><button className="button primary" disabled={!complete || save.isPending} onClick={() => save.mutate()}>验证复评并按 1:2 汇总</button>{save.isError && <ErrorState error={save.error} />}</section>
+  return <section className="settings-section">
+    <p className="eyebrow">Evidence-first review</p>
+    <h2>Task 1 与 Task 2 双任务复评</h2>
+    <p>Agent 必须分别提交两项任务的四项标准证据，Runtime 才按 Task 1:Task 2 = 1:2 汇总。若 Task 1 图片没有真实交付，系统会保留部分反馈，但拒绝生成完整总分。</p>
+    <AgentPanel
+      sessionId={run.session_id}
+      contract="writing-mock-review@1"
+      action="full_mock_review"
+      onPersisted={() => void queryClient.invalidateQueries({ queryKey: ['assessment-run', run.run_id] })}
+    />
+  </section>
 }
 
 function SpeakingHandoffPanel({ run, onCreated }: { run: AssessmentRun; onCreated: () => void }) {
@@ -223,8 +265,65 @@ function SpeakingHandoffPanel({ run, onCreated }: { run: AssessmentRun; onCreate
 function SpeakingReportPanel({ run }: { run: AssessmentRun }) {
   const queryClient = useQueryClient()
   const [report, setReport] = useState('')
-  const submit = useMutation({ mutationFn: () => api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/speaking-report`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey() }, body: jsonBody({ provider: 'external_voice_live', mode: 'full_mock', report: JSON.parse(report), expected_revision: undefined }) }), onSuccess: (value) => queryClient.setQueryData(['assessment-run', run.run_id], value) })
-  return <section className="settings-section"><p className="eyebrow">Report import</p><h2>导回外部 Voice / Live 报告</h2><p>外部分数不会直接冒充本地复评；只有文字时 Pronunciation 会明确标记证据不足。</p><textarea value={report} onChange={(event) => setReport(event.target.value)} placeholder='粘贴结构化 JSON 报告' /><button className="button primary" disabled={!report.trim() || submit.isPending} onClick={() => submit.mutate()}>验证并绑定到当前运行</button>{submit.isError && <ErrorState error={submit.error} />}</section>
+  const imported = Boolean(
+    (run.navigation.speaking_source_report as { status?: string } | undefined)?.status === 'imported',
+  )
+  const submit = useMutation({
+    mutationFn: () => {
+      let parsed: Record<string, unknown>
+      try {
+        parsed = JSON.parse(report) as Record<string, unknown>
+      } catch {
+        throw new Error('来源报告不是有效 JSON。')
+      }
+      return api<AssessmentRun>(`/api/v1/assessment-runs/${run.run_id}/speaking-report`, {
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey() },
+        body: jsonBody({
+          provider: 'external_voice_live',
+          mode: 'full_mock',
+          report: parsed,
+          expected_revision: undefined,
+        }),
+      })
+    },
+    onSuccess: (value) => queryClient.setQueryData(['assessment-run', run.run_id], value),
+  })
+  return <section className="settings-section">
+    <p className="eyebrow">Voice evidence → local review</p>
+    <h2>完整 Speaking Mock 复评</h2>
+    <p>外部 Voice / Live 报告只作为来源证据，不会直接成为系统总分。导入后还需通过本地 Agent 契约复评；只有具备音频或语音模型直接观察时才允许 PRON 和完整总分。</p>
+    {!imported
+      ? <>
+          <textarea value={report} onChange={(event) => setReport(event.target.value)} placeholder="粘贴结构化 JSON 报告" />
+          <button className="button primary" disabled={!report.trim() || submit.isPending} onClick={() => submit.mutate()}>验证并绑定来源证据</button>
+          {submit.isError && <ErrorState error={submit.error} />}
+        </>
+      : <>
+          <StatusBadge tone="success">来源报告已绑定</StatusBadge>
+          <AgentPanel
+            sessionId={run.session_id}
+            contract="speaking-evaluation@1"
+            action="full_mock_re_evaluation"
+            onPersisted={() => void queryClient.invalidateQueries({ queryKey: ['assessment-run', run.run_id] })}
+          />
+        </>}
+  </section>
+}
+
+function ReviewedResult({ run }: { run: AssessmentRun }) {
+  const band = run.score_result.band
+  return <section className="assessment-result">
+    <div className="result-hero">
+      <CheckCircle2 />
+      <div>
+        <p className="eyebrow">Validated local result</p>
+        <h2>{band === null || band === undefined ? '证据不足，未生成完整总分' : `IELTS training estimate ${String(band)}`}</h2>
+        <p>结果来自经过 Schema、证据边界和 Runtime 聚合验证的正式 Session；它不是官方考官成绩。</p>
+      </div>
+    </div>
+    <Link className="button primary" to={`/feedback/${run.session_id}`}>查看证据与正式记录</Link>
+  </section>
 }
 
 async function saveNavigation(run: AssessmentRun, sectionKey: string, questionId: string) {

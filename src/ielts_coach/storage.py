@@ -11,7 +11,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -555,6 +555,20 @@ CREATE TABLE IF NOT EXISTS question_responses (
 );
 CREATE INDEX IF NOT EXISTS idx_question_responses_section
 ON question_responses(run_id,section_key);
+
+CREATE TABLE IF NOT EXISTS audio_playback_leases (
+    lease_hash TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    media_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    last_accessed_at TEXT,
+    revoked_at TEXT,
+    FOREIGN KEY(run_id) REFERENCES assessment_runs(run_id) ON DELETE CASCADE,
+    FOREIGN KEY(media_id) REFERENCES media_assets(media_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_audio_playback_leases_run
+ON audio_playback_leases(run_id,media_id,expires_at DESC);
 
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -1945,6 +1959,35 @@ def register_media_asset(home: Path, asset: dict[str, Any]) -> dict[str, Any]:
         )
         _bind_media_owner(conn, str(asset["media_id"]), asset, now)
         row = conn.execute("SELECT * FROM media_assets WHERE media_id=?", (asset["media_id"],)).fetchone()
+    return _media_row(row)
+
+
+def bind_media_asset(
+    home: Path,
+    media_id: str,
+    *,
+    owner_type: str,
+    owner_id: str,
+    purpose: str = "evidence",
+) -> dict[str, Any]:
+    """Bind a registered asset to another owner without duplicating the file."""
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM media_assets WHERE media_id=?", (media_id,)
+        ).fetchone()
+        if not row:
+            raise ValueError(f"Unknown media asset: {media_id}")
+        _bind_media_owner(
+            conn,
+            media_id,
+            {
+                "owner_type": owner_type,
+                "owner_id": owner_id,
+                "purpose": purpose,
+            },
+            _now(),
+        )
     return _media_row(row)
 
 
