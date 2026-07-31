@@ -34,10 +34,10 @@ def _client(home: Path) -> TestClient:
     return client
 
 
-def test_schema_v16_has_first_class_learning_objects(tmp_path: Path):
+def test_current_schema_preserves_first_class_learning_objects(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 16
+    assert SCHEMA_VERSION == 20
     with connect(home) as conn:
         tables = {
             row[0]

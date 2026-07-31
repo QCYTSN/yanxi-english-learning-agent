@@ -38,6 +38,7 @@ from .paths import find_project_root, resolve_home
 from .profiles import build_learning_profile
 from .question_bank import draw_question, search_questions, show_question, show_reading_set
 from .reports import build_summary, build_trend_report, build_weekly_report
+from .scale_benchmark import run_temporary_scale_benchmark
 from .session_io import load_data_file, load_session_file
 from .session_manager import finish_session, show_session, start_session, transition_session
 from .study_runtime import (
@@ -78,6 +79,7 @@ ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser 
 conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content contracts and eligibility")
 content_app = typer.Typer(no_args_is_help=True, help="Inspect content readiness and staged local imports")
 backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
+benchmark_app = typer.Typer(no_args_is_help=True, help="Run isolated local performance benchmarks")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -95,6 +97,24 @@ app.add_typer(ui_app, name="ui")
 app.add_typer(conformance_app, name="conformance")
 app.add_typer(content_app, name="content")
 app.add_typer(backup_app, name="backup")
+app.add_typer(benchmark_app, name="benchmark")
+
+
+@benchmark_app.command("scale")
+def benchmark_scale_command(
+    sessions: int = typer.Option(10_000, min=1, max=100_000),
+    questions: int = typer.Option(100_000, min=1, max=1_000_000),
+    repeats: int = typer.Option(5, min=1, max=20),
+) -> None:
+    """Benchmark synthetic sessions/questions in a temporary, disposable data home."""
+    report = run_temporary_scale_benchmark(
+        session_count=sessions,
+        question_count=questions,
+        repeats=repeats,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    if not report["passed"]:
+        raise typer.Exit(code=1)
 
 
 @backup_app.command("create")
@@ -296,8 +316,8 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "profile.yaml valid": False,
         "settings.yaml": (target / "config" / "settings.yaml").exists(),
         "SQLite database": db_path(target).exists(),
-        "starter corpus": (target / "corpus" / "starter-open" / "manifest.yaml").exists(),
-        "six source skills": all((root / "skills-source" / skill / "SKILL.md").exists() for skill in SKILLS),
+        "question bank directory": (target / "corpus").exists(),
+        "seven source skills": all((root / "skills-source" / skill / "SKILL.md").exists() for skill in SKILLS),
         "Claude skills synced": skills_are_synced(root, TARGETS[0]),
         "Codex skills synced": skills_are_synced(root, TARGETS[1]),
         "OpenCode skills synced": skills_are_synced(root, TARGETS[2]),
@@ -357,13 +377,21 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
             and schema_row["value"] == str(SCHEMA_VERSION)
         )
         checks["official rubric references registered"] = rubric_count >= 2
-        checks["starter corpus indexed (61 questions)"] = starter_questions == 61
-        checks["starter Reading indexed (4 passages / 16 questions)"] = (
-            starter_reading_passages == 4 and starter_reading_questions == 16
+        demo_content_present = bool(
+            starter_questions
+            or starter_reading_passages
+            or starter_listening_items
+            or (target / "corpus" / "starter-open" / "manifest.yaml").exists()
         )
-        checks["starter Listening corpus indexed (50 expressions)"] = (
-            starter_listening_items == 50
-        )
+        if demo_content_present:
+            checks["optional demo corpus is internally complete"] = (
+                starter_questions == 61
+                and starter_reading_passages == 4
+                and starter_reading_questions == 16
+                and starter_listening_items == 50
+            )
+        else:
+            checks["public install has no bundled question bank"] = True
         health = audit_data_home(target)
         checks["cross-store consistency"] = health["status"] != "failed"
     failed = False

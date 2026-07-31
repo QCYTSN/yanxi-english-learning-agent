@@ -38,11 +38,47 @@ class MockAdapter:
         )
 
     def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
+        contract = request["output_contract"]
+        if contract == "study-help@1":
+            if request.get("material_evidence_sufficient"):
+                return {
+                    "contract_version": 1,
+                    "module": "mixed",
+                    "request_kind": "material_orientation",
+                    "evidence_status": "insufficient",
+                    "answer_status": "unverified",
+                    "summary": "本地管线自检通过；没有调用模型，也没有分析附件。",
+                    "sections": [
+                        {
+                            "title": "管线状态",
+                            "content": "学习线程、结构化合同与保存流程可以正常工作。",
+                        }
+                    ],
+                    "evidence": [],
+                    "limitations": ["Mock Adapter 不读取图片或判断 IELTS 内容。"],
+                    "next_action": "选择已连接且支持当前材料的模型。",
+                }
+            return {
+                "contract_version": 1,
+                "module": "mixed",
+                "request_kind": "teacher_dialogue",
+                "evidence_status": "not_required",
+                "answer_status": "not_applicable",
+                "summary": "你好！本地对话管线自检通过。今天想练阅读、写作、听力还是口语？",
+                "sections": [
+                    {
+                        "title": "管线状态",
+                        "content": "学习线程、结构化合同与保存流程可以正常工作；本次没有调用真实模型。",
+                    }
+                ],
+                "evidence": [],
+                "limitations": ["Mock Adapter 只验证工程管线，不会判断 IELTS 内容。"],
+                "next_action": "选择已连接且支持当前材料的模型。",
+            }
         session_id = str(request["study_session_id"])
         session = show_session(home, session_id)
         if not session:
             raise ValueError(f"Unknown Session: {session_id}")
-        contract = request["output_contract"]
         if contract == "writing-review@1":
             return self._writing_review(home, session)
         if contract == "writing-mock-review@1":

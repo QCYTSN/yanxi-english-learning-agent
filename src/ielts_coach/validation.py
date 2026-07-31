@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from decimal import Decimal, ROUND_HALF_UP
+from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,7 @@ def normalise_json_value(value: Any) -> Any:
     return value
 
 
+@lru_cache(maxsize=None)
 def load_schema(name: str) -> dict[str, Any]:
     path = resources.files("ielts_coach.resources").joinpath(f"schemas/{name}.schema.json")
     return json.loads(path.read_text(encoding="utf-8"))
@@ -53,6 +55,8 @@ def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
         _validate_listening_review_semantics(normalised)
     elif schema_name == "speaking-evaluation":
         _validate_speaking_evaluation_semantics(normalised)
+    elif schema_name == "study-help":
+        _validate_study_help_semantics(normalised)
     elif schema_name == "study-plan":
         allocation = normalised["allocation"]
         if abs(sum(float(value) for value in allocation.values()) - 1.0) > 0.001:
@@ -123,6 +127,32 @@ def _validate_speaking_evaluation_semantics(data: dict[str, Any]) -> None:
             raise ValueError(
                 "Speaking overall band requires audio-based Pronunciation evidence"
             )
+
+
+def _validate_study_help_semantics(data: dict[str, Any]) -> None:
+    request_kind = str(data["request_kind"])
+    answer_status = str(data["answer_status"])
+    evidence_status = str(data["evidence_status"])
+    if request_kind == "guided_hint" and answer_status != "withheld":
+        raise ValueError("Guided material help must keep the answer withheld")
+    if request_kind in {"close_reading", "context_analysis", "writing_feedback"}:
+        if answer_status != "not_applicable":
+            raise ValueError(
+                "Close reading and Writing feedback do not have an answer status"
+            )
+    if request_kind == "teacher_dialogue":
+        if answer_status != "not_applicable":
+            raise ValueError("Teacher dialogue does not have an answer status")
+        if evidence_status != "not_required":
+            raise ValueError(
+                "Teacher dialogue without a source task must mark evidence not required"
+            )
+    if answer_status == "verified" and (
+        evidence_status != "sufficient" or not data.get("evidence")
+    ):
+        raise ValueError(
+            "A verified answer requires sufficient, explicit evidence"
+        )
 
 
 def _validate_rubric_manifest_semantics(data: dict[str, Any]) -> None:

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ielts-ai-coach"
-version = "1.2.0"
-description = "Local-first, agent-native IELTS learning system for Claude Code, Codex, and OpenCode"
+version = "1.4.0"
+description = "Local-first, agent-native IELTS Academic learning system"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -24,6 +24,11 @@ ui = [
   "uvicorn>=0.30,<1",
   "python-multipart>=0.0.9",
   "Pillow>=10.4",
+  "pypdf>=5,<7",
+]
+ocr = [
+  "pypdfium2>=4.30,<6",
+  "rapidocr-onnxruntime>=1.4.4,<2",
 ]
 dev = ["pytest>=8.0", "httpx>=0.27", "build>=1.2"]
 
@@ -33,14 +38,17 @@ ielts-coach = "ielts_coach.cli:app"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools]
+include-package-data = false
+
 [tool.setuptools.package-data]
 "ielts_coach.resources" = [
-  "starter-corpus/*.jsonl",
-  "starter-corpus/*.yaml",
+  "assets/*",
   "schemas/*.json"
 ]
 "ielts_coach.web" = [
   "static/index.html",
+  "static/*.png",
   "static/assets/*"
 ]
 

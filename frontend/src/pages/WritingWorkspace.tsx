@@ -72,6 +72,8 @@ export function WritingWorkspace() {
   const nextLabel = versions.some((item) => item.label === 'v1') ? 'V2' : 'V1'
   const submittedLabel = versions.at(-1)?.label
   const isTask1 = question.data?.task === 'task1'
+  const registeredMedia = question.data?.media_id
+    ?? (Array.isArray(question.data?.media_ids) ? question.data.media_ids[0] : null)
   const minimumWords = Number(question.data?.minimum_words ?? (isTask1 ? 150 : 250))
   const words = wordCount(content)
   const minutes = isTask1 ? 20 : 40
@@ -85,7 +87,18 @@ export function WritingWorkspace() {
           <h2>{question.data?.task === 'task1' ? 'Academic Task 1' : 'Academic Task 2'}</h2>
           <p className="task-prompt">{question.data?.content ?? '题目正在载入。'}</p>
           {question.data?.task_data && <StructuredTaskVisual data={question.data.task_data} />}
-          {question.data?.task === 'task1' && <MediaUpload sessionId={sessionId} />}
+          {question.data?.task === 'task1' && registeredMedia && (
+            <a
+              className="media-preview"
+              href={`/api/v1/media/${registeredMedia}/content`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="在新窗口查看 Task 1 原图"
+            >
+              <img src={`/api/v1/media/${registeredMedia}/content`} alt="Task 1 registered visual" />
+            </a>
+          )}
+          {question.data?.task === 'task1' && !registeredMedia && <MediaUpload sessionId={sessionId} />}
         </aside>
         <section className="editor-panel">
           <div className="editor-toolbar"><span>{nextLabel}</span><span className={words < minimumWords ? 'word-count-warning' : undefined}>{words} / 至少 {minimumWords} words</span><span><TimerReset size={16} />{minutes}:00</span></div>

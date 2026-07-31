@@ -1,3 +1,34 @@
+# IELTS Study Desk v1.4.0
+
+## Public desktop release boundary
+
+### Added
+
+- persistent IELTS teacher conversations with local attachments
+- separated internal Teaching Runtime, Model Providers and External Agents
+- ChatGPT login bridge, OpenAI-compatible APIs and local HTTP providers
+- four-skill practice workspaces, content preparation and progress decisions
+- original Windows application icon, native launcher and installer pipeline
+- clean-machine installation and release verification documentation
+
+### Release and privacy changes
+
+- new public installs create an empty question bank
+- project-original test fixtures are excluded from wheels and installers
+- personal databases, Sessions, media, credentials and backups remain outside
+  the repository and installation directory
+- Windows installer includes Python and UI dependencies; normal users do not
+  need Python, Node.js, Git, Docker, WSL or a CLI Agent
+- upgrades and uninstall preserve the user-owned data home
+
+### Known limitations
+
+- learners must import legally obtained content before formal question practice
+- OCR and ChatGPT managed-runtime components are optional and increase disk use
+- AI scores remain evidence-labelled estimates rather than official scores
+
+---
+
 # IELTS AI Coach v0.7.0
 
 ## Local companion UI and Agent boundary

@@ -10,7 +10,16 @@ def resolve_home(explicit: Path | None = None) -> Path:
     value = os.environ.get("IELTS_HOME")
     if value:
         return Path(value).expanduser().resolve()
-    return (Path.home() / ".ielts").resolve()
+    legacy = Path.home() / ".ielts"
+    if legacy.exists():
+        return legacy.resolve()
+    if os.name == "nt" and os.environ.get("LOCALAPPDATA"):
+        return (
+            Path(os.environ["LOCALAPPDATA"])
+            / "IELTS Study Desk"
+            / "data"
+        ).resolve()
+    return (Path.home() / ".local" / "share" / "ielts-study-desk").resolve()
 
 
 def find_project_root(start: Path | None = None) -> Path:

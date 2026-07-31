@@ -1,14 +1,15 @@
 # Data and documentation licensing
 
-## Project-original starter corpus
+## Project-original test fixtures
 
-Files under `starter-corpus/` and their packaged copies are licensed under
-Creative Commons Attribution 4.0 International (CC BY 4.0):
+Project-original corpus fixtures retained for automated tests are licensed
+under Creative Commons Attribution 4.0 International (CC BY 4.0):
 
 https://creativecommons.org/licenses/by/4.0/
 
-These questions are project-original practice materials. They are not official
-IELTS questions and must not be represented as authentic past-paper content.
+They are not official IELTS questions and must not be represented as authentic
+past-paper content. Public wheels and Windows installers exclude these fixtures,
+and a new learner data home starts with an empty question bank.
 
 ## Documentation
 

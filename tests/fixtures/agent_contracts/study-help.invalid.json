@@ -1,0 +1,12 @@
+{
+  "contract_version": 1,
+  "module": "reading",
+  "request_kind": "guided_hint",
+  "evidence_status": "partial",
+  "answer_status": "verified",
+  "summary": "答案已经确认。",
+  "sections": [],
+  "evidence": [],
+  "limitations": [],
+  "next_action": null
+}

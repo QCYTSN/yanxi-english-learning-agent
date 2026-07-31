@@ -4,7 +4,7 @@ System completeness work after V0.7 is tracked authoritatively in
 [SYSTEM_COMPLETENESS_PLAN.md](SYSTEM_COMPLETENESS_PLAN.md). Content inventory
 targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 
-## Delivered through V1.2
+## Delivered through V1.4
 
 - six-Skill architecture
 - independent Reading coach
@@ -85,19 +85,56 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - idempotent Today materialisation with Diagnostic, Practice and Review bindings
 - unified review queue for active errors, due Listening expressions, Writing V2 and Reading wrong answers
 - recoverable page-level rendering boundary and backward-compatible Settings diagnostics
+- schema v17 structured weekly-report persistence and evidence-bounded trend summaries
+- real four-module trend charts with trusted-score and training-observation separation
+- executable Progress next actions backed by idempotent PracticeUnit materialisation
+- weekly evidence summary, error inbox and report archive in the local UI
+- schema v20 Capability Registry, Study Threads and versioned inference provenance
+- first-class Model Providers with one primary and optional ordered fallbacks
+- complete Skill Envelope compilation from `skills-source`
+- encrypted credential storage outside SQLite
+- OpenAI-compatible API and local HTTP model support with domestic presets
+- External Agent isolation: CLI and Manual tools are not teaching providers
+- official Codex app-server JSONL integration with isolated auth, model discovery,
+  structured output, registered media and cancellation
+- user-triggered installation of a pinned official Codex runtime, OpenAI/ChatGPT
+  browser login, device-code fallback and in-product model selection
+- onboarding AI choice and a separate Models settings section
+- learning-only Today launcher with deterministic intent routing
+- explicit local SQLite decision with Docker/WSL reserved for optional workers or CI
+- learner-facing Library separated from the local Content Studio
+- persistent, retryable PDF preparation with protected preview, page-level text
+  summaries, OCR-needed detection and page-role planning
+- real Chromium packaged-app smoke tests with one-time launch-token bootstrap
+- dynamic wheel smoke installation and separated compatibility/full-regression CI
 
-## Post-1.2 increments
+## Next increments
 
 The detailed dependencies, deliverables and acceptance criteria live in the
-system completeness plan. Version-level intent is:
+system completeness plan.
 
-Assisted PDF/audio structuring, richer analytics, optional local speech
-evidence and the final visual system remain scheduled within or after those
-increments as described in the authoritative plan.
+Delivered in the current content-engineering increment:
 
-## Deferred product version
+- isolated, user-installed local OCR with real page processing;
+- page-role conversion into review-only Passage, Question, Answer Key,
+  transcript and task-visual drafts;
+- local audio waveform, Transcript and timestamp review;
+- batch preparation/draft/import actions, confirmed failed-import deletion and
+  a visible 10 GiB inbox quota;
+- an executable 10k Session / 100k Question synthetic benchmark, including a
+  constant-memory random-draw path.
 
-Direct model API backends, authentication, cloud sync, multi-user accounts,
-RAG, fine-tuning and autonomous multi-agent orchestration require a separate
-scope decision. A desktop shell remains optional until the browser workflow has
-enough real-study feedback.
+The remaining sequence is:
+
+1. import and human-review enough user-owned or redistributable four-module
+   material to reach the minimum inventory in `CONTENT_ACQUISITION_PLAN.md`;
+2. run the final visual system, accessibility and complete interaction audit
+   after the content workflows are exercised with real material.
+
+## Deferred product decisions
+
+Cloud sync, multi-user accounts, RAG, fine-tuning, autonomous multi-agent
+orchestration and a service database require separate scope decisions. Codex
+managed-runtime authentication, OpenAI-compatible APIs and local HTTP models
+are implemented. A desktop shell remains optional until the browser workflow
+has enough real-study feedback.

@@ -105,7 +105,7 @@ export function AssessmentRunnerPage() {
 function ContextPanel({ run, sectionKey }: { run: AssessmentRun; sectionKey: string }) {
   if (run.module === 'reading') {
     const passage = run.pack_snapshot.passages?.[sectionKey]
-    return <article className="assessment-context passage-panel"><p className="eyebrow">{sectionKey}</p><h2>{passage?.title ?? 'Reading passage'}</h2><div className="passage-text">{paragraphs(passage?.body ?? '').map((item, index) => <p key={index}><span className="paragraph-label">{String.fromCharCode(65 + index)}</span>{item}</p>)}</div></article>
+    return <article className="assessment-context passage-panel"><p className="eyebrow">{sectionKey}</p><h2>{passage?.title ?? 'Reading passage'}</h2><div className="passage-text">{readingParagraphs(passage?.body ?? '').map((item, index) => <p className={item.label ? 'labelled' : undefined} key={index}>{item.label && <span className="paragraph-label">{item.label}</span>}{item.text}</p>)}</div></article>
   }
   if (run.module === 'listening') {
     const section = run.sections.find((item) => item.section_key === sectionKey)
@@ -151,8 +151,26 @@ function AssessmentQuestion({ run, question, disabled, onSaved }: { run: Assessm
   if (run.module === 'speaking') return <SpeakingHandoffPanel run={run} onCreated={onSaved} />
   const options = normaliseOptions(question)
   const multiple = Number(question.answer_constraints?.answer_count ?? question.selection_count ?? 1) > 1
+  const groupDisplay = String(
+    question.question_group_display_text ?? question.source_group_text ?? '',
+  ).trim()
+  const sourceGroup = run.module === 'reading' && groupDisplay
+    ? <aside className="reading-question-source">
+        <div>
+          <strong>
+            Questions {question.question_group_start ?? question.question_number}
+            {question.question_group_end && question.question_group_end !== question.question_group_start
+              ? `–${question.question_group_end}`
+              : ''}
+          </strong>
+          <span>{String(question.question_type ?? '').replaceAll('_', ' ')}</span>
+        </div>
+        <p>{groupDisplay}</p>
+      </aside>
+    : null
   return <article className="assessment-question-card">
     <div className="question-meta"><span>Question {question.question_number ?? question.question_id}</span><button disabled={disabled || save.isPending} className={flagged ? 'flag-button active' : 'flag-button'} onClick={() => { const next = !flagged; setFlagged(next); save.mutate({ flagged: next }) }}><Bookmark size={16} />{flagged ? '已标记' : '稍后检查'}</button></div>
+    {sourceGroup}
     <h2>{question.content}</h2>
     {run.module === 'writing'
       ? <><textarea className="assessment-editor" value={String(answer)} onChange={(event) => setAnswer(event.target.value)} onBlur={() => save.mutate(undefined)} disabled={disabled} aria-label={`${question.task} 作文`} /><div className="editor-footer"><span>{wordCount(String(answer))} words</span><button className="button secondary" onClick={() => save.mutate(undefined)} disabled={disabled || save.isPending}>保存</button></div></>
@@ -165,7 +183,7 @@ function AssessmentQuestion({ run, question, disabled, onSaved }: { run: Assessm
                 : option.key
               setAnswer(next)
               save.mutate({ answer: next })
-            }} /><span><b>{option.key}</b>{option.text}</span></label>
+            }} /><span><b>{option.key}</b>{option.text !== option.key ? option.text : null}</span></label>
           })}</div>
         : <div className="answer-entry"><input value={String(answer)} onChange={(event) => setAnswer(event.target.value)} onBlur={() => save.mutate(undefined)} disabled={disabled} placeholder={question.answer_constraints?.word_limit ? `不超过 ${question.answer_constraints.word_limit} 个词` : '输入答案'} /><button className="button secondary" onClick={() => save.mutate(undefined)} disabled={disabled || save.isPending}>保存</button></div>}
     {save.isError && <ErrorState error={save.error} />}
@@ -334,6 +352,11 @@ function sectionLabel(module: string, key: string) { return module === 'reading'
 function displayedRemaining(run: AssessmentRun, clock: number) { void clock; if (run.timer.remaining_seconds === null) return null; const sync = new Date(run.timer.authoritative_at).getTime(); return Math.max(0, run.timer.remaining_seconds - (run.timer.running ? Math.floor((Date.now() - sync) / 1000) : 0)) }
 function formatTime(seconds: number) { return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}` }
 function hasAnswer(value?: { answer?: string | string[]; text?: string }) { const item = value?.text ?? value?.answer; return Array.isArray(item) ? item.some(Boolean) : Boolean(String(item ?? '').trim()) }
-function paragraphs(value: string) { return value.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean) }
+function readingParagraphs(value: string): Array<{ label?: string; text: string }> {
+  return value.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean).map((item) => {
+    const labelled = item.match(/^([A-I])\.\s+([\s\S]+)$/)
+    return labelled ? { label: labelled[1], text: labelled[2].trim() } : { text: item }
+  })
+}
 function normaliseOptions(question: Question) { const truth = question.question_type === 'true_false_not_given' ? ['TRUE', 'FALSE', 'NOT GIVEN'] : question.question_type === 'yes_no_not_given' ? ['YES', 'NO', 'NOT GIVEN'] : null; if (truth) return truth.map((key) => ({ key, text: key })); if (Array.isArray(question.options)) return question.options; return Object.entries(question.options ?? {}).map(([key, text]) => ({ key, text: String(text) })) }
 function wordCount(value: string) { return value.trim() ? value.trim().split(/\s+/).length : 0 }

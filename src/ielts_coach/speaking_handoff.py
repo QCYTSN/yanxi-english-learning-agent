@@ -37,8 +37,29 @@ def speaking_questions(
 def _draw_questions(home: Path, mode: str, seed: int | None = None) -> list[dict[str, Any]]:
     rng = random.Random(seed)
     by_part = {part: speaking_questions(home, part=part, limit=500) for part in (1, 2, 3)}
-    if mode == "part2":
+    if mode == "part1":
+        topic_groups: dict[str, list[dict[str, Any]]] = {}
+        for question in by_part[1]:
+            topic_groups.setdefault(str(question.get("topic") or "other"), []).append(question)
+        eligible_topics = [topic for topic, rows in topic_groups.items() if len(rows) >= 3]
+        if not eligible_topics:
+            raise ValueError("A Part 1 practice requires at least three questions in one topic")
+        selected = topic_groups[rng.choice(eligible_topics)]
+        return rng.sample(selected, min(4, len(selected)))
+    elif mode == "part2":
         return [rng.choice(by_part[2])]
+    elif mode == "part3":
+        set_groups: dict[str, list[dict[str, Any]]] = {}
+        for question in by_part[3]:
+            set_groups.setdefault(
+                str(question.get("speaking_set_id") or question.get("topic") or "other"),
+                [],
+            ).append(question)
+        eligible_sets = [key for key, rows in set_groups.items() if len(rows) >= 3]
+        if not eligible_sets:
+            raise ValueError("A Part 3 practice requires at least three linked questions")
+        selected = set_groups[rng.choice(eligible_sets)]
+        return rng.sample(selected, min(4, len(selected)))
     elif mode == "full_mock":
         topic_groups: dict[str, list[dict[str, Any]]] = {}
         for question in by_part[1]:
@@ -56,7 +77,9 @@ def _draw_questions(home: Path, mode: str, seed: int | None = None) -> list[dict
             raise ValueError("A Speaking full flow requires at least three Part 3 questions linked to Part 2")
         return part1 + [part2] + rng.sample(related, min(4, len(related)))
     else:
-        raise ValueError("Speaking handoff mode must be full_mock or part2")
+        raise ValueError(
+            "Speaking handoff mode must be full_mock, part1, part2, or part3"
+        )
 
 
 def _prompt(provider: str, mode: str, questions: list[dict[str, Any]]) -> str:
@@ -166,6 +189,9 @@ def _speaking_contract(mode: str, questions: list[dict[str, Any]]) -> dict[str, 
         item.get("speaking_set_id") == part2.get("speaking_set_id") for item in part3
     )
     requested_full = mode == "full_mock"
+    requested_parts = [1, 2, 3] if requested_full else [
+        int(mode.removeprefix("part"))
+    ]
     pack = {
         "pack_id": "runtime-speaking-handoff",
         "module": "speaking",
@@ -179,7 +205,7 @@ def _speaking_contract(mode: str, questions: list[dict[str, Any]]) -> dict[str, 
         "review_status": "reviewed" if all_verified else "in_review",
         "question_ids": [str(item["question_id"]) for item in questions],
         "structure": {
-            "parts": [{"part": 1}, {"part": 2}, {"part": 3}] if requested_full else [{"part": 2}],
+            "parts": [{"part": part} for part in requested_parts],
             "part1_time_minutes": {"min": 4, "max": 5},
             "part2_time_minutes": {"min": 3, "max": 4},
             "part3_time_minutes": {"min": 4, "max": 5},

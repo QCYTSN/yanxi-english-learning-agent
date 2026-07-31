@@ -1,7 +1,14 @@
-import { useMutation } from '@tanstack/react-query'
-import { Bot, ClipboardCopy, FileInput } from 'lucide-react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Bot, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { api, idempotencyKey, jsonBody, type AgentRun } from '../api/client'
+import { Link } from 'react-router-dom'
+import {
+  api,
+  idempotencyKey,
+  jsonBody,
+  type AgentRun,
+  type ModelProvider,
+} from '../api/client'
 import { ErrorState, StatusBadge } from './Common'
 
 export function AgentPanel({ sessionId, contract, action, onPersisted }: {
@@ -12,25 +19,24 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
 }) {
   const [consent, setConsent] = useState(false)
   const [activeRun, setActiveRun] = useState<AgentRun | null>(null)
-  const [manualResult, setManualResult] = useState('')
-  const [agentProvider, setAgentProvider] = useState('')
-  const [modelName, setModelName] = useState('')
-  const [agentSessionId, setAgentSessionId] = useState('')
   const activeRunId = activeRun?.run_id
   const activeRunStatus = activeRun?.status
+  const providers = useQuery({
+    queryKey: ['model-providers'],
+    queryFn: () => api<ModelProvider[]>('/api/v1/model-providers'),
+  })
+  const primary = providers.data?.find((provider) => provider.role === 'primary' && provider.is_enabled)
   const create = useMutation({
-    mutationFn: (adapterId: 'mock' | 'manual' | 'opencode' | 'claude') => api<AgentRun>('/api/v1/agent-runs', {
+    mutationFn: ({ pipelineTest = false }: { pipelineTest?: boolean }) => api<AgentRun>('/api/v1/agent-runs', {
       method: 'POST',
       headers: { 'Idempotency-Key': idempotencyKey() },
       body: jsonBody({
-        adapter_id: adapterId,
+        adapter_id: pipelineTest ? 'mock' : null,
+        model_provider_id: pipelineTest ? null : primary?.provider_id ?? null,
         study_session_id: sessionId,
         action,
         output_contract: contract,
-        explicit_consent: adapterId !== 'mock' ? consent : false,
-        agent_provider: adapterId === 'manual' ? agentProvider || null : null,
-        model_display_name: adapterId === 'manual' ? modelName || null : null,
-        agent_session_id: adapterId === 'manual' ? agentSessionId || null : null,
+        explicit_consent: pipelineTest ? false : consent,
       }),
     }),
     onSuccess: (run) => {
@@ -38,8 +44,9 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
       if (run.status === 'persisted') onPersisted()
     },
   })
+
   useEffect(() => {
-    if (!activeRunId || !activeRunStatus || ['persisted', 'test_passed', 'failed', 'cancelled', 'invalid_output', 'awaiting_import'].includes(activeRunStatus)) return
+    if (!activeRunId || !activeRunStatus || ['persisted', 'test_passed', 'failed', 'cancelled', 'invalid_output'].includes(activeRunStatus)) return
     const source = new EventSource(`/api/v1/agent-runs/${activeRunId}/events`)
     const refresh = () => void api<AgentRun>(`/api/v1/agent-runs/${activeRunId}`).then((run) => {
       setActiveRun(run)
@@ -51,57 +58,64 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
       }
     })
     source.addEventListener('status', refresh)
+    source.addEventListener('progress', refresh)
     source.addEventListener('completed', refresh)
     source.addEventListener('failed', refresh)
     source.addEventListener('cancelled', refresh)
     source.onerror = refresh
     return () => source.close()
   }, [activeRunId, activeRunStatus, onPersisted])
-  const importResult = useMutation({
-    mutationFn: () => {
-      if (!activeRun) throw new Error('请先生成 Manual 任务包。')
-      let result: unknown
-      try { result = JSON.parse(manualResult) } catch { throw new Error('结构化结果不是有效 JSON。') }
-      return api<AgentRun>(`/api/v1/agent-runs/${activeRun.run_id}/import`, { method: 'POST', body: jsonBody({
-        result,
-        agent_provider: agentProvider || null,
-        model_display_name: modelName || null,
-        agent_session_id: agentSessionId || null,
-      }) })
-    },
-    onSuccess: () => onPersisted(),
-  })
-  const request: Record<string, unknown> | null = activeRun?.result?.request ?? null
+
   return (
     <section className="agent-panel" aria-labelledby="feedback-heading">
-      <div>
-        <p className="eyebrow">Feedback</p>
-        <h2 id="feedback-heading">获取结构化反馈</h2>
-        <p>Claude Code 和 OpenCode 才会调用真实 Agent；Manual 用于当前桌面对话或其他 Agent。</p>
+      <div className="agent-panel-heading">
+        <div>
+          <p className="eyebrow">Evidence feedback</p>
+          <h2 id="feedback-heading">获取结构化反馈</h2>
+          <p>教学 Runtime 会注入对应 Skill、必要证据和输出 Schema；模型无法直接修改学习记录。</p>
+        </div>
+        <ShieldCheck size={21} aria-hidden="true" />
       </div>
       <div className="agent-actions">
-        <div className="mock-test-callout">
-          <strong>工程管线自检</strong>
-          <span>只检查 UI → Runtime → Schema，不连接 Agent、不评分、不写入学习记录。</span>
-          <button className="button ghost" disabled={create.isPending} onClick={() => create.mutate('mock')}><Bot size={18} />运行管线自检</button>
-        </div>
-        <label className="consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />我确认可以将本次个人内容交给所选 Agent，一次有效</label>
-        <button className="button secondary" disabled={!consent || create.isPending} onClick={() => create.mutate('claude')}><Bot size={18} />调用 Claude Code CLI（推荐）</button>
-        <button className="button secondary" disabled={!consent || create.isPending} onClick={() => create.mutate('opencode')}><Bot size={18} />调用 OpenCode CLI（实验性）</button>
-        <div className="manual-identity-fields"><label>Manual Agent / Provider<input value={agentProvider} onChange={(event) => setAgentProvider(event.target.value)} placeholder="例如 Codex Desktop；不确定可留空" /></label><label>Manual 模型<input value={modelName} onChange={(event) => setModelName(event.target.value)} placeholder="以 Agent 实际显示为准；未知可留空" /></label><label>外部会话 ID（可选）<input value={agentSessionId} onChange={(event) => setAgentSessionId(event.target.value)} /></label></div>
-        <button className="button secondary" disabled={!consent || create.isPending} onClick={() => create.mutate('manual')}><FileInput size={18} />生成 Manual 任务包</button>
+        {primary ? (
+          <>
+            <div className="selected-provider-summary">
+              <span>主模型</span>
+              <strong>{primary.display_name}</strong>
+              <small>{primary.model_id ?? '使用服务默认模型'}{providers.data?.some((item) => item.role === 'fallback') ? ' · 已配置备用模型' : ''}</small>
+            </div>
+            <label className="consent">
+              <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+              我确认可以把本次必要内容交给主模型处理；本次有效
+            </label>
+            <button className="button primary" disabled={!consent || create.isPending || !primary.available} onClick={() => create.mutate({})}>
+              <Bot size={18} />获取智能反馈
+            </button>
+          </>
+        ) : (
+          <div className="empty-model-callout">
+            <p>尚未连接主模型。练习和保存不受影响，但智能反馈需要先完成连接。</p>
+            <Link className="button secondary" to="/settings/models">连接模型</Link>
+          </div>
+        )}
+        <details className="pipeline-test-details">
+          <summary>开发者：验证反馈管线</summary>
+          <p>只检查 UI → Runtime → Schema，不连接模型、不评分、不写学习记录。</p>
+          <button className="button ghost" disabled={create.isPending} onClick={() => create.mutate({ pipelineTest: true })}>
+            运行本地管线自检
+          </button>
+        </details>
       </div>
-      {create.isError && <ErrorState error={create.error} />}
+      {(create.error || providers.error) && <ErrorState error={create.error ?? providers.error} />}
       {activeRun && (
         <div className="agent-run-status">
           <StatusBadge tone={activeRun.status === 'failed' || activeRun.status === 'invalid_output' ? 'neutral' : activeRun.status === 'persisted' || activeRun.status === 'test_passed' ? 'success' : 'warning'}>
             {runStatusLabel(activeRun.status)}
           </StatusBadge>
-          <span>Adapter：{activeRun.adapter_id}</span>
-          {activeRun.adapter_id !== 'mock' && <span>模型：{activeRun.model_display_name ?? activeRun.model_id ?? '等待 Agent 回报'}</span>}
+          {activeRun.model_provider_id && <span>模型服务：{activeRun.model_provider_id}</span>}
+          {activeRun.adapter_id !== 'mock' && <span>模型：{activeRun.model_display_name ?? activeRun.model_id ?? '正在确认'}</span>}
           <span>第 {activeRun.attempt_count ?? 1} 次执行</span>
-          {['queued', 'running'].includes(activeRun.status) && <span>最长等待：{activeRun.timeout_seconds} 秒</span>}
-          {activeRun.status === 'test_passed' && <strong>管线正常；未调用任何模型，也没有生成雅思分数。</strong>}
+          {activeRun.status === 'test_passed' && <strong>管线正常；未调用模型，也没有生成分数。</strong>}
           {activeRun.result?.error && <span className="agent-error-detail">{activeRun.result.error.message}</span>}
           {activeRun.recovery_action && <span>恢复建议：{recoveryActionLabel(activeRun.recovery_action)}</span>}
           {['queued', 'running', 'validating', 'persisting'].includes(activeRun.status) && (
@@ -112,18 +126,6 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
           )}
         </div>
       )}
-      {request && (
-        <div className="manual-handoff">
-          <div className="manual-heading"><h3>复制任务包</h3><StatusBadge tone="warning">等待导入</StatusBadge></div>
-          {activeRun?.result?.package_path && <p><strong>本地任务包：</strong>{activeRun.result.package_path}</p>}
-          {activeRun?.result?.attachments?.length ? <p>已安全复制 {activeRun.result.attachments.length} 个媒体附件；请与 request.json 一起交给 Agent。</p> : null}
-          <pre>{JSON.stringify(request, null, 2)}</pre>
-          <button className="button secondary" onClick={() => void navigator.clipboard.writeText(JSON.stringify(request, null, 2))}><ClipboardCopy size={17} />复制</button>
-          <label>粘贴 Agent 返回的结构化 JSON<textarea value={manualResult} onChange={(event) => setManualResult(event.target.value)} rows={10} placeholder="{ ... }" /></label>
-          <button className="button primary" disabled={!manualResult || importResult.isPending} onClick={() => importResult.mutate()}>验证并保存反馈</button>
-          {importResult.isError && <ErrorState error={importResult.error} />}
-        </div>
-      )}
     </section>
   )
 }
@@ -131,13 +133,12 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
 function runStatusLabel(status: string) {
   const labels: Record<string, string> = {
     queued: '已排队',
-    running: '正在调用 Agent',
+    running: '正在生成反馈',
     validating: '正在验证结果',
     persisting: '正在保存正式反馈',
-    persisted: '真实反馈已保存',
+    persisted: '反馈已保存',
     test_passed: '管线自检通过',
-    awaiting_import: '等待 Manual 结果',
-    failed: '调用失败',
+    failed: '模型调用失败',
     cancelled: '已取消',
     invalid_output: '结果格式无效',
   }
@@ -146,13 +147,16 @@ function runStatusLabel(status: string) {
 
 function recoveryActionLabel(action: string) {
   const labels: Record<string, string> = {
-    check_claude_provider_then_retry: '请检查 CCSwitch、中转 API 和系统代理，确认 Claude Code 最小请求能返回后再重试。',
-    reauthenticate_claude_then_retry: '请检查 Claude Code 当前使用的认证方式或中转 Provider，再重试。',
-    check_agent_cli_then_retry: '请先确认所选 Agent CLI 能在终端独立返回，再重试。',
-    retry_with_longer_timeout: '请先检查 Agent CLI 的登录和连接状态，再重试。',
+    configure_primary_model: '请先在设置中选择一个主模型。',
+    configure_model_credential: '请补充模型服务的登录或 API Key。',
+    check_model_credential: '模型服务拒绝了凭据，请重新登录或更新 API Key。',
+    check_model_connection: '无法连接模型服务，请检查 Base URL、网络和本地服务状态。',
+    check_model_route_then_retry: '主模型和备用模型均失败，请检查模型路线后重试。',
+    check_primary_model_then_retry: '请检查主模型连接，再重试。',
     refresh_session_and_retry: '学习记录版本已变化，请刷新页面后重试。',
-    correct_and_import: '请修正结构化结果后重新导入。',
-    retry: '请检查 Agent 状态后重试。',
+    connect_codex_then_retry: '请在设置中完成 ChatGPT 登录。',
+    restart_codex_runtime_then_retry: 'OpenAI 登录组件已停止，请在设置中检查状态。',
+    retry: '请检查模型连接后重试。',
   }
   return labels[action] ?? action
 }

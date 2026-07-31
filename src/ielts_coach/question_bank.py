@@ -7,9 +7,11 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .storage import (
+    count_questions,
     connect,
     get_question,
     get_question_for_grading,
+    initialise_database,
     list_questions,
     question_attempted,
     redact_answer_data,
@@ -69,51 +71,65 @@ def import_question_files(
     counts = {"passages": 0, "questions": 0, "assessment_packs": 0, "duplicates": 0}
     order = {"passages": 0, "questions": 1, "assessment_packs": 2}
     ordered_files = sorted(files, key=lambda item: order.get(str(item.get("kind")), 99))
-    for file_spec in ordered_files:
-        kind = str(file_spec.get("kind", "questions"))
-        relative = file_spec.get("path")
-        if not relative:
-            continue
-        path = (base_path / str(relative)).resolve()
-        if not path.exists():
-            raise FileNotFoundError(f"Corpus data file not found: {path}")
-        if kind == "passages":
-            for passage in _jsonl(path):
-                _bind_provenance(passage, corpus_id, source_type, authenticity)
-                _discard_source_review_claim(passage)
-                upsert_passage(home, passage)
-                if refresh_reviews:
-                    refresh_target_status(home, "passage", str(passage["passage_id"]))
-                counts["passages"] += 1
-        elif kind == "questions":
-            for question in _jsonl(path):
-                _bind_provenance(question, corpus_id, source_type, authenticity)
-                _discard_source_review_claim(question)
-                question = enrich_question_conformance(question, manifest)
-                question["content_hash"] = content_hash(question)
-                question = validate_data(question, "question")
-                inserted = upsert_question(home, question, force=force)
-                if inserted:
+    review_targets: list[tuple[str, str]] = []
+    initialise_database(home)
+    with connect(home) as conn:
+        for file_spec in ordered_files:
+            kind = str(file_spec.get("kind", "questions"))
+            relative = file_spec.get("path")
+            if not relative:
+                continue
+            path = (base_path / str(relative)).resolve()
+            if not path.exists():
+                raise FileNotFoundError(f"Corpus data file not found: {path}")
+            if kind == "passages":
+                for passage in _jsonl(path):
+                    _bind_provenance(passage, corpus_id, source_type, authenticity)
+                    _discard_source_review_claim(passage)
+                    upsert_passage(home, passage, connection=conn)
                     if refresh_reviews:
-                        refresh_target_status(home, "question", str(question["question_id"]))
-                    counts["questions"] += 1
-                else:
-                    counts["duplicates"] += 1
-        elif kind == "assessment_packs":
-            for pack in _jsonl(path):
-                pack = _prepare_assessment_pack(
-                    pack,
-                    corpus_id=corpus_id,
-                    source_type=source_type,
-                    authenticity=authenticity,
-                    manifest=manifest,
-                )
-                upsert_assessment_pack(home, pack)
-                if refresh_reviews:
-                    refresh_target_status(home, "assessment_pack", str(pack["pack_id"]))
-                counts["assessment_packs"] += 1
-        else:
-            raise ValueError(f"Unsupported corpus file kind: {kind}")
+                        review_targets.append(("passage", str(passage["passage_id"])))
+                    counts["passages"] += 1
+            elif kind == "questions":
+                for question in _jsonl(path):
+                    _bind_provenance(question, corpus_id, source_type, authenticity)
+                    _discard_source_review_claim(question)
+                    question = enrich_question_conformance(question, manifest)
+                    question["content_hash"] = content_hash(question)
+                    question = validate_data(question, "question")
+                    inserted = upsert_question(
+                        home,
+                        question,
+                        force=force,
+                        connection=conn,
+                    )
+                    if inserted:
+                        if refresh_reviews:
+                            review_targets.append(
+                                ("question", str(question["question_id"]))
+                            )
+                        counts["questions"] += 1
+                    else:
+                        counts["duplicates"] += 1
+            elif kind == "assessment_packs":
+                for pack in _jsonl(path):
+                    pack = _prepare_assessment_pack(
+                        pack,
+                        corpus_id=corpus_id,
+                        source_type=source_type,
+                        authenticity=authenticity,
+                        manifest=manifest,
+                    )
+                    upsert_assessment_pack(home, pack, connection=conn)
+                    if refresh_reviews:
+                        review_targets.append(
+                            ("assessment_pack", str(pack["pack_id"]))
+                        )
+                    counts["assessment_packs"] += 1
+            else:
+                raise ValueError(f"Unsupported corpus file kind: {kind}")
+    for target_type, target_id in review_targets:
+        refresh_target_status(home, target_type, target_id)
     return counts
 
 
@@ -287,12 +303,14 @@ def search_questions(
     query: str | None = None,
     module: str | None = None,
     task: str | None = None,
+    part: int | str | None = None,
     question_type: str | None = None,
     topic: str | None = None,
     source_type: str | None = None,
     corpus_id: str | None = None,
     passage_id: str | None = None,
     exclude_completed: bool = False,
+    learner_ready: bool = False,
     limit: int = 50,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
@@ -301,12 +319,14 @@ def search_questions(
         query=query,
         module=module,
         task=task,
+        part=part,
         question_type=question_type,
         topic=topic,
         source_type=source_type,
         corpus_id=corpus_id,
         passage_id=passage_id,
         exclude_completed=exclude_completed,
+        learner_ready=learner_ready,
         limit=limit,
         offset=offset,
     )
@@ -314,12 +334,19 @@ def search_questions(
 
 
 def draw_question(home: Path, *, seed: int | None = None, **filters: Any) -> dict[str, Any] | None:
-    limit = int(load_settings(home).get("question_draw_limit", 100000))
-    candidates = search_questions(home, limit=limit, **filters)
-    if not candidates:
+    configured_limit = max(
+        1, int(load_settings(home).get("question_draw_limit", 100000))
+    )
+    candidate_count = min(count_questions(home, **filters), configured_limit)
+    if candidate_count < 1:
         return None
     rng = random.Random(seed)
-    selected = rng.choice(candidates)
+    selected = search_questions(
+        home,
+        limit=1,
+        offset=rng.randrange(candidate_count),
+        **filters,
+    )[0]
     return get_question(home, selected["question_id"], include_answer=False)
 
 
@@ -372,6 +399,10 @@ def show_reading_set(home: Path, passage_id: str, include_answers: bool = False)
             if passage_row
             else None
         )
+        if passage and isinstance(passage.get("body"), list):
+            passage["body"] = "\n\n".join(
+                str(value) for value in passage["body"]
+            )
         return {
             "passage": passage,
             "questions": questions,

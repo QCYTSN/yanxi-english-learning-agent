@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "module",
+    "request_kind",
+    "evidence_status",
+    "answer_status",
+    "summary",
+    "sections",
+    "evidence",
+    "limitations",
+    "next_action"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "module": {"enum": ["reading", "writing", "mixed"]},
+    "request_kind": {
+      "enum": [
+        "question_explanation",
+        "guided_hint",
+        "close_reading",
+        "context_analysis",
+        "writing_feedback",
+        "material_orientation",
+        "teacher_dialogue"
+      ]
+    },
+    "evidence_status": {
+      "enum": ["sufficient", "partial", "insufficient", "not_required"]
+    },
+    "answer_status": {"enum": ["withheld", "unverified", "verified", "not_applicable"]},
+    "summary": {"type": "string", "minLength": 1},
+    "sections": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["title", "content"],
+        "properties": {
+          "title": {"type": "string", "minLength": 1},
+          "content": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["claim", "source"],
+        "properties": {
+          "claim": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "minLength": 1},
+          "quote": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_action": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

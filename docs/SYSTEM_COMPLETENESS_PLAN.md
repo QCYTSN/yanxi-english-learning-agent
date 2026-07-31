@@ -1,6 +1,6 @@
 # IELTS AI Coach 系统完整性优化计划
 
-状态：V0.7 之后的功能建设权威计划  
+状态：V1.4 Architecture V2 已落地，继续作为功能建设权威计划
 范围：系统逻辑、四科闭环、Agent、数据治理、可靠性和发布  
 不包含：题库内容采购与最终视觉风格
 
@@ -24,8 +24,9 @@ V0.7 是可使用的本地优先 IELTS Academic 陪伴式学习系统，已经�
 
 本计划的完成目标是：
 
-> 在不增加模型厂商 API 后端、不改变本地优先原则的前提下，把系统从“可用的陪伴式
-> 练习桌面”推进为“逻辑完整、结果可信、可恢复、可发布的 AI IELTS Academic 系统”。
+> 在不改变本地优先和数据权威原则的前提下，通过 Capability 与 Inference Broker
+> 解耦学习流程和模型连接，把系统推进为“逻辑完整、结果可信、可恢复、可发布的
+> AI IELTS Academic 系统”。
 
 ## 2. 不可破坏的产品原则
 
@@ -309,10 +310,12 @@ Runner 交付物：
 
 ## 7. V1.0：AI 学习闭环与发布
 
-实施状态：已完成 V1.2 本地工程实现并升级到 Schema v16。统一 ScoreResult 准入、
-八类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
+实施状态：已完成 V1.4 本地工程实现并升级到 Schema v20。统一 ScoreResult 准入、
+九类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
 Writing 双任务复评、Task 1 受控图片附件、Listening 播放租约、Speaking 同运行复评、
-Runtime 驱动的 Today、`PracticeUnit / AssessmentRun / ReviewTask`、统一待复习队列与结构化 Progress 已交付。正式题库数量仍由
+Runtime 驱动的 Today、`PracticeUnit / AssessmentRun / ReviewTask`、统一待复习队列、
+真实趋势图、结构化周报、Capability Registry、Execution Profile、Inference Broker
+和隔离的 Codex managed runtime 已交付。正式题库数量仍由
 `CONTENT_ACQUISITION_PLAN.md` 独立管理；最终品牌视觉仍按原计划后置。
 
 ### 7.1 统一 ScoreResult 与评分准入
@@ -427,10 +430,11 @@ Progress 应展示：
 
 ### 7.6 发布质量门
 
-实施状态：已建立自动门禁。CI 覆盖 Windows/Linux 与 Python 3.10–3.12，
-前端 typecheck/lint/Vitest/build/Playwright、全量 Python 测试、CLI doctor、
-Skill 同步和 wheel 安装冒烟；本地故障测试覆盖迁移中断、备份篡改、磁盘写满、
-Agent 超时、服务重启与 revision 冲突。
+实施状态：已建立并收紧自动门禁。CI 覆盖 Windows/Linux 与 Python 3.10–3.12；
+Python 兼容矩阵与单独的全量回归任务分开执行；前端 typecheck/lint/Vitest/build
+和真实 Chromium Playwright 不再允许因缺少启动地址而静默跳过；wheel 版本从构建
+产物动态读取，不再硬编码。CLI doctor、Skill 同步和 wheel 安装冒烟均保留；本地
+故障测试覆盖迁移中断、备份篡改、磁盘写满、Agent 超时、服务重启与 revision 冲突。
 
 V1.0 发布前必须通过：
 
@@ -444,8 +448,8 @@ V1.0 发布前必须通过：
 - wheel 安装、静态文件、Windows 快捷方式和卸载说明；
 - `init`、`sync-skills`、`doctor` 全通过。
 
-完整测试套件还需要建立耗时基线，拆分 unit、integration、UI API 和 E2E，避免单个
-CI 任务无上限增长。
+全量 Python 回归已设置独立超时并输出慢测试排行；下一步根据 CI 数据继续拆分
+unit、integration 和 UI API，不再让兼容矩阵重复承担完整回归成本。
 
 ## 8. P1/P2 持续优化清单
 
@@ -453,7 +457,9 @@ CI 任务无上限增长。
 
 ### P1：功能完整性
 
-- PDF 页面预览、结构化整理和页码级证据；
+- PDF 准备基础已交付：持久化排队/解析状态、受保护的原文件预览、逐页文本摘要、
+  OCR 待办标记、页角色规划、失败重试与重启恢复；从页角色生成正式题目、OCR 执行
+  和页码级证据锚点仍待完成；
 - 音频波形、Transcript 和时间戳审核；
 - 阅读逐题耗时、文章级耗时和改答记录；
 - stale revision 的“载入新版/比较差异”恢复界面；
@@ -474,7 +480,6 @@ CI 任务无上限增长。
 
 以下内容继续保持 deferred，除非另行进行产品决策：
 
-- 直接模型厂商 API 后端；
 - 账号、登录、支付、云同步和多用户；
 - RAG、向量数据库、微调；
 - 自主多 Agent 编排；
@@ -495,17 +500,19 @@ CI 任务无上限增长。
 
 ## 11. 推荐执行顺序
 
-下一批任务按以下顺序推进：
+当前已完成：
 
-1. 备份/恢复与迁移保护；
-2. 内容审核记录和逐题审核工作台；
-3. Agent/模型执行来源和运行身份卡；
-4. Onboarding、Settings、Diagnostic 补齐；
-5. 统一 AssessmentRun 数据模型；
-6. Reading Runner；
-7. Writing Runner；
-8. Audio Media Registry 和 Listening Runner；
-9. Speaking AssessmentRun 统一；
-10. ScoreResult、校准准入、Today 和 Progress；
-11. OpenCode/Claude Adapter；
-12. 发布验收与最终视觉设计。
+1. 依据 Architecture V2 重构稳定 Workspace Shell 和 feature modules；
+2. Learner Library 与 Content Studio 分离，学习主导航不暴露内容工程控件；
+3. AI 与内容导入采用持久化后台任务状态，备份保持独立可恢复流程；
+4. 主要路由懒加载、长列表分页与前端资源预算基础；
+5. PDF 页级预览、解析、OCR 待办和页角色审核基础。
+
+下一批按以下顺序推进：
+
+1. PDF OCR、页码级证据锚点与“页角色 → Passage/Question 草稿”转换；
+2. 音频波形、Transcript 和时间戳审核；
+3. 内容导入失败删除、磁盘配额与批量处理；
+4. 10k Session / 100k Question 性能基准；
+5. 正式题库内容按 `CONTENT_ACQUISITION_PLAN.md` 独立补充；
+6. 最终视觉设计系统与完整交互走查。

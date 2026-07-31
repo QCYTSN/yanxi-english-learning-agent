@@ -6,8 +6,8 @@ approved and must not be inferred from the current engineering shell.
 ## Project
 
 ```text
-Repository:   D:\Github_Ku\ielts-ai-coach
-Private data: D:\IELTS_AI\data
+Repository:   <path-to-ielts-ai-coach>
+Private data: <path-to-ielts-home>
 Core version: v0.9.0
 UI form:      packaged local browser application
 ```
@@ -32,7 +32,7 @@ Useful options:
 ```powershell
 ielts-coach ui open --port 8765
 ielts-coach ui open --no-open
-ielts-coach ui open --home D:\IELTS_AI\data
+ielts-coach ui open --home <path-to-ielts-home>
 ielts-coach ui status
 ielts-coach ui stop
 ielts-coach ui shortcut-install

@@ -1,22 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { api, type Bootstrap } from './api/client'
 import { ErrorState, LoadingState } from './components/Common'
 import { RouteErrorBoundary } from './components/PageErrorBoundary'
 import { Shell } from './components/Shell'
-import { FeedbackPage } from './pages/FeedbackPage'
-import { AssessmentRunnerPage } from './pages/AssessmentRunnerPage'
-import { DiagnosticPage } from './pages/DiagnosticPage'
-import { HistoryPage } from './pages/HistoryPage'
-import { LibraryPage } from './pages/LibraryPage'
-import { ListeningWorkspace } from './pages/ListeningWorkspace'
 import { OnboardingPage } from './pages/OnboardingPage'
-import { PracticePage } from './pages/PracticePage'
-import { ReadingWorkspace } from './pages/ReadingWorkspace'
-import { SettingsPage } from './pages/SettingsPage'
-import { SpeakingWorkspace } from './pages/SpeakingWorkspace'
-import { TodayPage } from './pages/TodayPage'
-import { WritingWorkspace } from './pages/WritingWorkspace'
+
+const AssessmentRunnerPage = lazy(() => import('./pages/AssessmentRunnerPage').then((module) => ({ default: module.AssessmentRunnerPage })))
+const DiagnosticPage = lazy(() => import('./pages/DiagnosticPage').then((module) => ({ default: module.DiagnosticPage })))
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then((module) => ({ default: module.FeedbackPage })))
+const HistoryPage = lazy(() => import('./pages/HistoryPage').then((module) => ({ default: module.HistoryPage })))
+const LibraryPage = lazy(() => import('./pages/LibraryPage').then((module) => ({ default: module.LibraryPage })))
+const ContentStudioPage = lazy(() => import('./pages/LibraryPage').then((module) => ({ default: module.ContentStudioPage })))
+const ConversationsPage = lazy(() => import('./pages/ConversationsPage').then((module) => ({ default: module.ConversationsPage })))
+const ListeningWorkspace = lazy(() => import('./pages/ListeningWorkspace').then((module) => ({ default: module.ListeningWorkspace })))
+const PracticePage = lazy(() => import('./pages/PracticePage').then((module) => ({ default: module.PracticePage })))
+const ReadingWorkspace = lazy(() => import('./pages/ReadingWorkspace').then((module) => ({ default: module.ReadingWorkspace })))
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
+const SpeakingWorkspace = lazy(() => import('./pages/SpeakingWorkspace').then((module) => ({ default: module.SpeakingWorkspace })))
+const StudyThreadPage = lazy(() => import('./pages/StudyThreadPage').then((module) => ({ default: module.StudyThreadPage })))
+const TodayPage = lazy(() => import('./pages/TodayPage').then((module) => ({ default: module.TodayPage })))
+const WritingWorkspace = lazy(() => import('./pages/WritingWorkspace').then((module) => ({ default: module.WritingWorkspace })))
 
 export function App({ startupError = null }: { startupError?: Error | null }) {
   const bootstrap = useQuery({
@@ -45,24 +50,30 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
   }
 
   return (
-    <Shell>
+    <Shell bootstrap={bootstrap.data}>
       <RouteErrorBoundary>
-        <Routes>
-          <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
-          <Route path="/practice" element={<PracticePage />} />
-          <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
-          <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
-          <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
-          <Route path="/practice/listening" element={<ListeningWorkspace />} />
-          <Route path="/practice/listening/:sessionId" element={<ListeningWorkspace />} />
-          <Route path="/practice/speaking" element={<SpeakingWorkspace />} />
-          <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
-          <Route path="/diagnostic" element={<DiagnosticPage />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
-          <Route path="*" element={<Navigate to="/today" replace />} />
-        </Routes>
+        <Suspense fallback={<div className="route-loading"><LoadingState label="正在打开学习工作区" /></div>}>
+          <Routes>
+            <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
+            <Route path="/practice" element={<PracticePage />} />
+            <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
+            <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
+            <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
+            <Route path="/practice/listening" element={<ListeningWorkspace />} />
+            <Route path="/practice/listening/:sessionId" element={<ListeningWorkspace />} />
+            <Route path="/practice/speaking" element={<SpeakingWorkspace />} />
+            <Route path="/study/:threadId" element={<StudyThreadPage />} />
+            <Route path="/conversations" element={<ConversationsPage />} />
+            <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
+            <Route path="/diagnostic" element={<DiagnosticPage />} />
+            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/content-studio" element={<ContentStudioPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
+            <Route path="/settings/:section" element={<SettingsPage bootstrap={bootstrap.data} />} />
+            <Route path="*" element={<Navigate to="/today" replace />} />
+          </Routes>
+        </Suspense>
       </RouteErrorBoundary>
     </Shell>
   )

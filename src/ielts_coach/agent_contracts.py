@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from .capabilities import CAPABILITIES_BY_CONTRACT
 from .storage import save_coaching_artifact
 from .study_runtime import (
     apply_reading_review,
@@ -14,28 +15,17 @@ from .assessment_runtime import (
     persist_writing_mock_review,
 )
 from .validation import validate_data
+from .study_threads import add_assistant_message
 
 
 CONTRACT_SCHEMAS = {
-    "writing-review@1": "writing-review",
-    "writing-mock-review@1": "writing-mock-review",
-    "reading-review@1": "reading-review",
-    "listening-review@1": "listening-review",
-    "speaking-evaluation@1": "speaking-evaluation",
-    "study-plan@1": "study-plan",
-    "diagnostic-summary@1": "diagnostic-summary",
-    "weekly-coaching@1": "weekly-coaching",
+    contract: contract.partition("@")[0]
+    for contract in CAPABILITIES_BY_CONTRACT
 }
 
 CONTRACT_SKILLS = {
-    "writing-review@1": "ielts-writing",
-    "writing-mock-review@1": "ielts-writing",
-    "reading-review@1": "ielts-reading",
-    "listening-review@1": "ielts-progress",
-    "speaking-evaluation@1": "ielts-speaking",
-    "study-plan@1": "ielts",
-    "diagnostic-summary@1": "ielts",
-    "weekly-coaching@1": "ielts-progress",
+    contract: capability.skill
+    for contract, capability in CAPABILITIES_BY_CONTRACT.items()
 }
 
 
@@ -113,6 +103,31 @@ def persist_agent_contract(
                 "assessment_status": completed["status"],
             }
         return canonical
+    if contract == "study-help@1":
+        request = run.get("request") or {}
+        thread_id = str(request.get("study_thread_id") or "")
+        if not thread_id:
+            raise ValueError("Study help result is missing its learning thread")
+        artifact = save_coaching_artifact(
+            home,
+            artifact_id=f"artifact:{run['run_id']}",
+            artifact_type="study-help",
+            contract_version=1,
+            payload=result,
+            study_session_id=None,
+            agent_run_id=run["run_id"],
+        )
+        message = add_assistant_message(
+            home,
+            thread_id=thread_id,
+            result=result,
+            agent_run_id=str(run["run_id"]),
+        )
+        return {
+            "artifact_id": artifact["artifact_id"],
+            "message_id": message["message_id"],
+            "revision": None,
+        }
 
     artifact = save_coaching_artifact(
         home,

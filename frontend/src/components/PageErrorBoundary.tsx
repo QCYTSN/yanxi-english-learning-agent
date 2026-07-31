@@ -5,7 +5,7 @@ type BoundaryState = { error: Error | null }
 
 export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   const location = useLocation()
-  return <PageErrorBoundary key={location.pathname}>{children}</PageErrorBoundary>
+  return <PageErrorBoundary key={`${location.pathname}${location.search}`}>{children}</PageErrorBoundary>
 }
 
 export class PageErrorBoundary extends Component<{ children: ReactNode }, BoundaryState> {
@@ -21,6 +21,7 @@ export class PageErrorBoundary extends Component<{ children: ReactNode }, Bounda
 
   render() {
     if (!this.state.error) return this.props.children
+    const inSettings = window.location.pathname.startsWith('/settings')
     return (
       <div className="page page-narrow">
         <section className="error-state" role="alert">
@@ -32,7 +33,8 @@ export class PageErrorBoundary extends Component<{ children: ReactNode }, Bounda
             <code>{this.state.error.message}</code>
           </details>
           <div className="row-actions">
-            <Link className="button primary" to="/today">返回首页</Link>
+            {inSettings && <Link className="button primary" to="/settings">返回设置</Link>}
+            <Link className={inSettings ? 'button secondary' : 'button primary'} to="/today">返回首页</Link>
             <button className="button secondary" onClick={() => window.location.reload()}>重新加载</button>
           </div>
         </section>

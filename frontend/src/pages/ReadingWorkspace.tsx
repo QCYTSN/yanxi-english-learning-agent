@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Lightbulb, Send, TimerReset } from 'lucide-react'
+import { Highlighter, Lightbulb, Send, TimerReset, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { api, idempotencyKey, jsonBody, type Draft, type Question, type SessionSummary } from '../api/client'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { api, idempotencyKey, jsonBody, type Draft, type ModelProvider, type Question, type SessionSummary } from '../api/client'
 import { AgentPanel } from '../components/AgentPanel'
 import { ConformanceBadge, ErrorState, LoadingState, PageHeader, PhaseRail, SaveState } from '../components/Common'
+import { createStudyThreadWithMessage, requestRemoteProcessingConsent } from '../studyThreads'
 
 type Conformance = { status?: string; errors?: string[]; warnings?: string[]; metrics?: Record<string, unknown> }
 type ReadingSet = {
@@ -22,6 +23,7 @@ type ReadingHint = {
 
 export function ReadingWorkspace() {
   const { sessionId = '' } = useParams()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const session = useQuery({ queryKey: ['session', sessionId], queryFn: () => api<SessionSummary>(`/api/v1/sessions/${sessionId}`) })
   const readingSet = useQuery({
@@ -34,6 +36,7 @@ export function ReadingWorkspace() {
   const [hintQuestionId, setHintQuestionId] = useState('')
   const [draftRevision, setDraftRevision] = useState(0)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [selection, setSelection] = useState<{ quote: string } | null>(null)
   const initialized = useRef(false)
   const lastSaved = useRef('')
 
@@ -94,6 +97,38 @@ export function ReadingWorkspace() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['session', sessionId] }),
   })
+  const providers = useQuery({
+    queryKey: ['model-providers'],
+    queryFn: () => api<ModelProvider[]>('/api/v1/model-providers'),
+  })
+  const primary = providers.data?.find((item) => item.role === 'primary' && item.is_enabled)
+  const explainSelection = useMutation({
+    mutationFn: async (prompt: string) => {
+      if (!selection || !session.data?.passage_id || !primary) {
+        throw new Error('请先连接模型并选择原文内容')
+      }
+      const explicitConsent = requestRemoteProcessingConsent(primary)
+      if (explicitConsent === null) {
+        throw new Error('已取消发送；所选原文仍保留在本地。')
+      }
+      return createStudyThreadWithMessage({
+        content: prompt,
+        files: [],
+        modelProviderId: primary.provider_id,
+        explicitConsent,
+        module: 'reading',
+        context: {
+          passage_id: session.data.passage_id,
+          quote: selection.quote,
+          source_session_id: sessionId,
+        },
+      })
+    },
+    onSuccess: async ({ thread, run }) => {
+      await queryClient.invalidateQueries({ queryKey: ['study-threads'] })
+      navigate(`/study/${thread.thread_id}?run=${run.run_id}`)
+    },
+  })
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['session', sessionId] })
   if (session.isPending || draft.isPending || readingSet.isPending) return <LoadingState />
   if (session.isError) return <ErrorState error={session.error} />
@@ -122,21 +157,82 @@ export function ReadingWorkspace() {
         <article className="passage-panel">
           <p className="eyebrow">{readingSet.data?.passage.passage_id}</p>
           <h2>{readingSet.data?.passage.title ?? 'Reading passage'}</h2>
-          <div className="passage-text">{paragraphs(readingSet.data?.passage.body ?? '').map((paragraph, index) => <p key={index}><span className="paragraph-label">{String.fromCharCode(65 + index)}</span>{paragraph}</p>)}</div>
+          <div
+            className="passage-text selectable-passage"
+            onMouseUp={(event) => {
+              const selected = window.getSelection()
+              if (!selected || selected.isCollapsed || !selected.rangeCount) return
+              const range = selected.getRangeAt(0)
+              const node = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+                ? range.commonAncestorContainer.parentNode
+                : range.commonAncestorContainer
+              if (!node || !event.currentTarget.contains(node)) return
+              const quote = selected.toString().trim()
+              if (quote.length >= 2 && quote.length <= 800) setSelection({ quote })
+            }}
+          >
+            {readingParagraphs(readingSet.data?.passage.body ?? '').map((paragraph, index) => <p className={paragraph.label ? 'labelled' : undefined} key={index}>{paragraph.label && <span className="paragraph-label">{paragraph.label}</span>}{paragraph.text}</p>)}
+          </div>
+          {selection && (
+            <aside className="close-reading-prompt">
+              <div className="close-reading-quote">
+                <Highlighter size={17} />
+                <q>{selection.quote}</q>
+                <button type="button" aria-label="关闭精读菜单" onClick={() => setSelection(null)}><X size={14} /></button>
+              </div>
+              <div className="close-reading-actions">
+                <button type="button" disabled={!primary || explainSelection.isPending} onClick={() => explainSelection.mutate('请解释我选中内容在这篇文章上下文中的准确含义，并补充它的常见本义。')}>上下文含义</button>
+                <button type="button" disabled={!primary || explainSelection.isPending} onClick={() => explainSelection.mutate('请拆解我选中句子的语法、指代和逻辑关系，但不要脱离原文。')}>句法拆解</button>
+                <button type="button" disabled={!primary || explainSelection.isPending} onClick={() => explainSelection.mutate('请对我选中的内容做精讲：语境、句法、关键信息和它在段落中的作用。')}>精讲这段</button>
+                {!primary && <Link to="/settings/models">先连接模型</Link>}
+              </div>
+              {explainSelection.isError && <ErrorState error={explainSelection.error} />}
+            </aside>
+          )}
         </article>
         <section className="questions-panel" aria-label="阅读题目">
           <div className="questions-toolbar"><span>{answered}/{questions.length} 已作答</span><span><TimerReset size={16} />{timed ? '20 分钟目标' : '自主练习'}</span></div>
-          {questions.map((question, index) => (
-            <ReadingQuestion
-              key={question.question_id}
-              question={question}
-              index={index}
-              value={answers[question.question_id] ?? ''}
-              disabled={locked}
-              onFocus={() => setHintQuestionId(question.question_id)}
-              onChange={(value) => setAnswers((current) => ({ ...current, [question.question_id]: value }))}
-            />
-          ))}
+          {questions.map((question, index) => {
+            const previous = questions[index - 1]
+            const groupDisplay = String(
+              question.question_group_display_text
+              ?? question.source_group_text
+              ?? '',
+            ).trim()
+            const beginsGroup = Boolean(
+              groupDisplay
+              && (
+                !question.question_group_id
+                || question.question_group_id !== previous?.question_group_id
+              ),
+            )
+            return (
+              <div className="reading-question-unit" key={question.question_id}>
+                {beginsGroup && (
+                  <aside className="reading-question-source">
+                    <div>
+                      <strong>
+                        Questions {question.question_group_start ?? question.question_number}
+                        {question.question_group_end && question.question_group_end !== question.question_group_start
+                          ? `–${question.question_group_end}`
+                          : ''}
+                      </strong>
+                      <span>{String(question.question_type ?? '').replaceAll('_', ' ')}</span>
+                    </div>
+                    <p>{groupDisplay}</p>
+                  </aside>
+                )}
+                <ReadingQuestion
+                  question={question}
+                  index={index}
+                  value={answers[question.question_id] ?? ''}
+                  disabled={locked}
+                  onFocus={() => setHintQuestionId(question.question_id)}
+                  onChange={(value) => setAnswers((current) => ({ ...current, [question.question_id]: value }))}
+                />
+              </div>
+            )
+          })}
           {latestHint && <aside className="reading-hint" aria-live="polite">
             <div><Lightbulb size={18} /><strong>第 {latestHint.level} 级提示{latestHint.question_id ? ` · ${latestHint.question_id}` : ''}</strong></div>
             <p>{latestHint.message}</p>
@@ -189,4 +285,9 @@ function normaliseOptions(options: Question['options']): Array<{ key: string; te
   return Object.entries(options ?? {}).map(([key, text]) => ({ key, text: String(text) }))
 }
 
-function paragraphs(value: string) { return value.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean) }
+function readingParagraphs(value: string): Array<{ label?: string; text: string }> {
+  return value.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean).map((item) => {
+    const labelled = item.match(/^([A-I])\.\s+([\s\S]+)$/)
+    return labelled ? { label: labelled[1], text: labelled[2].trim() } : { text: item }
+  })
+}

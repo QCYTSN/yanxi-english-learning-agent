@@ -1,242 +1,152 @@
-# IELTS AI Coach
+# IELTS Study Desk
 
-面向 **IELTS Academic** 的本地优先、Agent 原生开源学习系统。
+Local-first, agent-native IELTS Academic learning software.
 
-Claude Code、Codex 或 OpenCode 负责模型推理；本项目提供六个 Agent
-Skills、结构化学习流程、本地 SQLite、题库索引、错误与能力画像、动态
-70/30 计划和版权安全的 BYOC（Bring Your Own Corpus）机制。
+IELTS Study Desk combines a browser learning workspace, a local Python Teaching
+Runtime, structured IELTS Skills and a user-selected model provider. Models can
+explain and evaluate work, but they cannot directly write authoritative
+learning records. Results pass Schema and semantic validation before the local
+Runtime stores them.
 
-它不是剑桥雅思盗版资源包，也不会启动后再额外调用一个模型 API。
+> This independent project is not endorsed by IELTS, Cambridge University
+> Press & Assessment, the British Council or IDP Education.
 
-## V1.2.0 已实现
+## What ships
 
-### 六个 Skill
+- Today, Practice, Library, Progress and Settings workspaces;
+- persistent teacher conversations with image, PDF, Word and text attachments;
+- Reading, Writing, Speaking and Listening learning workflows;
+- local SQLite learning records, Sessions, Corpus and Media Registry;
+- ChatGPT login bridge, OpenAI-compatible API and local HTTP model providers;
+- optional external CLI Agents for advanced material workflows;
+- Windows desktop installer and Python package for technical users.
 
-- `ielts`：统一入口、摸底、每日任务和路由
-- `ielts-writing`：审题、证据估分、主动修改、V1/V2、结构化分项记录
-- `ielts-speaking`：个人故事库、模考、Voice 交接、报告导入和复盘
-- `ielts-reading`：引导做题、错题精讲、题型专项、精读和语境解析
-- `ielts-progress`：四科记录、听力复盘、错误/能力/行为画像和动态分配
-- `ielts-corpus`：语料登记、题目索引、检索、抽题、去重和来源管理
+## What does not ship
 
-### 本地系统
+The public application starts with an **empty question bank**. It does not
+bundle Cambridge IELTS books, past papers, commercial course questions, audio,
+answer keys, user essays, credentials or private learning records. Users import
+materials they are legally entitled to use.
 
-- 意图优先的轻量工作流：明确的专项请求直接进入对应 Skill
-- `ielts-coach study-context` 单次返回紧凑规划上下文，避免重复预检
-- 按阶段加载参考规则，不在讲题前读取无关评分、画像或诊断资料
+Project tests may use small project-original fixtures. Release verification
+ensures those fixtures do not enter the wheel or Windows installer.
 
-- `IELTS_HOME` 初始化与 SQLite 数据库
-- Claude Code、Codex、OpenCode 三端 Skill 同步
-- 题目、文章、选项、答题尝试与题目级 Provenance
-- Writing V1/V2/Final 与 TA/TR、CC、LR、GRA 结构化存储
-- Reading 逐题答案、定位、耗时和错误标签
-- Speaking Voice/Live 观察、来源模型临时估分、本地 IELTS 标准复评三层分离
-- Session 自动创建、状态迁移、完成、查看和列表
-- 首次使用 onboarding 状态与目标/最低要求/基线配置
-- 分数来源、证据类型、置信度与官方 Rubric 记录
-- 错误 `active / monitoring / resolved` 状态
-- 错误、能力、行为三层学习画像
-- 分数、分项和阅读题型趋势报告
-- 受控 70/30 动态分配及历史记录
-- 评分校准结果登记与 MAE/±0.5 通过率报告
-- 原创 Starter Corpus：Writing、Speaking、4 篇原创阅读文章和 16 道阅读题，以及 10 类 50 条高频 Listening 表达
+## Architecture
 
-### 本地学习 UI
+```text
+Browser learning UI
+        ↓
+IELTS Teaching Runtime
+        ↓
+Capability policy + complete Skill Envelope
+        ↓
+Primary Model Provider + optional fallback
+        ↓
+Schema and semantic validation
+        ↓
+SQLite / Session / Corpus / Media
+```
 
-- `ielts-coach ui open` 在后台启动或复用仅监听 `127.0.0.1` 的单实例学习服务
-- Today、Writing、Reading、Speaking、Listening、Feedback、Library、History/Progress、Settings
-- React + TypeScript 前端作为 Python wheel 静态资源打包
-- Writing 自动保存、V1/V2、证据定位和 Task 1 注册图片
-- Reading 严格计时/逐级提示、答案锁和结构化复盘
-- Speaking 生成 Voice/Live 任务包，导回转写/结构化报告，并维护 Story Bank
-- Listening 用浏览器系统语音训练原创高频场景表达，记录错因和间隔复习状态
-- Mock、Manual、Claude Code CLI 与 OpenCode CLI Adapter；不解析任何 Agent 的终端展示文本
-- Schema v16 的幂等、revision 冲突、可多 Session 绑定的 Media Registry、Assessment Pack、AssessmentRun、可审计内容审核、内容导入队列、Listening 语料和可恢复 Agent job 状态
-- 完整 Writing Mock 的双任务 `writing-mock-review@1` 契约；Task 1/Task 2 分别留证，Runtime 按 1:2 汇总
-- OpenCode 与 Manual Adapter 的受控 Task 1 图片附件；不支持图片的 Adapter 明确降级为证据不足
-- Listening 单次播放租约：支持浏览器 Range 请求、短时续租和断点续播，令牌不可跨运行复用
-- Speaking 外部 Voice/Live 来源报告与本地 Agent 复评分离，并在同一 AssessmentRun 内闭环
-- 四科共用的完整模考运行器：冻结已审核套题、服务端权威计时、逐题恢复、导航、标记、提交和正式 Session 落盘
-- Academic Reading 三篇/40题/60分钟严格运行，提交前答案锁与提交后逐题证据复盘
-- Academic Writing 同一60分钟运行中的 Task 1/Task 2 独立保存，以及由 Runtime 执行的 1:2 汇总
-- Academic Listening 四部分/40题、注册音频、服务端一次播放状态和提交后复盘
-- Speaking Part 1–3、Voice/Live 任务包与导回结果绑定到同一 AssessmentRun/Session
-- 可校验的本地备份、跨目录恢复、迁移前安全快照和恢复后跨存储健康检查
-- Agent/模型执行来源、能力快照、运行时间、用量和校准状态记录
-- 浏览器内 Academic onboarding、Profile 设置、quick/full Diagnostic、Rubric、Telemetry 和 Doctor 状态
-- 统一 ScoreResult 与唯一进步准入规则：未校准或低置信度 AI 估分只显示为训练观察
-- Writing、Reading、Listening、Speaking、学习计划、摸底总结和周教练七类版本化 Agent 输出契约
-- Agent 后台队列、真实状态事件、超时、取消、重试、重启中断识别和 SSE 游标恢复
-- Today 直接消费 Runtime 的 70/30 推荐、目标差距、内容可用性与无 verified Pack 降级任务
-- Progress 展示四科可信趋势/训练观察、写口分项、阅读题型与耗时、听力场景/错因和错误状态
-- `PracticeUnit / AssessmentRun / ReviewTask` 三类一等领域对象，今日推荐不再只是跳转链接
-- Today 会幂等创建并绑定 Diagnostic、Practice 或 Review；Session 和完整模考可回写所属学习单元
-- 统一待复习队列自动汇总 Writing V2、Reading 错题、到期 Listening 语料和活动错误
-- Settings 兼容旧进程的部分诊断响应，所有页面都有可恢复错误边界，不再直接白屏
+Model providers and external Agents are separate concepts:
 
-## 明确不包含
+- **Model Provider** supplies inference for core teaching workflows;
+- **External Agent** is an optional advanced tool for local material and
+  developer workflows;
+- **Teaching Runtime** owns IELTS rules, privacy, validation and persistence.
 
-- Cambridge IELTS 原题、音频或机构付费题库
-- 盗版资料下载入口
-- 独立模型 API 后端
-- 登录、云同步或多用户系统
-- Codex 桌面当前会话的反向控制；只有发现稳定、可验证的本地调用协议后才会增加原生 Adapter
-- 自动语音识别和真实声学发音评分
-- RAG、向量数据库、微调或自主多 Agent 编排
-- 未经校准便冒充官方考官的分数
+See [Architecture V2](docs/ARCHITECTURE_V2.md).
 
-## 安装
+## Install on Windows
+
+Download the Windows x64 Setup executable from the GitHub Releases page and
+double-click it. The installer includes its own Python runtime. A normal user
+does not need to install Python, Node.js, Git, Docker, WSL or a CLI Agent.
+
+On first launch the application creates its private data home under:
+
+```text
+%LOCALAPPDATA%\IELTS Study Desk\data
+```
+
+Existing `IELTS_HOME` settings and legacy `~/.ielts` homes are preserved.
+
+Full instructions: [Installation](docs/INSTALLATION.md).
+
+## Install from source
+
+Python 3.10–3.12 is required. Node.js is needed only to rebuild the frontend.
 
 ```powershell
-cd D:\Github_Ku\ielts-ai-coach
-conda create -n ielts-coach python=3.12 -y
-conda activate ielts-coach
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"
-
-[Environment]::SetEnvironmentVariable("IELTS_HOME", "D:\IELTS_AI\data", "User")
-```
-
-重新打开 PowerShell：
-
-```powershell
-cd D:\Github_Ku\ielts-ai-coach
-conda activate ielts-coach
 ielts-coach init
-ielts-coach sync-skills
-ielts-coach doctor
-```
-
-贡献者如需运行测试，请安装开发依赖：
-
-```powershell
-python -m pip install -e ".[dev]"
-$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
-python -m pytest -q
-```
-
-## 启动学习
-
-Claude Code：
-
-```text
-/ielts
-```
-
-Codex：
-
-```text
-$ielts 读取我的目标和最近记录，开始今天的训练。
-```
-
-OpenCode：从项目根目录启动后，让 Agent 加载 `ielts` skill。
-
-启动或重新打开本地学习 UI（不要求 Agent 已经运行）：
-
-```powershell
 ielts-coach ui open
+```
 
-# 可选：安装 Windows 桌面快捷方式
+Optional local OCR dependencies:
+
+```powershell
+python -m pip install -e ".[ui,ocr]"
+```
+
+Install a developer desktop shortcut:
+
+```powershell
 ielts-coach ui shortcut-install
 ```
 
-`ielts-coach ui start` 仍可用于前台调试；`ui status` 查看后台服务，
-`ui stop` 停止它。桌面快捷方式只启动/复用本地服务并打开 UI，不会静默
-启动 Claude Code、OpenCode 或 Codex。
+The shortcut starts or reuses the local service and opens the browser UI. It
+does not require Claude Code, OpenCode or Codex to already be running.
 
-“Agent 能启动 UI”和“UI 能反向控制当前 Agent 对话”是两种能力。V0.7
-提供 MockAdapter 和 ManualAdapter；真实进程 Adapter 需要单独完成安全与能力验收。
+## Model connections
 
-## 常用命令
+Core deterministic functions do not require a model. For teacher dialogue,
+Writing feedback and evidence-based explanations, configure one of:
+
+1. ChatGPT login through the isolated managed runtime;
+2. an OpenAI-compatible API;
+3. a local OpenAI-compatible HTTP model.
+
+Claude Code, OpenCode and Codex CLI remain optional advanced integrations and
+are not required for the main learning experience.
+
+## Development
 
 ```powershell
-# 题库
-ielts-coach corpus list
-ielts-coach corpus stats
-ielts-coach question search "technology" --module reading
-ielts-coach question draw --module writing --task task2 --exclude-completed
-ielts-coach question show START-R-003
+python -m pip install -e ".[ui,dev]"
+$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
+python -m pytest -q
 
-# Session
-ielts-coach session start reading --question-id START-R-003
-ielts-coach session resume --module reading
-ielts-coach session submit-reading R-YYYYMMDD-001 answers.yaml
-ielts-coach session apply-reading-review R-YYYYMMDD-001 review.yaml
-ielts-coach session submit-writing W-YYYYMMDD-001 essay.txt --label v1
-ielts-coach session apply-writing-review W-YYYYMMDD-001 review.yaml
-ielts-coach session transition D:\IELTS_AI\data\sessions\reading\R-YYYYMMDD-001.md learner_working
-ielts-coach session finish D:\IELTS_AI\data\sessions\reading\R-YYYYMMDD-001.md
-ielts-coach session list
-
-# Rubric, privacy and local metadata telemetry
-ielts-coach rubric list
-ielts-coach privacy check --remote --question-id <id>
-ielts-coach telemetry summary
-
-# 首次设置
-ielts-coach onboarding status
-ielts-coach onboarding complete --setup-file onboarding.yaml
-
-# 本地备份与恢复
-ielts-coach backup create
-ielts-coach backup list
-ielts-coach backup verify <backup-id>
-# 恢复前先停止 Study Desk；系统仍会自动创建一次 pre-restore 安全备份
-ielts-coach backup restore <backup-id> --confirm
-
-# Academic 摸底
-ielts-coach diagnostic start --mode quick
-ielts-coach diagnostic status
-
-# Reading 严格计时（先创建 Session，再展示无答案题目）
-ielts-coach session start reading --passage-id START-RP-001 --mode timed-practice --time-limit-minutes 20
-ielts-coach question set START-RP-001
-
-# 分析
-ielts-coach summary --days 14
-ielts-coach learning-profile
-ielts-coach trends
-ielts-coach allocation
-ielts-coach weekly-report
-
-# 错误、故事与校准
-ielts-coach error list
-ielts-coach error set-status GRA_ARTICLE resolved
-ielts-coach story add story.yaml
-ielts-coach speaking import-report voice-report.md
-ielts-coach calibration record calibration.yaml
-ielts-coach calibration case-import calibration-case.yaml
-ielts-coach calibration prepare --model model-label --output blind-run.yaml
-ielts-coach calibration import-run blind-run.yaml
-ielts-coach calibration report
+cd frontend
+npm ci
+npm run typecheck
+npm run lint
+npm test
+npm run build
 ```
 
-## 核心策略
+Before publishing:
 
-默认目标：Listening 8.0、Reading 8.0、Writing 6.5、Speaking 6.0、Overall
-7.0。默认学习时间为 35/35/20/10，保持“听读拉总分、写口守单项”，但系统
-会根据最低单项、近期成绩、分项风险、练习间隔和上一周期分配进行受控调整。
+```powershell
+python scripts/verify_release.py --source-only
+```
 
-## 文档
+Windows release builds are produced with:
 
-- [产品范围](docs/00_PRODUCT_SCOPE.md)
-- [快速开始](docs/GETTING_STARTED.md)
-- [从 V0.1 升级](docs/UPGRADE_V0.1_TO_V0.2.md)
-- [系统架构](docs/ARCHITECTURE.md)
-- [资料来源](docs/CORPUS_SOURCES.md)
-- [资料导入](docs/CORPUS_IMPORT.md)
-- [使用工作流](docs/USAGE_WORKFLOWS.md)
-- [评分完整性与官方标准](docs/SCORING_INTEGRITY.md)
-- [Academic 摸底、严格阅读与评分校准](docs/ACADEMIC_DIAGNOSTIC_AND_CALIBRATION.md)
-- [隐私与版权](docs/PRIVACY_AND_COPYRIGHT.md)
-- [路线图](docs/ROADMAP.md)
-- [系统完整性优化计划](docs/SYSTEM_COMPLETENESS_PLAN.md)
-- [高质量内容补充计划](docs/CONTENT_ACQUISITION_PLAN.md)
-- [UI 产品与架构规格](docs/UI_PRODUCT_SPEC.md)
-- [UI 工程架构](docs/UI_ENGINEERING_ARCHITECTURE.md)
-- [UI 实现交接](docs/UI_IMPLEMENTATION_HANDOFF.md)
+```powershell
+.\scripts\build-windows-release.ps1 -Version 1.4.0
+```
 
-## 许可证
+See [Release checklist](docs/RELEASE_CHECKLIST.md).
 
-- 程序代码与 Skills：MIT
-- `starter-corpus` 原创数据：CC BY 4.0
-- 第三方资料：不包含在仓库中，不受本项目许可证覆盖
+## Data, privacy and licensing
+
+- Application code and Skills: MIT License.
+- Project-original documentation and test fixtures: CC BY 4.0 unless stated otherwise.
+- User material and third-party content remain owned by their respective rights holders.
+- Credentials are stored outside SQLite and use Windows DPAPI where available.
+- The local service listens only on `127.0.0.1` and uses a random launch token.
+
+See [Data license](DATA_LICENSE.md), [Third-party notices](THIRD_PARTY_NOTICES.md)
+and [Privacy and copyright](docs/PRIVACY_AND_COPYRIGHT.md).

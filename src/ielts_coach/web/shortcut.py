@@ -4,6 +4,7 @@ import base64
 import os
 import subprocess
 import sys
+from importlib import resources
 from pathlib import Path
 
 
@@ -41,10 +42,24 @@ def _python_window_executable() -> Path:
     return current
 
 
+def _shortcut_icon(home: Path) -> Path:
+    """Materialise the packaged icon at a stable user-owned path."""
+    destination = home / "runtime" / "app-icon.ico"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    icon = resources.files("ielts_coach.resources").joinpath("assets/app-icon.ico")
+    payload = icon.read_bytes()
+    if not destination.exists() or destination.read_bytes() != payload:
+        temporary = destination.with_suffix(".tmp")
+        temporary.write_bytes(payload)
+        os.replace(temporary, destination)
+    return destination
+
+
 def install_desktop_shortcut(home: Path) -> Path:
     if os.name != "nt":
         raise RuntimeError("Desktop shortcut installation is currently supported on Windows only.")
     executable = _python_window_executable()
+    icon = _shortcut_icon(home.resolve())
     arguments = subprocess.list2cmdline(
         ["-m", "ielts_coach.web.background", "open", "--home", str(home.resolve())]
     )
@@ -70,7 +85,7 @@ Write-Output $shortcutPath
             "IELTS_SHORTCUT_TARGET": str(executable),
             "IELTS_SHORTCUT_ARGS": arguments,
             "IELTS_SHORTCUT_WORKDIR": str(home.resolve()),
-            "IELTS_SHORTCUT_ICON": f"{sys.executable},0",
+            "IELTS_SHORTCUT_ICON": f"{icon},0",
         },
     )
     path = Path(output.splitlines()[-1])

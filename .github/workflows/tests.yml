@@ -4,6 +4,7 @@ on:
   pull_request:
 jobs:
   python:
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -17,15 +18,41 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: pip install -e ".[ui,dev]"
-      - run: python -m pytest -q
+      - name: Compatibility and migration suite
+        run: >-
+          python -m pytest -q
+          tests/test_migration.py
+          tests/test_init_and_corpus.py
+          tests/test_sync_skills.py
+          tests/test_v14_inference_architecture.py
+          --durations=15
       - run: ielts-coach init
       - run: ielts-coach sync-skills
       - run: ielts-coach doctor
 
-  frontend:
+  python-regression:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[ui,dev]"
+      - run: python -m pytest -q --durations=25
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      IELTS_HOME: ${{ runner.temp }}/ielts-e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -33,6 +60,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
+      - run: pip install -e ".[ui]"
       - run: npm run typecheck
         working-directory: frontend
       - run: npm run lint
@@ -41,13 +69,25 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+      - run: python frontend/e2e/prepare_home.py
+      - name: Start packaged local service
+        shell: bash
+        run: |
+          launch_output="$(ielts-coach ui open --home "$IELTS_HOME" --no-open)"
+          launch_url="${launch_output#IELTS Study Desk ready: }"
+          test -n "$launch_url"
+          echo "IELTS_E2E_LAUNCH_URL=$launch_url" >> "$GITHUB_ENV"
+          echo "IELTS_E2E_BASE_URL=${launch_url%%/#*}" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npm run test:e2e
         working-directory: frontend
+      - if: always()
+        run: ielts-coach ui stop --home "$IELTS_HOME"
 
   package:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -58,5 +98,8 @@ jobs:
       - shell: pwsh
         run: |
           python -m venv smoke-env
-          .\smoke-env\Scripts\python -m pip install "dist\ielts_ai_coach-1.0.0-py3-none-any.whl[ui]"
+          $wheel = (Get-ChildItem -LiteralPath dist -Filter "ielts_ai_coach-*.whl" | Select-Object -First 1).FullName
+          if (-not $wheel) { throw "Built wheel was not found." }
+          python scripts\verify_release.py --wheel $wheel
+          .\smoke-env\Scripts\python -m pip install "${wheel}[ui]"
           .\smoke-env\Scripts\ielts-coach.exe --help

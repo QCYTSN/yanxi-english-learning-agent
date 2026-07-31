@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .agent_contracts import persist_agent_contract, validate_agent_contract
-from .agent_gateway import get_adapter
+from .inference import InferenceBroker
 from .session_manager import show_session
 from .storage import (
     append_agent_run_event,
@@ -40,6 +40,7 @@ class AgentJobManager:
         self._lock = threading.Lock()
         self._scheduled: set[str] = set()
         self._closed = False
+        self.broker = InferenceBroker(home)
 
     def recover(self) -> dict[str, int]:
         with connect(self.home) as conn:
@@ -101,7 +102,9 @@ class AgentJobManager:
         )
         execution_ref = run.get("execution_ref") or run_id
         try:
-            get_adapter(run["adapter_id"]).cancel(self.home, str(execution_ref))
+            self.broker.for_run(run).adapter.cancel(
+                self.home, str(execution_ref)
+            )
         except Exception:
             pass
         updated = update_agent_run(
@@ -142,7 +145,11 @@ class AgentJobManager:
             attempt_count=int(run.get("attempt_count") or 1) + 1,
             timeout_seconds=(
                 max(300, int(run.get("timeout_seconds") or 120))
-                if run.get("adapter_id") in {"claude", "opencode"}
+                if run.get("backend_kind") in {
+                    "managed_runtime",
+                    "model_provider",
+                    "external_agent",
+                }
                 else int(run.get("timeout_seconds") or 120)
             ),
             base_revision=(
@@ -167,6 +174,7 @@ class AgentJobManager:
     def shutdown(self) -> None:
         with self._lock:
             self._closed = True
+        self.broker.shutdown()
 
     def _execute_safely(self, run_id: str) -> None:
         with self._slots:
@@ -180,7 +188,8 @@ class AgentJobManager:
         run = get_agent_run(self.home, run_id)
         if not run or run["status"] != "queued" or run["cancel_requested"]:
             return
-        adapter = get_adapter(run["adapter_id"])
+        prepared = self.broker.for_run(run)
+        adapter = prepared.adapter
         started = _now()
         update_agent_run(
             self.home,
@@ -215,7 +224,12 @@ class AgentJobManager:
             current = get_agent_run(self.home, run_id)
             if not current or current["cancel_requested"] or current["status"] == "cancelled":
                 return
-            if run["adapter_id"] == "manual":
+            usage_reader = getattr(adapter, "execution_usage", None)
+            if callable(usage_reader):
+                runtime_usage = usage_reader(run_id)
+                if runtime_usage:
+                    update_agent_run(self.home, run_id, usage=runtime_usage)
+            if run.get("backend_kind") == "manual":
                 update_agent_run(
                     self.home,
                     run_id,
@@ -243,7 +257,7 @@ class AgentJobManager:
                 {"stage": "validating", "label": "Validating structured result"},
             )
             validated = validate_agent_contract(run["output_contract"], result)
-            if run["adapter_id"] == "mock":
+            if run.get("backend_kind") == "mock":
                 update_agent_run(
                     self.home,
                     run_id,
@@ -295,18 +309,29 @@ class AgentJobManager:
             )
         except TimeoutError as exc:
             recovery = (
-                "check_claude_provider_then_retry"
+                "check_primary_model_then_retry"
+                if run.get("backend_kind") in {
+                    "managed_runtime",
+                    "model_provider",
+                }
+                else "check_claude_provider_then_retry"
                 if run.get("adapter_id") == "claude"
                 else "check_agent_cli_then_retry"
             )
             self._fail(run_id, "AGENT_TIMEOUT", str(exc), recovery)
         except Exception as exc:
             code = getattr(exc, "code", "AGENT_RUN_FAILED")
-            recovery = (
-                "refresh_session_and_retry"
-                if code == "SESSION_REVISION_CONFLICT"
-                else "retry"
-            )
+            recovery = {
+                "SESSION_REVISION_CONFLICT": "refresh_session_and_retry",
+                "CODEX_AUTH_REQUIRED": "connect_codex_then_retry",
+                "CODEX_EXECUTABLE_UNAVAILABLE": "configure_codex_cli_then_retry",
+                "CODEX_APP_SERVER_STOPPED": "restart_codex_runtime_then_retry",
+                "MODEL_PROVIDER_REQUIRED": "configure_primary_model",
+                "MODEL_PROVIDER_AUTH_REQUIRED": "configure_model_credential",
+                "MODEL_PROVIDER_AUTH_FAILED": "check_model_credential",
+                "MODEL_PROVIDER_CONNECTION_FAILED": "check_model_connection",
+                "MODEL_ROUTE_FAILED": "check_model_route_then_retry",
+            }.get(code, "retry")
             self._fail(run_id, code, str(exc), recovery)
 
     def _run_with_timeout(
@@ -321,7 +346,21 @@ class AgentJobManager:
 
         def invoke() -> None:
             try:
-                output.put((True, adapter.start(self.home, request)))
+                start_with_events = getattr(adapter, "start_with_events", None)
+                if callable(start_with_events):
+                    value = start_with_events(
+                        self.home,
+                        request,
+                        lambda payload: append_agent_run_event(
+                            self.home,
+                            execution_ref,
+                            "progress",
+                            payload,
+                        ),
+                    )
+                else:
+                    value = adapter.start(self.home, request)
+                output.put((True, value))
             except BaseException as exc:
                 output.put((False, exc))
 

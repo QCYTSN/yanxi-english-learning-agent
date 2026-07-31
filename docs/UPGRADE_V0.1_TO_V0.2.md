@@ -6,13 +6,13 @@ that data directory.
 ## Recommended Windows upgrade
 
 1. Close Claude Code, Codex and OpenCode.
-2. Back up `D:\IELTS_AI\data` if it contains real study records.
+2. Back up your configured `IELTS_HOME` if it contains real study records.
 3. Rename the old source folder to `ielts-ai-coach-v0.1-backup`.
-4. Extract the new source folder as `D:\Github_Ku\ielts-ai-coach`.
+4. Extract the new source folder to a location you control.
 5. Activate the existing environment and reinstall the editable project:
 
 ```powershell
-cd D:\Github_Ku\ielts-ai-coach
+cd <path-to-ielts-ai-coach>
 conda activate ielts-coach
 python -m pip install -e .
 ielts-coach init

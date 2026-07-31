@@ -8,11 +8,17 @@ __pycache__/
 *.sqlite3
 build/
 dist/
+build-*/
+dist-*/
 *.egg-info/
 frontend/node_modules/
 frontend/coverage/
 frontend/test-results/
+frontend/e2e/.auth/
+tmp/
 frontend/playwright-report/
+installer-output/
+release-artifacts/
 
 # User data and private corpora
 data/
@@ -22,6 +28,9 @@ corpus/seasonal-private/
 sessions/
 audio/
 backups/
+
+# Local development-only corpus fixtures. Public packages start empty.
+src/ielts_coach/resources/original-mocks/
 
 # Copyrighted or sensitive artifacts
 *.pdf

@@ -7,6 +7,9 @@
     "title": {"type": "string", "minLength": 1},
     "source_type": {"enum": ["project_original", "official_external", "licensed_private", "seasonal_reported", "personal", "synthetic"]},
     "authenticity": {"type": "string"},
+    "standard_profile": {"type": "string"},
+    "standard_version": {"type": "string"},
+    "rights_status": {"enum": ["redistributable", "external_reference", "local_private"]},
     "storage": {
       "type": "object",
       "properties": {
@@ -31,7 +34,7 @@
         "type": "object",
         "required": ["kind", "path"],
         "properties": {
-          "kind": {"enum": ["passages", "questions"]},
+          "kind": {"enum": ["passages", "questions", "assessment_packs"]},
           "path": {"type": "string", "minLength": 1}
         },
         "additionalProperties": false

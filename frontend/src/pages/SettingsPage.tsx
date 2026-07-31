@@ -1,95 +1,125 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Archive, CheckCircle2, RotateCcw, Save, ShieldCheck } from 'lucide-react'
+import {
+  Activity,
+  Archive,
+  ArrowLeft,
+  BookOpenCheck,
+  Bot,
+  CheckCircle2,
+  ChevronRight,
+  Database,
+  HardDrive,
+  Laptop,
+  Plus,
+  RotateCcw,
+  Save,
+  ServerCog,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react'
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { useState } from 'react'
-import { api, jsonBody, type Bootstrap } from '../api/client'
-import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
+import {
+  api,
+  jsonBody,
+  type Bootstrap,
+  type ExternalAgentProfile,
+  type ModelProvider,
+} from '../api/client'
+import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
+import { ModelProvidersSection } from '../components/ModelProvidersSection'
 import { normalisePerformance, type PerformanceResponse } from './settingsPerformance'
 
-type BackupSummary = { backup_id: string; kind: string; created_at: string | null; schema_version?: string | null; file_count: number; size_bytes: number; status: string; error?: string }
-type Health = { status: 'ok' | 'degraded' | 'failed'; checks: Record<string, unknown>; errors: string[]; warnings: string[] }
-type Rubric = { rubric_id: string; module: string; publisher: string; standard: string; version?: string | null; source_reference: string; availability: string }
-type Telemetry = { module: string; events: number; input_tokens: number; output_tokens: number; average_latency_ms?: number | null; tool_calls: number }
-type AgentDiagnostic = Bootstrap['agents'][number] & {
-  diagnostics: {
-    executable_path?: string | null
-    version?: string | null
-    process_mode?: string
-    proxy_configured?: boolean
-    proxy_variables?: Record<string, string>
-    model_call_test: string
-    boundary: string
-  }
+type BackupSummary = {
+  backup_id: string
+  kind: string
+  created_at: string | null
+  file_count: number
+  size_bytes: number
+  status: string
+  error?: string
+}
+type Health = {
+  status: 'ok' | 'degraded' | 'failed'
+  checks: Record<string, unknown>
+  errors: string[]
+  warnings: string[]
+}
+type Rubric = {
+  rubric_id: string
+  module: string
+  publisher: string
+  standard: string
+  version?: string | null
+  source_reference: string
+  availability: string
 }
 
+const settingsSections = [
+  { id: 'profile', title: '学习档案', description: '考试目标、当前基线与隐私偏好', icon: UserRound },
+  { id: 'models', title: '模型服务', description: '主模型、备用模型与自定义 API', icon: Bot },
+  { id: 'data', title: '本地数据', description: 'SQLite、备份、恢复与数据位置', icon: Database },
+  { id: 'trust', title: '教学标准', description: '评分标准来源与教学边界', icon: BookOpenCheck },
+  { id: 'advanced', title: '高级', description: '本地模型、外部 Agent 与开发者选项', icon: ServerCog },
+  { id: 'system', title: '系统状态', description: '健康检查、容量与运行性能', icon: Activity },
+] as const
+
 export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
-  const agents = Array.isArray(bootstrap.agents) ? bootstrap.agents : []
-  const callableAgents = agents.filter((agent) => agent.identity?.launcher_kind === 'local_process')
-  const availableCallableAgents = callableAgents.filter((agent) => agent.available)
-  const queryClient = useQueryClient()
-  const backups = useQuery({ queryKey: ['backups'], queryFn: () => api<BackupSummary[]>('/api/v1/backups') })
-  const health = useQuery({ queryKey: ['system-health'], queryFn: () => api<Health>('/api/v1/system/health') })
-  const rubrics = useQuery({ queryKey: ['rubrics'], queryFn: () => api<Rubric[]>('/api/v1/rubrics') })
-  const telemetry = useQuery({ queryKey: ['telemetry'], queryFn: () => api<Telemetry[]>('/api/v1/telemetry/summary?days=30') })
-  const performance = useQuery({ queryKey: ['system-performance'], queryFn: () => api<PerformanceResponse>('/api/v1/system/performance'), refetchInterval: 30_000 })
-  const agentDiagnostics = useQuery({ queryKey: ['agent-diagnostics'], queryFn: () => api<AgentDiagnostic[]>('/api/v1/agents/diagnostics') })
-  const create = useMutation({ mutationFn: () => api<BackupSummary>('/api/v1/backups', { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
-  const verify = useMutation({ mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/verify`, { method: 'POST' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }) })
-  const restore = useMutation({
-    mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/restore`, { method: 'POST', body: jsonBody({ confirmed: true }) }),
-    onSuccess: async () => {
-      window.alert('恢复完成，跨存储健康检查已通过。')
-      await queryClient.invalidateQueries()
-    },
-  })
-  function confirmRestore(backupId: string) {
-    if (window.confirm(`恢复 ${backupId} 会替换当前学习数据。系统会先自动创建安全备份并在恢复后运行健康检查。是否继续？`)) restore.mutate(backupId)
+  const { section: pathSection } = useParams()
+  const [params] = useSearchParams()
+  const legacySection = params.get('section')
+  const section = pathSection ?? legacySection
+  const active = settingsSections.find((item) => item.id === section)
+
+  if (!pathSection && legacySection && active) {
+    return <Navigate to={`/settings/${active.id}`} replace />
   }
-  const performanceSnapshot = normalisePerformance(performance.data)
-  return <div className="page page-narrow">
-    <PageHeader eyebrow="Settings" title="设置与可信运行状态" description="管理本地 Profile，并检查 Agent、Rubric、Storage、Telemetry 和数据健康状态。" />
-    <ProfileSection bootstrap={bootstrap} />
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Doctor</p><h2>系统健康</h2></div>{health.data && <StatusBadge tone={health.data.status === 'ok' ? 'success' : 'warning'}>{health.data.status}</StatusBadge>}</div>
-      {health.isPending && <LoadingState label="正在执行只读健康检查" />}{health.error && <ErrorState error={health.error} />}
-      {health.data && <><dl className="definition-list"><div><dt>Core 版本</dt><dd>{bootstrap.core_version}</dd></div><div><dt>数据目录</dt><dd><code>{bootstrap.storage.data_home}</code></dd></div><div><dt>数据库</dt><dd>{String(health.data.checks?.database_integrity ?? 'unknown')}</dd></div><div><dt>Schema</dt><dd>v{String(health.data.checks?.schema_version ?? 'unknown')}</dd></div></dl>{(health.data.errors ?? []).map((item) => <p className="import-error" key={item}>{item}</p>)}{(health.data.warnings ?? []).map((item) => <p className="muted" key={item}>提醒：{item}</p>)}</>}
-    </section>
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Recovery</p><h2>本地备份与恢复</h2></div><button className="button primary" onClick={() => create.mutate()} disabled={create.isPending}><Archive size={17} />创建备份</button></div>
-      <p>包含配置、数据库、Session、Corpus、Story Bank、报告、校准和注册媒体；恢复到不同目录时会自动重建本地媒体路径。</p>
-      {(create.isError || verify.isError || restore.isError) && <ErrorState error={create.error ?? verify.error ?? restore.error} />}
-      {backups.isPending && <LoadingState label="正在读取备份" />}{backups.isError && <ErrorState error={backups.error} />}
-      <div className="adapter-list">{backups.data?.map((backup) => <article key={backup.backup_id}><div><h3>{backup.backup_id}</h3><p>{backup.kind} · {formatBytes(backup.size_bytes)} · {backup.file_count} 个文件{backup.created_at ? ` · ${new Date(backup.created_at).toLocaleString('zh-CN')}` : ''}</p>{backup.error && <p>{backup.error}</p>}</div><div className="row-actions"><StatusBadge tone={backup.status === 'available' ? 'success' : 'warning'}>{backup.status === 'available' ? '可用' : '无效'}</StatusBadge>{backup.status === 'available' && <><button className="button secondary" onClick={() => verify.mutate(backup.backup_id)} disabled={verify.isPending}><CheckCircle2 size={16} />校验</button><button className="button secondary" onClick={() => confirmRestore(backup.backup_id)} disabled={restore.isPending}><RotateCcw size={16} />恢复</button></>}</div></article>)}</div>
-      {backups.data?.length === 0 && <p className="muted">还没有本地备份。</p>}
-    </section>
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Agent identity</p><h2>可用方式与身份边界</h2></div><StatusBadge tone={availableCallableAgents.length ? 'success' : 'warning'}>{availableCallableAgents.length ? `检测到 ${availableCallableAgents.length} 个可调用 CLI` : '未检测到可调用 CLI'}</StatusBadge></div>
-      <p>“可用”只表示系统找到了对应 CLI；完成一次真实反馈并显示“真实反馈已保存”，才证明认证、模型调用和结果回传全部连通。Claude Code 支持原生 JSON Schema，当前作为推荐直连；OpenCode 没有等价的原生约束，需由 Adapter 归一化后再验证，因此标记为实验性。桌面快捷方式本身不会静默启动 Agent。</p>
-      {agentDiagnostics.isPending && <LoadingState label="正在检查本地 CLI 与代理继承" />}{agentDiagnostics.error && <ErrorState error={agentDiagnostics.error} />}
-      <div className="adapter-list">{agents.map((agent) => {
-        const diagnostic = agentDiagnostics.data?.find((item) => item.id === agent.id)?.diagnostics
-        return <article key={agent.id}><div><h3>{agent.label}</h3><p>{agent.identity.launcher_kind} · Provider {agent.identity.agent_provider ?? '未知'} · Model {agent.identity.model_display_name ?? agent.identity.model_id ?? '未知'}</p>{diagnostic?.executable_path && <small><code>{diagnostic.executable_path}</code> · {diagnostic.version ?? '版本未知'} · {diagnostic.proxy_configured ? '已继承代理' : '未检测到代理变量'}</small>}</div><StatusBadge tone={agent.available ? 'success' : 'warning'}>{agent.available ? '本地预检通过' : '不可用'}</StatusBadge></article>
-      })}</div>
-      <p className="muted">本地预检不消耗 Token，也不代表中转 API 已认证；只有一次真实反馈任务能够证明端到端连接。</p>
-    </section>
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Rubrics</p><h2>评分标准来源</h2></div><ShieldCheck /></div>
-      {rubrics.isPending && <LoadingState />}{rubrics.error && <ErrorState error={rubrics.error} />}
-      <div className="adapter-list">{rubrics.data?.map((rubric) => <article key={rubric.rubric_id}><div><h3>{rubric.standard}</h3><p>{rubric.publisher} · {rubric.module} · {rubric.version ?? '版本未注明'}</p><a href={rubric.source_reference} target="_blank" rel="noreferrer">查看来源</a></div><StatusBadge tone="success">{rubric.availability}</StatusBadge></article>)}</div>
-    </section>
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Runtime performance</p><h2>本地运行容量</h2></div><Activity /></div>
-      <p>只记录最近一段时间的路由耗时和数据库规模，不记录题目、作文或 Agent 提示词。</p>
-      {performance.isPending && <LoadingState label="正在读取性能快照" />}{performance.error && <ErrorState error={performance.error} />}
-      {performance.data && <><div className="baseline-grid"><div><span>API 请求样本</span><strong>{performanceSnapshot.sampleCount}</strong><small>rolling window</small></div><div><span>中位延迟</span><strong>{performanceSnapshot.p50Ms} ms</strong><small>p95 {performanceSnapshot.p95Ms} ms</small></div><div><span>数据库</span><strong>{formatBytes(performanceSnapshot.databaseSizeBytes)}</strong><small>{performanceSnapshot.journalMode} · busy {performanceSnapshot.busyTimeoutMs} ms</small></div></div><details><summary>查看慢路由与数据规模</summary><div className="performance-details"><div>{performanceSnapshot.slowestRoutes.map((item) => <p key={item.route}><code>{item.route}</code><span>p95 {item.p95_ms} ms · {item.requests} 次</span></p>)}</div><div>{Object.entries(performanceSnapshot.rowCounts).map(([key, value]) => <p key={key}><code>{key}</code><span>{value.toLocaleString('zh-CN')} rows</span></p>)}</div></div></details><p className="muted">原生加速：{performanceSnapshot.nativeAccelerationEnabled ? '已启用' : '暂不需要'}。{performanceSnapshot.nativeAccelerationReason}</p></>}
-    </section>
-    <section className="settings-section">
-      <div className="section-heading"><div><p className="eyebrow">Telemetry · 30 days</p><h2>本地元数据统计</h2></div><Activity /></div>
-      <p>只统计事件、Token 数、延迟和工具调用，不保存原始作文或提示词。</p>
-      {telemetry.isPending && <LoadingState />}{telemetry.error && <ErrorState error={telemetry.error} />}
-      {!telemetry.data?.length && <p className="muted">最近没有 Telemetry 记录。</p>}
-      <div className="baseline-grid">{telemetry.data?.map((row) => <div key={row.module}><span>{row.module} · {row.events} events</span><strong>{row.input_tokens + row.output_tokens}</strong><small>tokens · avg {row.average_latency_ms ?? 0} ms</small></div>)}</div>
-    </section>
-  </div>
+
+  return (
+    <div className="settings-page">
+      <header className="settings-page-header">
+        <div>
+          {active && <Link className="settings-back" to="/settings"><ArrowLeft size={16} />设置</Link>}
+          <h1>{active?.title ?? '设置'}</h1>
+          <p>{active?.description ?? '模型、学习档案和本地数据都集中在这里；学习页面只保留学习。'}</p>
+        </div>
+      </header>
+      {!active && <SettingsOverview bootstrap={bootstrap} />}
+      {section === 'profile' && <ProfileSection bootstrap={bootstrap} />}
+      {section === 'models' && <ModelProvidersSection />}
+      {section === 'data' && <DataSection bootstrap={bootstrap} />}
+      {section === 'trust' && <TrustSection />}
+      {section === 'advanced' && <AdvancedSection />}
+      {section === 'system' && <SystemSection bootstrap={bootstrap} />}
+      {section && !active && <Navigate to="/settings" replace />}
+    </div>
+  )
+}
+
+function SettingsOverview({ bootstrap }: { bootstrap: Bootstrap }) {
+  const primary = bootstrap.model_providers?.find((item) => item.role === 'primary')
+  return (
+    <>
+      <section className="settings-status-strip" aria-label="系统摘要">
+        <div><span className="status-dot ok" /><small>本地服务</small><strong>在线</strong></div>
+        <div>
+          <span className={`status-dot ${primary?.available ? 'ok' : 'warning'}`} />
+          <small>主模型</small>
+          <strong>{primary?.display_name ?? '未连接'}</strong>
+        </div>
+        <div><span className="status-dot ok" /><small>数据</small><strong>SQLite · 本机</strong></div>
+      </section>
+      <section className="settings-card-grid">
+        {settingsSections.map(({ id, title, description, icon: Icon }) => (
+          <Link key={id} className="settings-category-card" to={`/settings/${id}`}>
+            <Icon size={21} strokeWidth={1.65} aria-hidden="true" />
+            <div><h2>{title}</h2><p>{description}</p></div>
+            <ChevronRight size={18} aria-hidden="true" />
+          </Link>
+        ))}
+      </section>
+    </>
+  )
 }
 
 function ProfileSection({ bootstrap }: { bootstrap: Bootstrap }) {
@@ -99,23 +129,252 @@ function ProfileSection({ bootstrap }: { bootstrap: Bootstrap }) {
   const [minimum, setMinimum] = useState({ ...(bootstrap.profile?.minimum_required ?? {}) })
   const [privacy, setPrivacy] = useState({ ...(bootstrap.profile?.privacy ?? {}) })
   const save = useMutation({
-    mutationFn: () => api('/api/v1/profile', { method: 'PUT', body: jsonBody({ updates: { exam: { type: 'academic', test_date: testDate || null }, target: targets, minimum_required: minimum, privacy }, complete_onboarding: false }) }),
+    mutationFn: () => api('/api/v1/profile', {
+      method: 'PUT',
+      body: jsonBody({
+        updates: {
+          exam: { type: 'academic', test_date: testDate || null },
+          target: targets,
+          minimum_required: minimum,
+          privacy,
+        },
+        complete_onboarding: false,
+      }),
+    }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bootstrap'] }),
   })
-  return <section className="settings-section">
-    <div className="section-heading"><div><p className="eyebrow">Profile</p><h2>考试、目标与隐私</h2></div><button className="button primary" disabled={save.isPending} onClick={() => save.mutate()}><Save size={17} />保存</button></div>
-    <div className="handoff-options"><label>考试类型<input value="IELTS Academic" disabled /></label><label>考试日期<input type="date" value={testDate} onChange={(event) => setTestDate(event.target.value)} /></label></div>
-    <CompactScores title="目标分" values={targets} setValues={setTargets} />
-    <CompactScores title="最低要求" values={minimum} setValues={setMinimum} />
-    <label className="settings-toggle"><input type="checkbox" checked={Boolean(privacy.allow_private_corpus)} onChange={(event) => setPrivacy((value) => ({ ...value, allow_private_corpus: event.target.checked }))} />允许在本机登记私人题库</label>
-    <label className="settings-toggle"><input type="checkbox" checked={Boolean(privacy.allow_cloud_upload)} onChange={(event) => setPrivacy((value) => ({ ...value, allow_cloud_upload: event.target.checked }))} />默认允许云端上传（每次仍需确认）</label>
-    <label className="settings-toggle"><input type="checkbox" checked={Boolean(privacy.store_raw_voice_audio)} onChange={(event) => setPrivacy((value) => ({ ...value, store_raw_voice_audio: event.target.checked }))} />保存原始口语音频</label>
-    {save.isError && <ErrorState error={save.error} />}
-  </section>
+  return (
+    <div className="settings-detail-stack">
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>考试与目标</h2><p>用于差距计算和 70/30 训练分配。</p></div></div>
+        <div className="model-choice-row">
+          <label>考试类型<input value="IELTS Academic" disabled /></label>
+          <label>考试日期<input type="date" value={testDate} onChange={(event) => setTestDate(event.target.value)} /></label>
+        </div>
+        <CompactScores title="目标分" values={targets} setValues={setTargets} />
+        <CompactScores title="最低要求" values={minimum} setValues={setMinimum} />
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>隐私偏好</h2><p>远程处理仍会在需要时进行单次确认。</p></div><ShieldCheck size={20} /></div>
+        <Toggle checked={Boolean(privacy.allow_private_corpus)} onChange={(value) => setPrivacy((current) => ({ ...current, allow_private_corpus: value }))}>允许在本机登记私人题库</Toggle>
+        <Toggle checked={Boolean(privacy.allow_cloud_upload)} onChange={(value) => setPrivacy((current) => ({ ...current, allow_cloud_upload: value }))}>允许在确认后把必要材料发给主模型</Toggle>
+        <Toggle checked={Boolean(privacy.store_raw_voice_audio)} onChange={(value) => setPrivacy((current) => ({ ...current, store_raw_voice_audio: value }))}>保存原始口语音频</Toggle>
+      </section>
+      <div className="settings-save-bar">
+        <button className="button primary" disabled={save.isPending} onClick={() => save.mutate()}><Save size={16} />保存学习档案</button>
+      </div>
+      {save.error && <ErrorState error={save.error} />}
+    </div>
+  )
 }
 
-function CompactScores({ title, values, setValues }: { title: string; values: Record<string, number>; setValues: (value: Record<string, number>) => void }) {
-  return <fieldset className="score-grid compact"><legend>{title}</legend>{Object.entries(values).map(([key, value]) => <label key={key}>{key}<select value={value} onChange={(event) => setValues({ ...values, [key]: Number(event.target.value) })}>{Array.from({ length: 15 }, (_, index) => 2 + index * 0.5).map((score) => <option key={score} value={score}>{score.toFixed(1)}</option>)}</select></label>)}</fieldset>
+function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
+  const queryClient = useQueryClient()
+  const backups = useQuery({ queryKey: ['backups'], queryFn: () => api<BackupSummary[]>('/api/v1/backups') })
+  const create = useMutation({
+    mutationFn: () => api<BackupSummary>('/api/v1/backups', { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }),
+  })
+  const verify = useMutation({
+    mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/verify`, { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups'] }),
+  })
+  const restore = useMutation({
+    mutationFn: (backupId: string) => api(`/api/v1/backups/${backupId}/restore`, {
+      method: 'POST',
+      body: jsonBody({ confirmed: true }),
+    }),
+    onSuccess: () => queryClient.invalidateQueries(),
+  })
+  function confirmRestore(backupId: string) {
+    if (window.confirm('恢复会替换当前学习数据；系统会先自动创建安全备份。是否继续？')) restore.mutate(backupId)
+  }
+  return (
+    <div className="settings-detail-stack">
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>数据位置</h2><p>SQLite 是当前唯一数据真源，不依赖 Docker。</p></div><HardDrive size={20} /></div>
+        <dl className="definition-list">
+          <div><dt>数据目录</dt><dd><code>{bootstrap.storage.data_home}</code></dd></div>
+          <div><dt>数据库</dt><dd><code>{bootstrap.storage.database_path}</code></dd></div>
+          <div><dt>备份目录</dt><dd><code>{bootstrap.storage.backups_path}</code></dd></div>
+        </dl>
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading">
+          <div><h2>备份与恢复</h2><p>包含 Session、Corpus、报告、媒体注册和配置。</p></div>
+          <button className="button primary" onClick={() => create.mutate()} disabled={create.isPending}><Archive size={16} />创建备份</button>
+        </div>
+        {backups.isPending && <LoadingState label="正在读取备份" />}
+        <div className="simple-list">
+          {backups.data?.map((backup) => (
+            <article key={backup.backup_id}>
+              <div><strong>{backup.backup_id}</strong><p>{backup.kind} · {formatBytes(backup.size_bytes)} · {backup.file_count} 个文件</p></div>
+              <div className="row-actions">
+                <StatusBadge tone={backup.status === 'available' ? 'success' : 'warning'}>{backup.status === 'available' ? '可用' : '无效'}</StatusBadge>
+                {backup.status === 'available' && <>
+                  <button className="button ghost" onClick={() => verify.mutate(backup.backup_id)}><CheckCircle2 size={15} />校验</button>
+                  <button className="button ghost" onClick={() => confirmRestore(backup.backup_id)}><RotateCcw size={15} />恢复</button>
+                </>}
+              </div>
+            </article>
+          ))}
+          {backups.data?.length === 0 && <p className="muted">还没有本地备份。</p>}
+        </div>
+      </section>
+      {(create.error || verify.error || restore.error || backups.error) && <ErrorState error={create.error ?? verify.error ?? restore.error ?? backups.error} />}
+    </div>
+  )
+}
+
+function TrustSection() {
+  const rubrics = useQuery({ queryKey: ['rubrics'], queryFn: () => api<Rubric[]>('/api/v1/rubrics') })
+  return (
+    <div className="settings-detail-stack">
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>不可绕过的教学边界</h2><p>这些规则由 Runtime 和 Schema 共同执行，不由模型自由决定。</p></div><ShieldCheck size={20} /></div>
+        <div className="trust-boundaries">
+          <p><strong>Writing</strong><span>证据与估分优先，学习者修改第二，模型范文最后。</span></p>
+          <p><strong>Reading</strong><span>逐级提示先于答案揭示，解释必须定位原文证据。</span></p>
+          <p><strong>Speaking</strong><span>完整 Mock 中途不纠错；AI 分数必须显示置信度。</span></p>
+          <p><strong>数据</strong><span>模型输出验证通过后，才能由 Runtime 原子保存。</span></p>
+        </div>
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>评分标准来源</h2><p>只使用系统登记并可追溯的 Rubric。</p></div></div>
+        {rubrics.isPending && <LoadingState />}
+        <div className="simple-list">{rubrics.data?.map((rubric) => (
+          <article key={rubric.rubric_id}>
+            <div><strong>{rubric.standard}</strong><p>{rubric.publisher} · {rubric.module} · {rubric.version ?? '版本未注明'}</p></div>
+            <a href={rubric.source_reference} target="_blank" rel="noreferrer">查看来源</a>
+          </article>
+        ))}</div>
+        {rubrics.error && <ErrorState error={rubrics.error} />}
+      </section>
+    </div>
+  )
+}
+
+function AdvancedSection() {
+  const queryClient = useQueryClient()
+  const providers = useQuery({
+    queryKey: ['model-providers'],
+    queryFn: () => api<ModelProvider[]>('/api/v1/model-providers'),
+  })
+  const agents = useQuery({
+    queryKey: ['external-agents'],
+    queryFn: () => api<ExternalAgentProfile[]>('/api/v1/external-agents?diagnostics=true'),
+  })
+  const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434/v1')
+  const [modelId, setModelId] = useState('')
+  const createLocal = useMutation({
+    mutationFn: () => api('/api/v1/model-providers', {
+      method: 'POST',
+      body: jsonBody({
+        provider_id: `local-${crypto.randomUUID().slice(0, 8)}`,
+        display_name: '本地模型',
+        provider_kind: 'local_http',
+        base_url: baseUrl,
+        model_id: modelId,
+        auth_mode: 'none',
+        role: providers.data?.some((item) => item.role === 'primary') ? 'disabled' : 'primary',
+        config: {},
+      }),
+    }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['model-providers'] })
+      await queryClient.invalidateQueries({ queryKey: ['bootstrap'] })
+    },
+  })
+  return (
+    <div className="settings-detail-stack">
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>本地 HTTP 模型</h2><p>连接 Ollama、LM Studio 或其他 OpenAI-compatible 本地服务。</p></div><Laptop size={20} /></div>
+        <div className="model-choice-row">
+          <label>Base URL<input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} /></label>
+          <label>Model ID<input value={modelId} onChange={(event) => setModelId(event.target.value)} placeholder="local-model" /></label>
+          <button className="button secondary" onClick={() => createLocal.mutate()} disabled={!baseUrl || !modelId || createLocal.isPending}><Plus size={16} />添加本地模型</button>
+        </div>
+        {providers.data?.filter((item) => item.provider_kind === 'local_http').map((item) => <p className="muted" key={item.provider_id}>{item.display_name} · {item.model_id} · {item.base_url}</p>)}
+        {createLocal.error && <ErrorState error={createLocal.error} />}
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>外部 Agent</h2><p>只用于材料整理、格式转换和开发者流程，不能成为教学主模型。</p></div><Bot size={20} /></div>
+        {agents.isPending && <LoadingState label="正在检查本地 Agent" />}
+        <div className="simple-list">{agents.data?.map((agent) => (
+          <article key={agent.agent_profile_id}>
+            <div><strong>{agent.display_name}</strong><p>{purposeLabel(agent.purpose)} · {agent.identity.launcher_kind}</p></div>
+            <StatusBadge tone={agent.available ? 'success' : 'neutral'}>{agent.available ? '可调用' : '未检测到'}</StatusBadge>
+          </article>
+        ))}</div>
+        {agents.error && <ErrorState error={agents.error} />}
+      </section>
+    </div>
+  )
+}
+
+function SystemSection({ bootstrap }: { bootstrap: Bootstrap }) {
+  const health = useQuery({ queryKey: ['system-health'], queryFn: () => api<Health>('/api/v1/system/health') })
+  const performance = useQuery({
+    queryKey: ['system-performance'],
+    queryFn: () => api<PerformanceResponse>('/api/v1/system/performance'),
+    refetchInterval: 30_000,
+  })
+  const snapshot = normalisePerformance(performance.data)
+  return (
+    <div className="settings-detail-stack">
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>系统健康</h2><p>只读检查，不会修改学习数据。</p></div>{health.data && <StatusBadge tone={health.data.status === 'ok' ? 'success' : 'warning'}>{health.data.status}</StatusBadge>}</div>
+        {health.isPending && <LoadingState />}
+        {health.data && <dl className="definition-list">
+          <div><dt>Core 版本</dt><dd>{bootstrap.core_version}</dd></div>
+          <div><dt>数据库完整性</dt><dd>{String(health.data.checks?.database_integrity ?? 'unknown')}</dd></div>
+          <div><dt>Schema</dt><dd>v{String(health.data.checks?.schema_version ?? 'unknown')}</dd></div>
+        </dl>}
+        {health.error && <ErrorState error={health.error} />}
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>运行容量</h2><p>SQLite 使用 WAL；当前不需要 Docker 或额外数据库服务。</p></div><Activity size={20} /></div>
+        {performance.isPending && <LoadingState />}
+        {performance.data && <div className="system-metrics">
+          <div><span>请求样本</span><strong>{snapshot.sampleCount}</strong></div>
+          <div><span>中位延迟</span><strong>{snapshot.p50Ms} ms</strong></div>
+          <div><span>p95 延迟</span><strong>{snapshot.p95Ms} ms</strong></div>
+          <div><span>数据库</span><strong>{formatBytes(snapshot.databaseSizeBytes)}</strong></div>
+        </div>}
+        {performance.error && <ErrorState error={performance.error} />}
+      </section>
+    </div>
+  )
+}
+
+function CompactScores({ title, values, setValues }: {
+  title: string
+  values: Record<string, number>
+  setValues: (value: Record<string, number>) => void
+}) {
+  return <fieldset className="score-grid compact"><legend>{title}</legend>{Object.entries(values).map(([key, value]) => <label key={key}>{scoreLabel(key)}<select value={value} onChange={(event) => setValues({ ...values, [key]: Number(event.target.value) })}>{Array.from({ length: 15 }, (_, index) => 2 + index * 0.5).map((score) => <option key={score} value={score}>{score.toFixed(1)}</option>)}</select></label>)}</fieldset>
+}
+
+function Toggle({ checked, onChange, children }: {
+  checked: boolean
+  onChange: (value: boolean) => void
+  children: string
+}) {
+  return <label className="settings-toggle"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>{children}</span></label>
+}
+
+function scoreLabel(key: string) {
+  return ({ overall: '总分', listening: '听力', reading: '阅读', writing: '写作', speaking: '口语' } as Record<string, string>)[key] ?? key
+}
+
+function purposeLabel(value: string) {
+  return ({
+    material_operations: '材料整理',
+    format_conversion: '格式转换',
+    corpus_maintenance: '题库维护',
+    developer_tools: '开发者工具',
+    manual_handoff: '手动交接',
+  } as Record<string, string>)[value] ?? value
 }
 
 function formatBytes(value: number) {

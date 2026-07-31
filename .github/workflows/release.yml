@@ -1,0 +1,68 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the v prefix
+        required: true
+        default: 1.4.0
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Resolve version
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          if (-not $version) { $version = "${{ github.ref_name }}".TrimStart("v") }
+          "RELEASE_VERSION=$version" >> $env:GITHUB_ENV
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+      - name: Build installer
+        shell: pwsh
+        run: .\scripts\build-windows-release.ps1 -Version $env:RELEASE_VERSION
+      - name: Build Python source and wheel
+        shell: pwsh
+        run: |
+          python -m build
+          $wheel = (Get-ChildItem dist\ielts_ai_coach-*.whl | Select-Object -First 1).FullName
+          python scripts\verify_release.py --wheel $wheel
+      - name: Collect release files
+        shell: pwsh
+        run: |
+          Copy-Item dist\ielts_ai_coach-*.whl release-artifacts\
+          Copy-Item dist\ielts_ai_coach-*.tar.gz release-artifacts\
+          Get-FileHash release-artifacts\* -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } |
+            Set-Content release-artifacts\SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IELTS-Study-Desk-${{ env.RELEASE_VERSION }}
+          path: release-artifacts/*
+          if-no-files-found: error
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" release-artifacts\* --generate-notes --verify-tag

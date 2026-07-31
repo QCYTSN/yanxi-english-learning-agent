@@ -4,10 +4,12 @@ import io
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
+from pypdf import PdfWriter
 
 from ielts_coach.init_home import initialise_home
 from ielts_coach.session_manager import start_session
@@ -65,7 +67,7 @@ def test_health_bootstrap_auth_and_origin(tmp_path: Path):
     bootstrap = client.get("/api/v1/bootstrap")
     assert bootstrap.status_code == 200
     assert bootstrap.json()["setup_required"] is False
-    assert bootstrap.json()["core_version"] == "1.2.0"
+    assert bootstrap.json()["core_version"] == "1.4.0"
     assert bootstrap.json()["storage"]["data_home"] == str(home.resolve())
 
     blocked = client.get(
@@ -157,6 +159,57 @@ def test_content_readiness_and_private_upload_queue(tmp_path: Path):
     assert client.get(
         f"/api/v1/assessment-packs/{pack.json()['pack_id']}"
     ).json()["conformance_status"] == "verified"
+
+
+def test_pdf_preparation_preview_and_page_plan_api(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    writer = PdfWriter()
+    writer.add_blank_page(width=595, height=842)
+    payload = io.BytesIO()
+    writer.write(payload)
+    with _client(home) as client:
+        _authenticate(client)
+        upload = client.post(
+            "/api/v1/content/imports",
+            data={
+                "title": "Owned page-aware PDF",
+                "source_type": "licensed_private",
+                "authenticity": "official_practice_book",
+                "rights_status": "local_private",
+            },
+            files=[("files", ("自有材料.pdf", payload.getvalue(), "application/pdf"))],
+        )
+        assert upload.status_code == 200
+        import_job = upload.json()
+        import_id = import_job["import_id"]
+        stored_name = import_job["files"][0]["stored_name"]
+        assert stored_name.endswith(".pdf")
+
+        queued = client.post(f"/api/v1/content/imports/{import_id}/prepare")
+        assert queued.status_code == 200
+        detail = client.get(f"/api/v1/content/imports/{import_id}")
+        assert detail.status_code == 200
+        assert detail.json()["status"] == "ready_for_review"
+        assert detail.json()["summary"]["documents"][0]["page_count"] == 1
+
+        preview = client.get(
+            f"/api/v1/content/imports/{import_id}/files/{quote(stored_name)}/content"
+        )
+        assert preview.status_code == 200
+        assert preview.headers["content-type"].startswith("application/pdf")
+        assert "filename*=UTF-8''" in preview.headers["content-disposition"]
+        assert quote("自有材料.pdf") in preview.headers["content-disposition"]
+        assert preview.content == payload.getvalue()
+
+        page_plan = client.patch(
+            f"/api/v1/content/imports/{import_id}/page-plan",
+            json={"stored_name": stored_name, "pages": {"1": "questions"}},
+        )
+        assert page_plan.status_code == 200
+        assert page_plan.json()["summary"]["page_plan"][stored_name] == {
+            "1": "questions"
+        }
 
 
 def test_session_creation_draft_and_idempotent_writing_submission(tmp_path: Path):

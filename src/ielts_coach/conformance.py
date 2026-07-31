@@ -316,8 +316,14 @@ def _assess_objective_question(
         errors.append(f"{question_type} requires a shared or item-level option bank")
     if question_type in COMPLETION_TYPES:
         constraints = question.get("answer_constraints") or {}
-        if not constraints.get("word_limit") and not question.get("word_limit"):
-            errors.append(f"{question_type} requires an explicit word limit")
+        if (
+            not constraints.get("word_limit")
+            and not question.get("word_limit")
+            and not question.get("options")
+        ):
+            errors.append(
+                f"{question_type} requires an explicit word limit or supplied answer list"
+            )
     if not question.get("evidence_location"):
         warnings.append("Verified review quality requires an evidence location")
 

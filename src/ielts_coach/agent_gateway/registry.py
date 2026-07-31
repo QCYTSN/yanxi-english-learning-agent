@@ -4,6 +4,7 @@ from .base import AgentAdapter, describe_adapter
 from .manual import ManualAdapter
 from .mock import MockAdapter
 from .process import ClaudeProcessAdapter, OpenCodeProcessAdapter
+from .codex_app_server import CodexAppServerAdapter
 
 
 _ADAPTERS: dict[str, AgentAdapter] = {
@@ -11,6 +12,7 @@ _ADAPTERS: dict[str, AgentAdapter] = {
     "manual": ManualAdapter(),
     "opencode": OpenCodeProcessAdapter(),
     "claude": ClaudeProcessAdapter(),
+    "codex-managed": CodexAppServerAdapter(),
 }
 
 
@@ -37,3 +39,10 @@ def adapter_diagnostics() -> list[dict[str, object]]:
         }
         results.append({**descriptor, "diagnostics": details})
     return results
+
+
+def shutdown_adapters() -> None:
+    for adapter in _ADAPTERS.values():
+        shutdown = getattr(adapter, "shutdown", None)
+        if callable(shutdown):
+            shutdown()

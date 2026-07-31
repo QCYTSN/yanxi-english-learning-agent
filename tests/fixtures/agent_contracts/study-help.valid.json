@@ -1,0 +1,19 @@
+{
+  "contract_version": 1,
+  "module": "reading",
+  "request_kind": "guided_hint",
+  "evidence_status": "partial",
+  "answer_status": "withheld",
+  "summary": "先定位题干中的限定词，再回原文寻找同义改写。",
+  "sections": [
+    {
+      "title": "下一步",
+      "content": "比较题干中的因果方向与原文句子的主谓关系。"
+    }
+  ],
+  "evidence": [],
+  "limitations": [
+    "当前没有权威答案键。"
+  ],
+  "next_action": "先提交你的选择和定位句。"
+}

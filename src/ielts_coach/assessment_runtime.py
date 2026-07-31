@@ -959,7 +959,12 @@ def _build_snapshot(home: Path, pack: dict[str, Any]) -> dict[str, Any]:
                 ).fetchone()
                 if not row:
                     raise ValueError(f"Assessment Pack references unknown passage: {passage_id}")
-                passages[str(passage_id)] = json.loads(row["payload_json"])
+                passage = json.loads(row["payload_json"])
+                if isinstance(passage.get("body"), list):
+                    passage["body"] = "\n\n".join(
+                        str(value) for value in passage["body"]
+                    )
+                passages[str(passage_id)] = passage
     if pack.get("module") == "listening":
         for part in (pack.get("structure") or {}).get("parts", []):
             media_id = str(part.get("audio_media_id") or "")

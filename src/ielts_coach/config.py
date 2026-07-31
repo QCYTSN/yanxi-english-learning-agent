@@ -35,6 +35,7 @@ DEFAULT_PROFILE: dict[str, Any] = {
 DEFAULT_SETTINGS: dict[str, Any] = {
     "database_filename": "ielts.db", "weekly_report_days": 7,
     "recent_session_window": 3, "question_draw_limit": 100000,
+    "content_inbox_quota_bytes": 10 * 1024 * 1024 * 1024,
 }
 
 

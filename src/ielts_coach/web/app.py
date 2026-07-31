@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import hmac
 import json
-import secrets
 import threading
 import time
 import uuid
@@ -11,16 +10,18 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator
+from urllib.parse import quote
 
-from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .. import __version__
-from ..agent_contracts import CONTRACT_SKILLS, persist_agent_contract
-from ..agent_gateway import adapter_descriptors, adapter_diagnostics, get_adapter
+from ..agent_contracts import persist_agent_contract
+from ..agent_gateway import adapter_descriptors, adapter_diagnostics
 from ..agent_jobs import AgentJobManager
+from ..capabilities import capability_descriptors, capability_for_contract
 from ..assessment_builder import assemble_assessment_pack
 from ..assessment_runtime import (
     create_speaking_handoff as create_assessment_speaking_handoff,
@@ -43,7 +44,26 @@ from ..allocation import recommend_allocation
 from ..backups import create_backup, list_backups, restore_backup, verify_backup
 from ..config import load_profile
 from ..conformance import standard_profile
-from ..content_imports import create_import, imports as list_content_imports, process_import
+from ..content_imports import (
+    build_import_review_draft,
+    content_storage_status,
+    create_import,
+    delete_imports,
+    get_content_import_job,
+    import_file_path,
+    imports as list_content_imports,
+    ocr_capability,
+    prepare_import,
+    process_import,
+    queue_import_ocr,
+    queue_import_preparation,
+    read_import_review_draft,
+    recover_interrupted_imports,
+    run_import_ocr,
+    update_import_page_plan,
+    update_import_review_segment,
+)
+from ..content_audio import read_audio_review, update_audio_review
 from ..content_inventory import build_content_readiness, content_requirements
 from ..content_reviews import (
     get_target_review,
@@ -53,6 +73,23 @@ from ..content_reviews import (
     record_content_review,
 )
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
+from ..execution_profiles import update_execution_profile
+from ..external_agents import list_external_agent_profiles
+from ..model_providers import (
+    create_model_provider,
+    delete_model_provider,
+    list_model_providers,
+    list_provider_models,
+    provider_presets,
+    test_model_provider,
+    update_model_provider,
+)
+from ..ocr_runtime import (
+    install_ocr_runtime,
+    queue_ocr_runtime_install,
+    recover_ocr_runtime_install,
+)
+from ..private_corpus_builder import build_private_corpus_package
 from ..diagnostics import (
     attach_diagnostic_session,
     cancel_diagnostic,
@@ -76,15 +113,21 @@ from ..learning_orchestration import (
     list_practice_units,
     list_review_tasks,
     materialise_today_unit,
+    materialise_progress_action,
     start_review_task,
     sync_review_tasks,
 )
+from ..init_home import initialise_home
 from ..onboarding import complete_onboarding, onboarding_status, update_profile
 from ..paths import resolve_home
 from ..privacy import check_processing_permission
 from ..performance import RequestPerformanceMonitor, database_performance_status
 from ..profiles import build_learning_profile
-from ..progress_dashboard import build_progress_dashboard
+from ..progress_dashboard import (
+    build_progress_dashboard,
+    build_structured_weekly_report,
+    list_weekly_reports,
+)
 from ..question_bank import search_questions, show_question, show_reading_set
 from ..reports import build_summary, build_trend_report
 from ..rubrics import list_rubrics
@@ -100,6 +143,7 @@ from ..storage import (
     db_path,
     get_agent_run,
     get_idempotency_record,
+    get_media_asset,
     get_study_draft,
     list_agent_run_events,
     list_agent_runs,
@@ -115,10 +159,21 @@ from ..storage import (
     telemetry_summary,
     update_agent_run,
 )
+from ..study_threads import (
+    add_user_message,
+    create_study_thread,
+    delete_study_thread,
+    get_study_thread,
+    list_study_threads,
+    promote_study_thread,
+    rename_study_thread,
+    resolve_study_attachment,
+    study_thread_agent_context,
+    thread_media_ids,
+)
 from ..study_context import build_study_context
+from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
-    apply_reading_review,
-    apply_writing_review,
     record_reading_hint,
     submit_listening_attempt,
     submit_reading_answers,
@@ -131,6 +186,10 @@ from .auth import AuthState, COOKIE_NAME, require_session
 from .models import (
     AgentResultImport,
     AgentRunCreate,
+    CodexLoginStart,
+    ExecutionProfileUpdate,
+    ModelProviderCreate,
+    ModelProviderUpdate,
     AssessmentPackCreate,
     AssessmentNavigationSave,
     AssessmentResponseSave,
@@ -139,6 +198,11 @@ from .models import (
     AuthExchange,
     BackupRestore,
     ContentReviewCreate,
+    ContentImportPagePlanUpdate,
+    ContentImportDraftSegmentUpdate,
+    ContentImportAudioReviewUpdate,
+    ContentImportBatchDelete,
+    ContentImportOcrRequest,
     DiagnosticAttach,
     DiagnosticStart,
     DraftSave,
@@ -151,7 +215,10 @@ from .models import (
     SpeakingHandoffCreate,
     SpeakingReportImport,
     StoryCreate,
+    StudyThreadCreate,
+    StudyThreadUpdate,
     TodayMaterialise,
+    TodayIntent,
     WritingVersionSubmit,
     WritingAssessmentScore,
 )
@@ -244,19 +311,29 @@ def _public_media(asset: dict[str, Any]) -> dict[str, Any]:
 
 def _agent_media_refs(
     home: Path,
-    session_id: str,
+    session_id: str | None,
     *,
     adapter_id: str,
     image_input: bool,
     audio_input: bool,
+    media_ids: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     refs = []
-    for asset in list_media_assets(
-        home,
-        limit=20,
-        owner_type="session",
-        owner_id=session_id,
-    ):
+    assets = (
+        [
+            asset
+            for media_id in (media_ids or [])
+            if (asset := get_media_asset(home, media_id)) is not None
+        ]
+        if media_ids is not None
+        else list_media_assets(
+            home,
+            limit=20,
+            owner_type="session",
+            owner_id=session_id,
+        )
+    )
+    for asset in assets:
         supported = (
             asset["media_type"] == "image" and image_input
         ) or (
@@ -294,6 +371,84 @@ def _idempotency_key(value: str | None) -> str:
     return value
 
 
+def _resolve_learning_intent(
+    text: str,
+    active_session: dict[str, Any] | None,
+) -> dict[str, Any]:
+    query = " ".join(text.strip().lower().split())
+    continue_words = ("继续", "上次", "昨天", "接着", "修改", "resume", "continue")
+    if active_session and any(word in query for word in continue_words):
+        module = str(active_session["module"])
+        session_id = str(active_session["session_id"])
+        route = (
+            f"/practice/speaking?session={session_id}"
+            if module == "speaking"
+            else f"/practice/listening/{session_id}"
+            if module == "listening"
+            else f"/practice/{module}/{session_id}"
+        )
+        return {
+            "intent_version": 1,
+            "intent_kind": "resume",
+            "module": module,
+            "route": route,
+            "title": "继续上次学习",
+            "message": "已找到未完成练习，继续从上次位置开始。",
+            "resolved_by": "teaching_runtime",
+            "model_called": False,
+        }
+    modules = (
+        ("listening", ("听力", "听写", "listening", "听辨")),
+        ("reading", ("阅读", "passage", "reading", "判断题", "填空题")),
+        ("writing", ("写作", "作文", "task 1", "task1", "task 2", "task2", "writing")),
+        ("speaking", ("口语", "part 1", "part1", "part 2", "part2", "part 3", "part3", "speaking")),
+    )
+    for module, words in modules:
+        if any(word in query for word in words):
+            return {
+                "intent_version": 1,
+                "intent_kind": "open_module",
+                "module": module,
+                "route": f"/practice?module={module}",
+                "title": f"打开{_module_title(module)}练习",
+                "message": "先选择材料和练习模式，再由 Runtime 建立正式 Session。",
+                "resolved_by": "teaching_runtime",
+                "model_called": False,
+            }
+    if any(word in query for word in ("错题", "复习", "错误", "review")):
+        return {
+            "intent_version": 1,
+            "intent_kind": "review",
+            "module": None,
+            "route": "/history?view=review",
+            "title": "打开待复习内容",
+            "message": "优先处理到期错误和需要二次修改的学习记录。",
+            "resolved_by": "teaching_runtime",
+            "model_called": False,
+        }
+    if active_session:
+        return _resolve_learning_intent("继续", active_session)
+    return {
+        "intent_version": 1,
+        "intent_kind": "choose_practice",
+        "module": None,
+        "route": "/practice",
+        "title": "选择今天的练习",
+        "message": "暂未识别到具体科目，请从四科学习台选择。",
+        "resolved_by": "teaching_runtime",
+        "model_called": False,
+    }
+
+
+def _module_title(module: str) -> str:
+    return {
+        "listening": "听力",
+        "reading": "阅读",
+        "writing": "写作",
+        "speaking": "口语",
+    }[module]
+
+
 def create_app(
     *,
     home: Path | None = None,
@@ -308,7 +463,12 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        # A native first launch can enter the server process directly. Ensure
+        # schema and runtime resources exist before any recovery query.
+        initialise_home(target)
         agent_jobs.recover()
+        recover_interrupted_imports(target)
+        recover_ocr_runtime_install(target)
         try:
             yield
         finally:
@@ -402,6 +562,11 @@ def create_app(
                 "active_session": None,
                 "health": {"database": False, "configuration": False},
                 "agents": adapter_descriptors(),
+                "capabilities": capability_descriptors(),
+                "execution_profiles": [],
+                "model_providers": [],
+                "external_agents": [],
+                "ai_setup_required": True,
                 "storage": {
                     "data_home": str(target),
                     "database_path": str(db_path(target)),
@@ -411,6 +576,7 @@ def create_app(
         profile = load_profile(target)
         active_row = latest_active_session(target)
         active = dict(active_row) if active_row else None
+        model_providers = list_model_providers(target)
         return {
             "api_version": 1,
             "core_version": __version__,
@@ -428,6 +594,20 @@ def create_app(
             "active_session": active,
             "health": {"database": True, "configuration": True},
             "agents": adapter_descriptors(),
+            "capabilities": capability_descriptors(),
+            "execution_profiles": agent_jobs.broker.profiles(
+                include_diagnostics=False
+            ),
+            "model_providers": model_providers,
+            "external_agents": list_external_agent_profiles(
+                target, diagnostics=False
+            ),
+            "ai_setup_required": not any(
+                item["role"] == "primary"
+                and item["is_enabled"]
+                and item["available"]
+                for item in model_providers
+            ),
             "storage": {
                 "data_home": str(target),
                 "database_path": str(db_path(target)),
@@ -450,6 +630,12 @@ def create_app(
     @app.post("/api/v1/today/materialise", dependencies=[Depends(require_session)])
     def today_materialise(payload: TodayMaterialise) -> dict[str, Any]:
         return materialise_today_unit(target, payload.slot)
+
+    @app.post("/api/v1/today/intent", dependencies=[Depends(require_session)])
+    def today_intent(payload: TodayIntent) -> dict[str, Any]:
+        active_row = latest_active_session(target)
+        active_session = dict(active_row) if active_row else None
+        return _resolve_learning_intent(payload.text, active_session)
 
     @app.get("/api/v1/practice-units", dependencies=[Depends(require_session)])
     def practice_units(
@@ -616,6 +802,52 @@ def create_app(
     def content_imports_endpoint(limit: int = Query(100, ge=1, le=500)) -> list[dict[str, Any]]:
         return list_content_imports(target, limit=limit)
 
+    @app.get(
+        "/api/v1/content/storage",
+        dependencies=[Depends(require_session)],
+    )
+    def content_storage_endpoint() -> dict[str, Any]:
+        return content_storage_status(target)
+
+    @app.post(
+        "/api/v1/content/imports/batch-delete",
+        dependencies=[Depends(require_session)],
+    )
+    def content_imports_batch_delete_endpoint(
+        payload: ContentImportBatchDelete,
+    ) -> dict[str, Any]:
+        return delete_imports(
+            target,
+            payload.import_ids,
+            confirmed=payload.confirmed,
+        )
+
+    @app.get("/api/v1/content/imports/{import_id}", dependencies=[Depends(require_session)])
+    def content_import_endpoint(import_id: str) -> dict[str, Any]:
+        job = get_content_import_job(target, import_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Content import not found")
+        return job
+
+    @app.get(
+        "/api/v1/content/ocr-runtime",
+        dependencies=[Depends(require_session)],
+    )
+    def content_ocr_runtime_endpoint() -> dict[str, Any]:
+        return ocr_capability(target)
+
+    @app.post(
+        "/api/v1/content/ocr-runtime/install",
+        dependencies=[Depends(require_session)],
+    )
+    def content_ocr_runtime_install_endpoint(
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        status = queue_ocr_runtime_install(target)
+        if status["status"] == "queued":
+            background_tasks.add_task(install_ocr_runtime, target)
+        return status
+
     @app.post("/api/v1/content/imports", dependencies=[Depends(require_session)])
     async def create_content_import_endpoint(
         files: list[UploadFile] = File(...),
@@ -640,6 +872,162 @@ def create_app(
     @app.post("/api/v1/content/imports/{import_id}/process", dependencies=[Depends(require_session)])
     def process_content_import_endpoint(import_id: str) -> dict[str, Any]:
         return process_import(target, import_id)
+
+    @app.post(
+        "/api/v1/content/imports/{import_id}/structured-package",
+        dependencies=[Depends(require_session)],
+    )
+    def build_content_import_package_endpoint(import_id: str) -> dict[str, Any]:
+        return build_private_corpus_package(target, import_id)
+
+    @app.post("/api/v1/content/imports/{import_id}/prepare", dependencies=[Depends(require_session)])
+    def prepare_content_import_endpoint(
+        import_id: str,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        job = queue_import_preparation(target, import_id)
+        if job["status"] == "queued":
+            background_tasks.add_task(prepare_import, target, import_id)
+        return job
+
+    @app.patch("/api/v1/content/imports/{import_id}/page-plan", dependencies=[Depends(require_session)])
+    def update_content_import_page_plan_endpoint(
+        import_id: str,
+        payload: ContentImportPagePlanUpdate,
+    ) -> dict[str, Any]:
+        return update_import_page_plan(
+            target,
+            import_id,
+            stored_name=payload.stored_name,
+            pages=payload.pages,
+        )
+
+    @app.post(
+        "/api/v1/content/imports/{import_id}/ocr",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_ocr_endpoint(
+        import_id: str,
+        payload: ContentImportOcrRequest,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        job = queue_import_ocr(
+            target,
+            import_id,
+            stored_name=payload.stored_name,
+            pages=payload.pages,
+        )
+        if job["status"] == "ocr_queued":
+            background_tasks.add_task(
+                run_import_ocr,
+                target,
+                import_id,
+                stored_name=payload.stored_name,
+                pages=payload.pages,
+            )
+        return job
+
+    @app.post(
+        "/api/v1/content/imports/{import_id}/review-draft",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_review_draft_create_endpoint(
+        import_id: str,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        job = get_content_import_job(target, import_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Content import not found")
+        if job["status"] != "draft_building":
+            background_tasks.add_task(build_import_review_draft, target, import_id)
+        return job
+
+    @app.get(
+        "/api/v1/content/imports/{import_id}/review-draft",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_review_draft_endpoint(import_id: str) -> dict[str, Any]:
+        return read_import_review_draft(target, import_id)
+
+    @app.patch(
+        "/api/v1/content/imports/{import_id}/review-draft/segments/{segment_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_review_draft_segment_endpoint(
+        import_id: str,
+        segment_id: str,
+        payload: ContentImportDraftSegmentUpdate,
+    ) -> dict[str, Any]:
+        return update_import_review_segment(
+            target,
+            import_id,
+            segment_id=segment_id,
+            text=payload.text,
+            review_status=payload.review_status,
+            expected_revision=payload.expected_revision,
+        )
+
+    @app.get(
+        "/api/v1/content/imports/{import_id}/audio-review/{stored_name}",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_audio_review_endpoint(
+        import_id: str,
+        stored_name: str,
+    ) -> dict[str, Any]:
+        return read_audio_review(target, import_id, stored_name)
+
+    @app.put(
+        "/api/v1/content/imports/{import_id}/audio-review",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_audio_review_update_endpoint(
+        import_id: str,
+        payload: ContentImportAudioReviewUpdate,
+    ) -> dict[str, Any]:
+        return update_audio_review(
+            target,
+            import_id,
+            stored_name=payload.stored_name,
+            transcript=payload.transcript,
+            cues=[cue.model_dump() for cue in payload.cues],
+            duration_seconds=payload.duration_seconds,
+            review_status=payload.review_status,
+            expected_revision=payload.expected_revision,
+        )
+
+    @app.get(
+        "/api/v1/content/imports/{import_id}/files/{stored_name}/content",
+        dependencies=[Depends(require_session)],
+    )
+    def content_import_file_endpoint(import_id: str, stored_name: str) -> Response:
+        job = get_content_import_job(target, import_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Content import not found")
+        path = import_file_path(target, job, stored_name)
+        file_record = next(
+            item
+            for item in job["files"]
+            if item["stored_name"] == stored_name
+        )
+        display_name = str(file_record.get("original_name") or stored_name)
+        media_type = file_record.get("mime_type") or {
+            "pdf": "application/pdf",
+            "audio": "application/octet-stream",
+            "image": "application/octet-stream",
+        }.get(file_record.get("file_kind"), "application/octet-stream")
+        return FileResponse(
+            path,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": (
+                    "inline; filename*=UTF-8''"
+                    f"{quote(display_name, safe='')}"
+                ),
+                "Cache-Control": "private, no-store",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
     @app.get("/api/v1/content-reviews", dependencies=[Depends(require_session)])
     def content_reviews_endpoint(
@@ -692,6 +1080,7 @@ def create_app(
         module: str | None = None,
         practice_mode: str | None = None,
         conformance_status: str | None = None,
+        review_mode: bool = False,
         limit: int = Query(100, ge=1, le=500),
         offset: int = Query(0, ge=0),
     ) -> list[dict[str, Any]]:
@@ -700,6 +1089,7 @@ def create_app(
             module=module,
             practice_mode=practice_mode,
             conformance_status=conformance_status,
+            learner_ready=not review_mode,
             limit=limit,
             offset=offset,
         )
@@ -956,6 +1346,28 @@ def create_app(
         payload: SessionCreate,
         idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
     ) -> dict[str, Any]:
+        if payload.question_id:
+            selected_question = show_question(target, payload.question_id)
+            if not selected_question:
+                raise ValueError(f"Unknown question: {payload.question_id}")
+            if (
+                selected_question.get("review_status") != "reviewed"
+                or selected_question.get("conformance_status") != "verified"
+            ):
+                raise ValueError(
+                    "This question has not completed local review and cannot enter learner practice"
+                )
+        if payload.assessment_pack_id:
+            selected_pack = get_assessment_pack(target, payload.assessment_pack_id)
+            if not selected_pack:
+                raise ValueError(f"Unknown assessment pack: {payload.assessment_pack_id}")
+            if (
+                selected_pack.get("review_status") != "reviewed"
+                or selected_pack.get("conformance_status") != "verified"
+            ):
+                raise ValueError(
+                    "This assessment pack has not completed local review and cannot start"
+                )
         path = start_session(
             target,
             payload.module,
@@ -1191,10 +1603,12 @@ def create_app(
     def questions(
         module: str | None = None,
         task: str | None = None,
+        part: int | None = Query(default=None, ge=1, le=3),
         question_type: str | None = None,
         topic: str | None = None,
         passage_id: str | None = None,
         query: str | None = None,
+        review_mode: bool = False,
         limit: int = Query(50, ge=1, le=500),
         offset: int = Query(0, ge=0),
     ) -> list[dict[str, Any]]:
@@ -1202,10 +1616,12 @@ def create_app(
             target,
             module=module,
             task=task,
+            part=part,
             question_type=question_type,
             topic=topic,
             passage_id=passage_id,
             query=query,
+            learner_ready=not review_mode,
             limit=limit,
             offset=offset,
         )
@@ -1320,6 +1736,26 @@ def create_app(
     def progress_dashboard(days: int = Query(90, ge=7, le=730)) -> dict[str, Any]:
         return build_progress_dashboard(target, days=days)
 
+    @app.get("/api/v1/progress/weekly", dependencies=[Depends(require_session)])
+    def progress_weekly() -> dict[str, Any]:
+        return build_structured_weekly_report(target, persist=True)
+
+    @app.get(
+        "/api/v1/progress/weekly/history",
+        dependencies=[Depends(require_session)],
+    )
+    def progress_weekly_history(
+        limit: int = Query(12, ge=1, le=104),
+    ) -> list[dict[str, Any]]:
+        return list_weekly_reports(target, limit=limit)
+
+    @app.post(
+        "/api/v1/progress/actions/{action_id}/start",
+        dependencies=[Depends(require_session)],
+    )
+    def progress_action_start(action_id: str) -> dict[str, Any]:
+        return materialise_progress_action(target, action_id)
+
     @app.get("/api/v1/coaching-artifacts", dependencies=[Depends(require_session)])
     def coaching_artifacts(
         artifact_type: str | None = None,
@@ -1329,9 +1765,323 @@ def create_app(
             target, artifact_type=artifact_type, limit=limit
         )
 
+    @app.get("/api/v1/study-threads", dependencies=[Depends(require_session)])
+    def study_threads_endpoint(
+        limit: int = Query(30, ge=1, le=100),
+    ) -> list[dict[str, Any]]:
+        return list_study_threads(target, limit=limit)
+
+    @app.post("/api/v1/study-threads", dependencies=[Depends(require_session)])
+    def study_thread_create_endpoint(
+        payload: StudyThreadCreate,
+    ) -> dict[str, Any]:
+        return create_study_thread(
+            target,
+            title=payload.title,
+            module=payload.module,
+            model_provider_id=payload.model_provider_id,
+            source_context=payload.source_context,
+        )
+
+    @app.get(
+        "/api/v1/study-threads/{thread_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_endpoint(thread_id: str) -> dict[str, Any]:
+        return get_study_thread(target, thread_id)
+
+    @app.patch(
+        "/api/v1/study-threads/{thread_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_update_endpoint(
+        thread_id: str,
+        payload: StudyThreadUpdate,
+    ) -> dict[str, Any]:
+        return rename_study_thread(target, thread_id, title=payload.title)
+
+    @app.delete(
+        "/api/v1/study-threads/{thread_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_delete_endpoint(thread_id: str) -> dict[str, Any]:
+        return delete_study_thread(target, thread_id)
+
+    @app.post(
+        "/api/v1/study-threads/{thread_id}/messages",
+        dependencies=[Depends(require_session)],
+    )
+    async def study_thread_message_endpoint(
+        thread_id: str,
+        content: str = Form(..., min_length=1, max_length=20_000),
+        context_json: str = Form("{}"),
+        files: list[UploadFile] | None = File(default=None),
+    ) -> dict[str, Any]:
+        try:
+            context = json.loads(context_json)
+        except json.JSONDecodeError as exc:
+            raise ValueError("context_json must be valid JSON") from exc
+        if not isinstance(context, dict):
+            raise ValueError("context_json must contain an object")
+        payloads: list[tuple[str, bytes, str | None]] = []
+        for item in files or []:
+            payloads.append(
+                (
+                    item.filename or "attachment",
+                    await item.read(),
+                    item.content_type,
+                )
+            )
+            await item.close()
+        return add_user_message(
+            target,
+            thread_id,
+            content=content,
+            files=payloads,
+            context=context,
+        )
+
+    @app.get(
+        "/api/v1/study-threads/{thread_id}/attachments/{attachment_id}/content",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_attachment_endpoint(
+        thread_id: str,
+        attachment_id: str,
+    ) -> FileResponse:
+        thread = get_study_thread(target, thread_id)
+        attachment = next(
+            (
+                item
+                for item in thread["attachments"]
+                if item["attachment_id"] == attachment_id
+            ),
+            None,
+        )
+        if not attachment:
+            raise HTTPException(status_code=404, detail="Attachment not found")
+        path = resolve_study_attachment(target, attachment)
+        return FileResponse(
+            path,
+            media_type=attachment.get("mime_type") or "application/octet-stream",
+            filename=str(attachment["original_name"]),
+            headers={"Cache-Control": "private, no-store"},
+        )
+
+    @app.post(
+        "/api/v1/study-threads/{thread_id}/promote",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_promote_endpoint(
+        thread_id: str,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        created = promote_study_thread(target, thread_id)
+        queued = queue_import_preparation(target, str(created["import_id"]))
+        if queued["status"] == "queued":
+            background_tasks.add_task(
+                prepare_import, target, str(created["import_id"])
+            )
+        return queued
+
     @app.get("/api/v1/agents", dependencies=[Depends(require_session)])
     def agents() -> list[dict[str, Any]]:
         return adapter_descriptors()
+
+    @app.get("/api/v1/capabilities", dependencies=[Depends(require_session)])
+    def capabilities() -> list[dict[str, Any]]:
+        return capability_descriptors()
+
+    @app.get(
+        "/api/v1/model-provider-presets",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_presets() -> list[dict[str, Any]]:
+        return provider_presets()
+
+    @app.get(
+        "/api/v1/model-providers",
+        dependencies=[Depends(require_session)],
+    )
+    def model_providers(
+        diagnostics: bool = Query(default=False),
+    ) -> list[dict[str, Any]]:
+        return list_model_providers(target, diagnostics=diagnostics)
+
+    @app.post(
+        "/api/v1/model-providers",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_create(
+        payload: ModelProviderCreate,
+    ) -> dict[str, Any]:
+        values = (
+            payload.model_dump()
+            if hasattr(payload, "model_dump")
+            else payload.dict()
+        )
+        return create_model_provider(target, **values)
+
+    @app.patch(
+        "/api/v1/model-providers/{provider_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_update(
+        provider_id: str,
+        payload: ModelProviderUpdate,
+    ) -> dict[str, Any]:
+        fields_set = set(
+            getattr(
+                payload,
+                "model_fields_set",
+                getattr(payload, "__fields_set__", set()),
+            )
+        )
+        raw_values = (
+            payload.model_dump()
+            if hasattr(payload, "model_dump")
+            else payload.dict()
+        )
+        values = {
+            key: value
+            for key, value in raw_values.items()
+            if key in fields_set or key == "clear_api_key"
+        }
+        return update_model_provider(target, provider_id, **values)
+
+    @app.delete(
+        "/api/v1/model-providers/{provider_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_delete(provider_id: str) -> dict[str, bool]:
+        delete_model_provider(target, provider_id)
+        return {"deleted": True}
+
+    @app.post(
+        "/api/v1/model-providers/{provider_id}/test",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_test(provider_id: str) -> dict[str, Any]:
+        return test_model_provider(target, provider_id)
+
+    @app.get(
+        "/api/v1/model-providers/{provider_id}/models",
+        dependencies=[Depends(require_session)],
+    )
+    def model_provider_models(provider_id: str) -> list[dict[str, Any]]:
+        return list_provider_models(target, provider_id)
+
+    @app.get(
+        "/api/v1/external-agents",
+        dependencies=[Depends(require_session)],
+    )
+    def external_agents(
+        diagnostics: bool = Query(default=False),
+    ) -> list[dict[str, Any]]:
+        return list_external_agent_profiles(target, diagnostics=diagnostics)
+
+    @app.get(
+        "/api/v1/execution-profiles",
+        dependencies=[Depends(require_session)],
+    )
+    def execution_profiles(
+        diagnostics: bool = Query(default=True),
+    ) -> list[dict[str, Any]]:
+        return agent_jobs.broker.profiles(
+            include_diagnostics=diagnostics
+        )
+
+    @app.patch(
+        "/api/v1/execution-profiles/{profile_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def execution_profile_update(
+        profile_id: str, payload: ExecutionProfileUpdate
+    ) -> dict[str, Any]:
+        current = agent_jobs.broker.profile(profile_id)
+        fields_set = set(
+            getattr(payload, "model_fields_set", getattr(payload, "__fields_set__", set()))
+        )
+        return update_execution_profile(
+            target,
+            profile_id,
+            model_id=(
+                payload.model_id
+                if "model_id" in fields_set
+                else current.get("model_id")
+            ),
+            reasoning_effort=(
+                payload.reasoning_effort
+                if "reasoning_effort" in fields_set
+                else current.get("reasoning_effort")
+            ),
+            is_enabled=payload.is_enabled,
+            is_default=payload.is_default,
+            config=payload.config,
+        )
+
+    @app.get(
+        "/api/v1/execution-profiles/codex-managed/runtime",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_runtime() -> dict[str, Any]:
+        adapter, _ = agent_jobs.broker.managed_codex()
+        return adapter.runtime_status(target)
+
+    @app.post(
+        "/api/v1/execution-profiles/codex-managed/runtime/install",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_runtime_install() -> dict[str, Any]:
+        adapter, _ = agent_jobs.broker.managed_codex()
+        return adapter.install_runtime(target)
+
+    @app.get(
+        "/api/v1/execution-profiles/codex-managed/account",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_account() -> dict[str, Any]:
+        adapter, profile = agent_jobs.broker.managed_codex()
+        return adapter.account(target, profile)
+
+    @app.get(
+        "/api/v1/execution-profiles/codex-managed/models",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_models() -> dict[str, Any]:
+        adapter, profile = agent_jobs.broker.managed_codex()
+        return adapter.models(target, profile)
+
+    @app.get(
+        "/api/v1/execution-profiles/codex-managed/rate-limits",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_rate_limits() -> dict[str, Any]:
+        adapter, profile = agent_jobs.broker.managed_codex()
+        return adapter.rate_limits(target, profile)
+
+    @app.post(
+        "/api/v1/execution-profiles/codex-managed/login",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_login(payload: CodexLoginStart) -> dict[str, Any]:
+        adapter, profile = agent_jobs.broker.managed_codex()
+        # The key is passed directly to the isolated Codex runtime. It is never
+        # persisted in the IELTS database, settings or Agent run envelope.
+        return adapter.login(
+            target,
+            profile,
+            login_type=payload.login_type,
+            api_key=payload.api_key,
+        )
+
+    @app.post(
+        "/api/v1/execution-profiles/codex-managed/logout",
+        dependencies=[Depends(require_session)],
+    )
+    def codex_managed_logout() -> dict[str, Any]:
+        adapter, profile = agent_jobs.broker.managed_codex()
+        return adapter.logout(target, profile)
 
     @app.get("/api/v1/agent-runs", dependencies=[Depends(require_session)])
     def agent_runs(
@@ -1350,8 +2100,33 @@ def create_app(
         idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
     ) -> dict[str, Any]:
         idempotency = _idempotency_key(idempotency)
+        prepared = agent_jobs.broker.prepare(
+            model_provider_id=payload.model_provider_id,
+            execution_profile_id=payload.execution_profile_id,
+            legacy_adapter_id=payload.adapter_id,
+        )
+        profile = prepared.profile
+        adapter = prepared.adapter
+        adapter_id = str(profile["backend_id"])
+        primary_provider = prepared.primary_model_provider
+        capability = capability_for_contract(payload.output_contract)
+        skill_envelope = compile_skill_envelope(capability)
+        is_study_help = payload.output_contract == "study-help@1"
+        if is_study_help and (
+            not payload.study_thread_id or not payload.user_message_id
+        ):
+            raise ValueError(
+                "Study help requires a learning thread and user message"
+            )
+        if not is_study_help and not payload.study_session_id:
+            raise ValueError("This IELTS capability requires a Study Session")
+        context_identity = (
+            f"thread:{payload.study_thread_id}:message:{payload.user_message_id}"
+            if is_study_help
+            else f"session:{payload.study_session_id}"
+        )
         scope = (
-            f"agent-run:{payload.study_session_id}:{payload.adapter_id}:"
+            f"agent-run:{context_identity}:{profile['profile_id']}:"
             f"{payload.output_contract}:{payload.action}"
         )
         replay = get_idempotency_record(target, scope, idempotency)
@@ -1359,16 +2134,38 @@ def create_app(
             existing = get_agent_run(target, str(replay["response"]["run_id"]))
             if existing:
                 return existing
-        session = _session_or_404(target, payload.study_session_id)
-        adapter = get_adapter(payload.adapter_id)
+        session = (
+            _session_or_404(target, str(payload.study_session_id))
+            if payload.study_session_id
+            else None
+        )
+        thread_context = (
+            study_thread_agent_context(
+                target,
+                thread_id=str(payload.study_thread_id),
+                message_id=str(payload.user_message_id),
+            )
+            if is_study_help
+            else None
+        )
         capabilities = adapter.probe()
         adapter_identity = adapter.identity()
+        selected_model_id = (
+            profile.get("model_id")
+            or payload.model_id
+            or adapter_identity.model_id
+        )
+        selected_model_name = (
+            payload.model_display_name
+            or selected_model_id
+            or adapter_identity.model_display_name
+        )
         permission = check_processing_permission(
             target,
             remote_processing=capabilities.remote_processing,
             explicit_consent=payload.explicit_consent,
             source_type=payload.source_type or ("personal" if capabilities.remote_processing else None),
-            question_id=session.get("question_id"),
+            question_id=session.get("question_id") if session else None,
         )
         if not permission["allowed"]:
             raise PrivateProcessingBlockedError(
@@ -1378,17 +2175,27 @@ def create_app(
         media_refs = _agent_media_refs(
             target,
             payload.study_session_id,
-            adapter_id=payload.adapter_id,
+            adapter_id=adapter_id,
             image_input=capabilities.image_input,
             audio_input=capabilities.audio_input,
+            media_ids=(
+                thread_media_ids(
+                    target,
+                    str(payload.study_thread_id),
+                    message_id=str(payload.user_message_id),
+                )
+                if is_study_help
+                else None
+            ),
         )
-        canonical_session = dict(session)
+        canonical_session = dict(session or thread_context or {})
         canonical_session["registered_media"] = media_refs
         canonical_session["media_evidence_sufficient"] = not media_refs or all(
             item["available_to_agent"] for item in media_refs
         )
         if (
             payload.output_contract == "writing-mock-review@1"
+            and session
             and session.get("assessment_run_id")
         ):
             assessment = get_assessment_run(
@@ -1427,51 +2234,110 @@ def create_app(
             }
         run_id = f"run_{uuid.uuid4().hex}"
         request_envelope = {
-            "request_version": 1,
+            "request_version": 3,
             "request_id": run_id,
             "study_session_id": payload.study_session_id,
-            "skill": CONTRACT_SKILLS[payload.output_contract],
+            "study_thread_id": payload.study_thread_id,
+            "user_message_id": payload.user_message_id,
+            "capability_id": capability.capability_id,
+            "skill": capability.skill,
+            "skill_envelope": skill_envelope.descriptor(),
             "action": payload.action,
-            "context_ref": f"session:{payload.study_session_id}:revision:{session.get('revision', 0)}",
+            "context_ref": (
+                context_identity
+                if is_study_help
+                else f"{context_identity}:revision:{session.get('revision', 0) if session else 0}"
+            ),
             "payload_refs": [
-                f"session:{payload.study_session_id}",
-                *([f"question:{session['question_id']}"] if session.get("question_id") else []),
+                context_identity,
+                *(
+                    [f"question:{session['question_id']}"]
+                    if session and session.get("question_id")
+                    else []
+                ),
                 *[f"media:{item['media_id']}" for item in media_refs],
             ],
             "output_contract": payload.output_contract,
+            "material_evidence_sufficient": bool(
+                thread_context
+                and thread_context.get("material_evidence_sufficient")
+            ),
             "privacy_decision": permission,
+            "execution_profile": {
+                "profile_id": profile["profile_id"],
+                "display_name": profile["display_name"],
+                "backend_kind": profile["backend_kind"],
+                "backend_id": profile["backend_id"],
+                "transport": profile["transport"],
+                "auth_mode": profile["auth_mode"],
+                "model_id": selected_model_id,
+                "reasoning_effort": profile.get("reasoning_effort"),
+                "config": profile.get("config") or {},
+            },
+            "model_provider_route": [
+                {
+                    "provider_id": item["provider_id"],
+                    "display_name": item["display_name"],
+                    "provider_kind": item["provider_kind"],
+                    "transport": item["transport"],
+                    "auth_mode": item["auth_mode"],
+                    "model_id": item.get("model_id"),
+                    "role": item["role"],
+                }
+                for item in prepared.model_route
+            ],
             "agent_identity": {
-                "adapter_id": payload.adapter_id,
+                "adapter_id": adapter_id,
                 "agent_provider": payload.agent_provider or adapter_identity.agent_provider,
                 "agent_version": payload.agent_version or adapter_identity.agent_version,
-                "model_id": payload.model_id or adapter_identity.model_id,
-                "model_display_name": payload.model_display_name or adapter_identity.model_display_name,
+                "model_id": selected_model_id,
+                "model_display_name": selected_model_name,
                 "agent_session_id": payload.agent_session_id,
                 "launcher_kind": adapter_identity.launcher_kind,
             },
             "media_refs": media_refs,
-            "canonical_session": canonical_session if payload.adapter_id != "mock" else None,
+            "canonical_session": (
+                canonical_session if profile["backend_kind"] != "mock" else None
+            ),
         }
         run = create_agent_run(
             target,
             {
                 "run_id": run_id,
                 "study_session_id": payload.study_session_id,
-                "adapter_id": payload.adapter_id,
+                "adapter_id": adapter_id,
+                "capability_id": capability.capability_id,
+                "execution_profile_id": (
+                    None if primary_provider else profile["profile_id"]
+                ),
+                "model_provider_id": (
+                    primary_provider["provider_id"]
+                    if primary_provider
+                    else None
+                ),
+                "backend_kind": profile["backend_kind"],
+                "transport": profile["transport"],
+                "auth_mode": profile["auth_mode"],
                 "agent_provider": payload.agent_provider or adapter_identity.agent_provider,
                 "agent_version": payload.agent_version or adapter_identity.agent_version,
-                "model_id": payload.model_id or adapter_identity.model_id,
-                "model_display_name": payload.model_display_name or adapter_identity.model_display_name,
+                "model_id": selected_model_id,
+                "model_display_name": selected_model_name,
                 "agent_session_id": payload.agent_session_id,
                 "launcher_kind": adapter_identity.launcher_kind,
                 "capabilities": capabilities.__dict__,
                 "calibration_status": adapter_identity.calibration_status,
                 "action": payload.action,
                 "output_contract": payload.output_contract,
-                "base_revision": int(session.get("revision", 0)),
+                "base_revision": (
+                    int(session.get("revision", 0)) if session else None
+                ),
                 "status": "queued",
                 "request": request_envelope,
                 "timeout_seconds": payload.timeout_seconds,
+                "skill_hash": skill_envelope.source_hash,
+                "inference_route": [
+                    item["provider_id"] for item in prepared.model_route
+                ],
             },
         )
         append_agent_run_event(target, run_id, "status", {"stage": "queued", "label": "Preparing feedback"})
@@ -1608,6 +2474,16 @@ def create_app(
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str) -> Response:
+        if path == "api" or path.startswith("api/"):
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": {
+                        "code": "API_ENDPOINT_NOT_FOUND",
+                        "message": "API endpoint not found.",
+                    }
+                },
+            )
         index = selected_static / "index.html"
         if index.is_file():
             return FileResponse(index)

@@ -1,16 +1,16 @@
 # Architecture
 
+The CLI/Skill surface and browser application are two clients of the same
+authoritative IELTS Runtime:
+
 ```text
-User
-  ↓
-Claude Code / Codex / OpenCode
-  ↓ loads one of six Skills
-Skill workflow
-  ↓ invokes
-ielts-coach CLI
-  ↓ reads/writes
-SQLite + local Markdown/YAML + user-owned corpus files
+Terminal Agent -> Skill -> ielts-coach CLI ------┐
+                                                 ├-> IELTS Runtime -> local data
+Browser UI -> Capability -> Inference Broker ----┘
 ```
+
+Provider/runtime details and the Codex managed-runtime boundary are defined in
+[`ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md).
 
 ## Skill layer
 
@@ -103,4 +103,6 @@ module, task, type, topic, source, corpus and completed-question exclusion.
 
 The system stores official/reference scores and model predictions supplied by
 the user, then reports absolute error. It does not bundle official calibration
-content and does not run a hidden model API.
+content and does not run a hidden model API. Any managed runtime or external
+Agent connection is explicit, attributable and selected through an Execution
+Profile.

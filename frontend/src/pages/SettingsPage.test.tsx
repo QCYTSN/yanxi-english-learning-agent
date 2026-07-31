@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { normaliseCodexModels } from '../components/codexModels'
 import { normalisePerformance } from './settingsPerformance'
 
 describe('SettingsPage performance compatibility', () => {
@@ -15,5 +16,22 @@ describe('SettingsPage performance compatibility', () => {
       nativeAccelerationEnabled: false,
       nativeAccelerationReason: '当前后端未提供原生加速诊断。',
     })
+  })
+})
+
+describe('Codex model response compatibility', () => {
+  it('normalises current app-server reasoning effort objects', () => {
+    expect(normaliseCodexModels({
+      data: [{
+        id: 'gpt-example',
+        supportedReasoningEfforts: [
+          { reasoningEffort: 'low' },
+          { reasoningEffort: 'high' },
+        ],
+      }],
+    })).toEqual([{
+      id: 'gpt-example',
+      supportedReasoningEfforts: ['low', 'high'],
+    }])
   })
 })

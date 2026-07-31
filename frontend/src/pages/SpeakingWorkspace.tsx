@@ -23,12 +23,18 @@ type SpeakingReport = {
 }
 type SpeakingSession = SessionSummary & { speaking_handoff?: Handoff; speaking_report?: SpeakingReport }
 type Story = { story_id: string; title: string; events: string[]; usable_topics: string[]; expressions?: string[] }
+type SpeakingMode = 'full_mock' | 'part1' | 'part2' | 'part3'
 
 export function SpeakingWorkspace() {
   const [params, setParams] = useSearchParams()
   const sessionId = params.get('session')
   const practiceUnitId = params.get('practice_unit_id')
-  const [mode, setMode] = useState<'full_mock' | 'part2'>('full_mock')
+  const requestedMode = params.get('mode')
+  const initialMode: SpeakingMode = ['part1', 'part2', 'part3'].includes(requestedMode ?? '')
+    ? requestedMode as SpeakingMode
+    : 'full_mock'
+  const requestedQuestionIds = (params.get('question_ids') ?? '').split(',').filter(Boolean)
+  const [mode, setMode] = useState<SpeakingMode>(initialMode)
   const [provider, setProvider] = useState('ChatGPT Voice / Live')
   const [session, setSession] = useState<SpeakingSession | null>(null)
   const [copied, setCopied] = useState(false)
@@ -46,7 +52,12 @@ export function SpeakingWorkspace() {
     mutationFn: () => api<SpeakingSession>('/api/v1/speaking/handoffs', {
       method: 'POST',
       headers: { 'Idempotency-Key': idempotencyKey() },
-      body: jsonBody({ mode, provider, practice_unit_id: practiceUnitId }),
+      body: jsonBody({
+        mode,
+        provider,
+        question_ids: requestedQuestionIds.length ? requestedQuestionIds : null,
+        practice_unit_id: practiceUnitId,
+      }),
     }),
     onSuccess: (value) => {
       setSession(value)
@@ -87,7 +98,7 @@ export function SpeakingWorkspace() {
         <section className="settings-section">
           <h2>生成语音练习任务包</h2>
           <div className="handoff-options">
-            <label>练习模式<select value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}><option value="full_mock">完整 Part 1–3 流程</option><option value="part2">只练 Part 2</option></select></label>
+            <label>练习模式<select value={mode} onChange={(event) => setMode(event.target.value as SpeakingMode)}><option value="full_mock">完整 Part 1–3 流程</option><option value="part1">Part 1 日常问答</option><option value="part2">Part 2 个人陈述</option><option value="part3">Part 3 深入讨论</option></select></label>
             <label>外部主持方<input value={provider} onChange={(event) => setProvider(event.target.value)} /></label>
           </div>
           <button className="button primary" onClick={() => handoff.mutate()} disabled={handoff.isPending}><Mic2 size={18} />生成任务包</button>
@@ -100,7 +111,7 @@ export function SpeakingWorkspace() {
           <div className="speaking-grid">
             <section className="settings-section">
               <p className="eyebrow">Question set</p>
-              <h2>{packageData.mode === 'part2' ? 'Part 2 专项' : packageData.conformance_status === 'verified' ? '完整 IELTS Speaking Mock' : '完整 Speaking 流程练习'}</h2>
+              <h2>{packageData.mode.startsWith('part') ? `${packageData.mode.replace('part', 'Part ')} 专项` : packageData.conformance_status === 'verified' ? '完整 IELTS Speaking 模考' : '完整 Speaking 流程练习'}</h2>
               <ConformanceBadge status={packageData.conformance_status} mode={packageData.practice_mode} />
               {packageData.conformance_status !== 'verified' && <p className="conformance-note">题目流程符合 Part 1–3 结构，但题库尚未全部完成人工复核，因此不会换算正式 Band。</p>}
               <div className="speaking-question-list">{packageData.questions.map((question) => <article key={question.question_id}><span>Part {question.part}</span><p>{question.content}</p></article>)}</div>

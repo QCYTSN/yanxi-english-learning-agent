@@ -11,7 +11,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 16
+SCHEMA_VERSION = 20
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -419,10 +419,87 @@ CREATE TABLE IF NOT EXISTS media_bindings (
 CREATE INDEX IF NOT EXISTS idx_media_bindings_owner
 ON media_bindings(owner_type,owner_id,created_at DESC);
 
+CREATE TABLE IF NOT EXISTS execution_profiles (
+    profile_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    backend_kind TEXT NOT NULL CHECK(
+        backend_kind IN (
+            'managed_runtime','api_model','local_http_model',
+            'external_agent','manual','mock'
+        )
+    ),
+    backend_id TEXT NOT NULL,
+    transport TEXT NOT NULL,
+    auth_mode TEXT NOT NULL DEFAULT 'none',
+    model_id TEXT,
+    reasoning_effort TEXT,
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    config_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_execution_profiles_default
+ON execution_profiles(is_default) WHERE is_default=1;
+
+CREATE TABLE IF NOT EXISTS model_providers (
+    provider_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    provider_kind TEXT NOT NULL CHECK(
+        provider_kind IN (
+            'codex_oauth_bridge','openai_compatible','local_http'
+        )
+    ),
+    transport TEXT NOT NULL CHECK(
+        transport IN ('codex_app_server','http')
+    ),
+    auth_mode TEXT NOT NULL CHECK(
+        auth_mode IN ('oauth','api_key','none')
+    ),
+    base_url TEXT,
+    model_id TEXT,
+    reasoning_effort TEXT,
+    role TEXT NOT NULL DEFAULT 'disabled' CHECK(
+        role IN ('primary','fallback','disabled')
+    ),
+    fallback_order INTEGER,
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    credential_ref TEXT,
+    config_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_model_providers_primary
+ON model_providers(role) WHERE role='primary' AND is_enabled=1;
+CREATE INDEX IF NOT EXISTS idx_model_providers_route
+ON model_providers(role,fallback_order,display_name);
+
+CREATE TABLE IF NOT EXISTS external_agent_profiles (
+    agent_profile_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    adapter_id TEXT NOT NULL,
+    purpose TEXT NOT NULL DEFAULT 'material_operations' CHECK(
+        purpose IN (
+            'material_operations','format_conversion',
+            'corpus_maintenance','developer_tools','manual_handoff'
+        )
+    ),
+    is_enabled INTEGER NOT NULL DEFAULT 1,
+    config_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS agent_runs (
     run_id TEXT PRIMARY KEY,
     study_session_id TEXT,
     adapter_id TEXT NOT NULL,
+    capability_id TEXT,
+    execution_profile_id TEXT,
+    model_provider_id TEXT,
+    backend_kind TEXT NOT NULL DEFAULT 'external_agent',
+    transport TEXT,
+    auth_mode TEXT,
     agent_provider TEXT,
     agent_version TEXT,
     model_id TEXT,
@@ -448,7 +525,11 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     heartbeat_at TEXT,
     recovery_action TEXT,
     execution_ref TEXT,
-    FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+    skill_hash TEXT,
+    inference_route_json TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY(execution_profile_id) REFERENCES execution_profiles(profile_id) ON DELETE SET NULL,
+    FOREIGN KEY(model_provider_id) REFERENCES model_providers(provider_id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_agent_runs_session ON agent_runs(study_session_id,created_at DESC);
 
@@ -476,6 +557,56 @@ CREATE TABLE IF NOT EXISTS coaching_artifacts (
 );
 CREATE INDEX IF NOT EXISTS idx_coaching_artifacts_type
 ON coaching_artifacts(artifact_type,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS study_threads (
+    thread_id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    module TEXT NOT NULL DEFAULT 'mixed',
+    status TEXT NOT NULL DEFAULT 'active',
+    model_provider_id TEXT,
+    source_context_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(model_provider_id) REFERENCES model_providers(provider_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_study_threads_updated
+ON study_threads(status,updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS study_messages (
+    message_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('user','assistant','system')),
+    content TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'complete',
+    context_json TEXT NOT NULL DEFAULT '{}',
+    agent_run_id TEXT,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
+    FOREIGN KEY(agent_run_id) REFERENCES agent_runs(run_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_study_messages_thread
+ON study_messages(thread_id,created_at);
+
+CREATE TABLE IF NOT EXISTS study_thread_attachments (
+    attachment_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    message_id TEXT,
+    original_name TEXT NOT NULL,
+    stored_name TEXT,
+    mime_type TEXT,
+    file_kind TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    sha256 TEXT NOT NULL,
+    media_id TEXT,
+    extracted_text TEXT,
+    extraction_status TEXT NOT NULL DEFAULT 'not_applicable',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
+    FOREIGN KEY(message_id) REFERENCES study_messages(message_id) ON DELETE SET NULL,
+    FOREIGN KEY(media_id) REFERENCES media_assets(media_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_study_attachments_thread
+ON study_thread_attachments(thread_id,created_at);
 
 CREATE TABLE IF NOT EXISTS ui_settings (
     key TEXT PRIMARY KEY,
@@ -630,6 +761,20 @@ ON review_tasks(status,due_at,priority DESC,created_at);
 CREATE INDEX IF NOT EXISTS idx_review_tasks_session
 ON review_tasks(session_id,status);
 
+CREATE TABLE IF NOT EXISTS weekly_reports (
+    report_id TEXT PRIMARY KEY,
+    period_key TEXT NOT NULL UNIQUE,
+    period_start TEXT NOT NULL,
+    period_end TEXT NOT NULL,
+    source_hash TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    markdown TEXT NOT NULL,
+    generated_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_period
+ON weekly_reports(period_start DESC);
+
 CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
@@ -759,6 +904,12 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
     agent_columns = _columns(conn, "agent_runs")
     agent_additions = {
+        "capability_id": "TEXT",
+        "execution_profile_id": "TEXT",
+        "model_provider_id": "TEXT",
+        "backend_kind": "TEXT NOT NULL DEFAULT 'external_agent'",
+        "transport": "TEXT",
+        "auth_mode": "TEXT",
         "agent_provider": "TEXT",
         "agent_version": "TEXT",
         "model_id": "TEXT",
@@ -772,10 +923,42 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "heartbeat_at": "TEXT",
         "recovery_action": "TEXT",
         "execution_ref": "TEXT",
+        "skill_hash": "TEXT",
+        "inference_route_json": "TEXT NOT NULL DEFAULT '[]'",
     }
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
             conn.execute(f"ALTER TABLE agent_runs ADD COLUMN {name} {declaration}")
+    conn.execute(
+        """
+        UPDATE agent_runs
+        SET backend_kind = CASE adapter_id
+          WHEN 'mock' THEN 'mock'
+          WHEN 'manual' THEN 'manual'
+          WHEN 'codex-managed' THEN 'managed_runtime'
+          ELSE 'external_agent'
+        END
+        WHERE backend_kind IS NULL
+           OR backend_kind='external_agent'
+        """
+    )
+    conn.execute(
+        """
+        UPDATE agent_runs
+        SET capability_id = CASE output_contract
+          WHEN 'writing-review@1' THEN 'writing_review'
+          WHEN 'writing-mock-review@1' THEN 'writing_mock_review'
+          WHEN 'reading-review@1' THEN 'reading_explanation'
+          WHEN 'listening-review@1' THEN 'listening_review'
+          WHEN 'speaking-evaluation@1' THEN 'speaking_evaluation'
+          WHEN 'study-plan@1' THEN 'study_plan'
+          WHEN 'diagnostic-summary@1' THEN 'diagnostic_summary'
+          WHEN 'weekly-coaching@1' THEN 'weekly_coaching'
+          ELSE capability_id
+        END
+        WHERE capability_id IS NULL
+        """
+    )
     conn.execute(
         """
         INSERT OR IGNORE INTO media_bindings(media_id,owner_type,owner_id,purpose,created_at)
@@ -1339,33 +1522,70 @@ def list_content_import_jobs(home: Path, limit: int = 100) -> list[dict[str, Any
     return [item for import_id in ids if (item := get_content_import_job(home, import_id))]
 
 
-def upsert_assessment_pack(home: Path, pack: dict[str, Any]) -> None:
+def content_import_storage_bytes(home: Path) -> int:
     initialise_database(home)
-    now = _now()
     with connect(home) as conn:
-        conn.execute(
-            """
-            INSERT INTO assessment_packs(
-              pack_id,corpus_id,module,title,practice_mode,standard_profile,standard_version,
-              source_type,authenticity,rights_status,review_status,conformance_status,
-              payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(pack_id) DO UPDATE SET
-              corpus_id=excluded.corpus_id,module=excluded.module,title=excluded.title,
-              practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
-              standard_version=excluded.standard_version,source_type=excluded.source_type,
-              authenticity=excluded.authenticity,rights_status=excluded.rights_status,
-              review_status=excluded.review_status,conformance_status=excluded.conformance_status,
-              payload_json=excluded.payload_json,updated_at=excluded.updated_at
-            """,
-            (
-                pack["pack_id"], pack.get("corpus_id"), pack["module"], pack["title"],
-                pack["practice_mode"], pack["standard_profile"], pack.get("standard_version"),
-                pack["source_type"], pack.get("authenticity"), pack["rights_status"],
-                pack["review_status"], pack["conformance_status"],
-                json.dumps(pack, ensure_ascii=False, default=str), now, now,
-            ),
+        row = conn.execute(
+            "SELECT COALESCE(SUM(size_bytes), 0) AS total FROM content_import_files"
+        ).fetchone()
+    return int(row["total"] if row else 0)
+
+
+def delete_content_import_job(home: Path, import_id: str) -> None:
+    initialise_database(home)
+    with connect(home) as conn:
+        cursor = conn.execute(
+            "DELETE FROM content_import_jobs WHERE import_id=?",
+            (import_id,),
         )
+        if cursor.rowcount == 0:
+            raise ValueError(f"Unknown content import: {import_id}")
+
+
+def upsert_assessment_pack(
+    home: Path,
+    pack: dict[str, Any],
+    *,
+    connection: sqlite3.Connection | None = None,
+) -> None:
+    now = _now()
+    if connection is not None:
+        _upsert_assessment_pack(connection, pack, now=now)
+        return
+    initialise_database(home)
+    with connect(home) as conn:
+        _upsert_assessment_pack(conn, pack, now=now)
+
+
+def _upsert_assessment_pack(
+    conn: sqlite3.Connection,
+    pack: dict[str, Any],
+    *,
+    now: str,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO assessment_packs(
+          pack_id,corpus_id,module,title,practice_mode,standard_profile,standard_version,
+          source_type,authenticity,rights_status,review_status,conformance_status,
+          payload_json,created_at,updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT(pack_id) DO UPDATE SET
+          corpus_id=excluded.corpus_id,module=excluded.module,title=excluded.title,
+          practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
+          standard_version=excluded.standard_version,source_type=excluded.source_type,
+          authenticity=excluded.authenticity,rights_status=excluded.rights_status,
+          review_status=excluded.review_status,conformance_status=excluded.conformance_status,
+          payload_json=excluded.payload_json,updated_at=excluded.updated_at
+        """,
+        (
+            pack["pack_id"], pack.get("corpus_id"), pack["module"], pack["title"],
+            pack["practice_mode"], pack["standard_profile"], pack.get("standard_version"),
+            pack["source_type"], pack.get("authenticity"), pack["rights_status"],
+            pack["review_status"], pack["conformance_status"],
+            json.dumps(pack, ensure_ascii=False, default=str), now, now,
+        ),
+    )
 
 
 def get_assessment_pack(home: Path, pack_id: str) -> dict[str, Any] | None:
@@ -1383,6 +1603,7 @@ def list_assessment_packs(
     module: str | None = None,
     practice_mode: str | None = None,
     conformance_status: str | None = None,
+    learner_ready: bool = False,
     limit: int = 100,
     offset: int = 0,
 ) -> list[dict[str, Any]]:
@@ -1397,6 +1618,8 @@ def list_assessment_packs(
         if value:
             clauses.append(f"{column}=?")
             params.append(value)
+    if learner_ready:
+        clauses.extend(("review_status='reviewed'", "conformance_status='verified'"))
     sql = "SELECT payload_json FROM assessment_packs"
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
@@ -1407,8 +1630,12 @@ def list_assessment_packs(
     return [json.loads(row["payload_json"]) for row in rows]
 
 
-def upsert_passage(home: Path, passage: dict[str, Any]) -> None:
-    initialise_database(home)
+def upsert_passage(
+    home: Path,
+    passage: dict[str, Any],
+    *,
+    connection: sqlite3.Connection | None = None,
+) -> None:
     passage_id = str(passage["passage_id"])
     topics = passage.get("topics", passage.get("topic", []))
     if isinstance(topics, str):
@@ -1418,114 +1645,152 @@ def upsert_passage(home: Path, passage: dict[str, Any]) -> None:
         body = "\n\n".join(str(x) for x in body)
     if not body:
         raise ValueError(f"Passage {passage_id} has no body")
-    with connect(home) as conn:
-        existing = conn.execute(
-            "SELECT corpus_id FROM question_passages WHERE passage_id=?", (passage_id,)
-        ).fetchone()
-        if existing and existing["corpus_id"] != passage.get("corpus_id"):
-            raise ValueError(
-                f"Passage ID {passage_id!r} already belongs to corpus {existing['corpus_id']!r}; "
-                "use globally unique IDs (prefer <corpus-id>:<local-id>)"
-            )
-        conn.execute(
-            """
-            INSERT INTO question_passages(passage_id,corpus_id,title,body,source_type,topics_text,payload_json,created_at)
-            VALUES(?,?,?,?,?,?,?,?)
-            ON CONFLICT(passage_id) DO UPDATE SET
-              corpus_id=excluded.corpus_id,title=excluded.title,body=excluded.body,
-              source_type=excluded.source_type,topics_text=excluded.topics_text,payload_json=excluded.payload_json
-            """,
-            (
-                passage_id, passage.get("corpus_id"), passage.get("title"), str(body),
-                passage.get("source_type", "personal"), " ".join(map(str, topics)),
-                json.dumps(passage, ensure_ascii=False, default=str), _now(),
-            ),
-        )
-
-
-def upsert_question(home: Path, question: dict[str, Any], *, force: bool = False) -> bool:
+    if connection is not None:
+        _upsert_passage(connection, passage, passage_id, topics, str(body))
+        return
     initialise_database(home)
+    with connect(home) as conn:
+        _upsert_passage(conn, passage, passage_id, topics, str(body))
+
+
+def _upsert_passage(
+    conn: sqlite3.Connection,
+    passage: dict[str, Any],
+    passage_id: str,
+    topics: list[Any],
+    body: str,
+) -> None:
+    existing = conn.execute(
+        "SELECT corpus_id FROM question_passages WHERE passage_id=?", (passage_id,)
+    ).fetchone()
+    if existing and existing["corpus_id"] != passage.get("corpus_id"):
+        raise ValueError(
+            f"Passage ID {passage_id!r} already belongs to corpus {existing['corpus_id']!r}; "
+            "use globally unique IDs (prefer <corpus-id>:<local-id>)"
+        )
+    conn.execute(
+        """
+        INSERT INTO question_passages(passage_id,corpus_id,title,body,source_type,topics_text,payload_json,created_at)
+        VALUES(?,?,?,?,?,?,?,?)
+        ON CONFLICT(passage_id) DO UPDATE SET
+          corpus_id=excluded.corpus_id,title=excluded.title,body=excluded.body,
+          source_type=excluded.source_type,topics_text=excluded.topics_text,payload_json=excluded.payload_json
+        """,
+        (
+            passage_id, passage.get("corpus_id"), passage.get("title"), body,
+            passage.get("source_type", "personal"), " ".join(map(str, topics)),
+            json.dumps(passage, ensure_ascii=False, default=str), _now(),
+        ),
+    )
+
+
+def upsert_question(
+    home: Path,
+    question: dict[str, Any],
+    *,
+    force: bool = False,
+    connection: sqlite3.Connection | None = None,
+) -> bool:
     question_id = str(question["question_id"])
     q_hash = str(question["content_hash"])
+    if connection is not None:
+        return _upsert_question(connection, question, question_id, q_hash, force=force)
+    initialise_database(home)
     with connect(home) as conn:
-        existing = conn.execute(
-            "SELECT corpus_id FROM questions WHERE question_id=?", (question_id,)
-        ).fetchone()
-        if existing and existing["corpus_id"] != question.get("corpus_id"):
-            raise ValueError(
-                f"Question ID {question_id!r} already belongs to corpus {existing['corpus_id']!r}; "
-                "use globally unique IDs (prefer <corpus-id>:<local-id>)"
-            )
-        duplicate = conn.execute(
-            "SELECT question_id FROM questions WHERE content_hash=? AND question_id<>? LIMIT 1",
-            (q_hash, question_id),
-        ).fetchone()
-        if duplicate and not force:
-            return False
-        topics = question.get("topics", question.get("topic", []))
-        if isinstance(topics, str):
-            topics = [topics]
-        now = _now()
-        conn.execute(
-            """
-            INSERT INTO questions(
-              question_id,corpus_id,module,task,part,question_number,question_type,title,content,
-              passage_id,topics_text,source_type,authenticity,review_status,practice_mode,
-              standard_profile,conformance_status,content_hash,
-              payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(question_id) DO UPDATE SET
-              corpus_id=excluded.corpus_id,module=excluded.module,task=excluded.task,part=excluded.part,
-              question_number=excluded.question_number,question_type=excluded.question_type,
-              title=excluded.title,content=excluded.content,passage_id=excluded.passage_id,
-              topics_text=excluded.topics_text,source_type=excluded.source_type,
-              authenticity=excluded.authenticity,review_status=excluded.review_status,
-              practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
-              conformance_status=excluded.conformance_status,
-              content_hash=excluded.content_hash,payload_json=excluded.payload_json,updated_at=excluded.updated_at
-            """,
-            (
-                question_id, question.get("corpus_id"), question["module"], question.get("task"),
-                _as_text(question.get("part")), _as_text(question.get("question_number")),
-                question.get("question_type"), question.get("title"), question["content"],
-                question.get("passage_id"), " ".join(map(str, topics)), question["source_type"],
-                question.get("authenticity"), question.get("review_status"),
-                question.get("practice_mode"), question.get("standard_profile"),
-                question.get("conformance_status"), q_hash,
-                json.dumps(question, ensure_ascii=False, default=str), now, now,
-            ),
+        return _upsert_question(conn, question, question_id, q_hash, force=force)
+
+
+def _upsert_question(
+    conn: sqlite3.Connection,
+    question: dict[str, Any],
+    question_id: str,
+    q_hash: str,
+    *,
+    force: bool,
+) -> bool:
+    existing = conn.execute(
+        "SELECT corpus_id FROM questions WHERE question_id=?", (question_id,)
+    ).fetchone()
+    if existing and existing["corpus_id"] != question.get("corpus_id"):
+        raise ValueError(
+            f"Question ID {question_id!r} already belongs to corpus {existing['corpus_id']!r}; "
+            "use globally unique IDs (prefer <corpus-id>:<local-id>)"
         )
-        conn.execute("DELETE FROM question_options WHERE question_id=?", (question_id,))
-        options = question.get("options", []) or []
-        correct_answer = question.get("correct_answer")
-        if isinstance(options, dict):
-            options = [{"key": key, "text": value} for key, value in options.items()]
-        for index, option in enumerate(options):
-            if isinstance(option, str):
-                key, text = chr(65 + index), option
-            else:
-                key = str(option.get("key", chr(65 + index)))
-                text = str(option.get("text", option.get("content", "")))
-            is_correct = None if correct_answer is None else int(str(correct_answer).casefold() == key.casefold())
-            conn.execute(
-                "INSERT INTO question_options(question_id,option_key,option_text,is_correct) VALUES(?,?,?,?)",
-                (question_id, key, text, is_correct),
-            )
+    duplicate = conn.execute(
+        "SELECT question_id FROM questions WHERE content_hash=? AND question_id<>? LIMIT 1",
+        (q_hash, question_id),
+    ).fetchone()
+    if duplicate and not force:
+        return False
+    topics = question.get("topics", question.get("topic", []))
+    if isinstance(topics, str):
+        topics = [topics]
+    now = _now()
+    conn.execute(
+        """
+        INSERT INTO questions(
+          question_id,corpus_id,module,task,part,question_number,question_type,title,content,
+          passage_id,topics_text,source_type,authenticity,review_status,practice_mode,
+          standard_profile,conformance_status,content_hash,
+          payload_json,created_at,updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT(question_id) DO UPDATE SET
+          corpus_id=excluded.corpus_id,module=excluded.module,task=excluded.task,part=excluded.part,
+          question_number=excluded.question_number,question_type=excluded.question_type,
+          title=excluded.title,content=excluded.content,passage_id=excluded.passage_id,
+          topics_text=excluded.topics_text,source_type=excluded.source_type,
+          authenticity=excluded.authenticity,review_status=excluded.review_status,
+          practice_mode=excluded.practice_mode,standard_profile=excluded.standard_profile,
+          conformance_status=excluded.conformance_status,
+          content_hash=excluded.content_hash,payload_json=excluded.payload_json,updated_at=excluded.updated_at
+        """,
+        (
+            question_id, question.get("corpus_id"), question["module"], question.get("task"),
+            _as_text(question.get("part")), _as_text(question.get("question_number")),
+            question.get("question_type"), question.get("title"), question["content"],
+            question.get("passage_id"), " ".join(map(str, topics)), question["source_type"],
+            question.get("authenticity"), question.get("review_status"),
+            question.get("practice_mode"), question.get("standard_profile"),
+            question.get("conformance_status"), q_hash,
+            json.dumps(question, ensure_ascii=False, default=str), now, now,
+        ),
+    )
+    conn.execute("DELETE FROM question_options WHERE question_id=?", (question_id,))
+    options = question.get("options", []) or []
+    correct_answer = question.get("correct_answer")
+    if isinstance(options, dict):
+        options = [{"key": key, "text": value} for key, value in options.items()]
+    for index, option in enumerate(options):
+        if isinstance(option, str):
+            key, text = chr(65 + index), option
+        else:
+            key = str(option.get("key", chr(65 + index)))
+            text = str(option.get("text", option.get("content", "")))
+        is_correct = None if correct_answer is None else int(
+            str(correct_answer).casefold() == key.casefold()
+        )
+        conn.execute(
+            "INSERT INTO question_options(question_id,option_key,option_text,is_correct) VALUES(?,?,?,?)",
+            (question_id, key, text, is_correct),
+        )
     return True
 
 
 def list_questions(
     home: Path,
     *, query: str | None = None, module: str | None = None, task: str | None = None,
-    question_type: str | None = None, topic: str | None = None, source_type: str | None = None,
+    part: int | str | None = None, question_type: str | None = None,
+    topic: str | None = None, source_type: str | None = None,
     corpus_id: str | None = None, passage_id: str | None = None,
-    exclude_completed: bool = False, limit: int = 50, offset: int = 0,
+    exclude_completed: bool = False, learner_ready: bool = False,
+    limit: int = 50, offset: int = 0,
 ) -> list[sqlite3.Row]:
     initialise_database(home)
     clauses: list[str] = []
     params: list[Any] = []
     for column, value in (
-        ("q.module", module), ("q.task", task), ("q.question_type", question_type),
+        ("q.module", module), ("q.task", task), ("q.part", part),
+        ("q.question_type", question_type),
         ("q.source_type", source_type), ("q.corpus_id", corpus_id),
         ("q.passage_id", passage_id),
     ):
@@ -1536,20 +1801,83 @@ def list_questions(
         clauses.append("LOWER(q.topics_text) LIKE ?")
         params.append(f"%{topic.lower()}%")
     if query:
-        clauses.append("(LOWER(q.content) LIKE ? OR LOWER(COALESCE(q.title,'')) LIKE ? OR LOWER(q.topics_text) LIKE ?)")
+        clauses.append(
+            "(LOWER(q.content) LIKE ? OR LOWER(COALESCE(q.title,'')) LIKE ? "
+            "OR LOWER(COALESCE(p.title,'')) LIKE ? OR LOWER(q.topics_text) LIKE ?)"
+        )
         value = f"%{query.lower()}%"
-        params.extend([value, value, value])
+        params.extend([value, value, value, value])
     if exclude_completed:
         clauses.append(
             "NOT EXISTS(SELECT 1 FROM sessions s WHERE s.question_id=q.question_id AND s.status='completed') AND NOT EXISTS(SELECT 1 FROM question_attempts qa JOIN sessions s2 ON s2.session_id=qa.session_id WHERE qa.question_id=q.question_id AND s2.status='completed')"
         )
-    sql = "SELECT q.question_id,q.module,q.task,q.part,q.question_type,q.title,q.content,q.passage_id,q.topics_text,q.source_type,q.authenticity,q.corpus_id,q.review_status,q.practice_mode,q.standard_profile,q.conformance_status FROM questions q"
+    if learner_ready:
+        clauses.extend(("q.review_status='reviewed'", "q.conformance_status='verified'"))
+    sql = (
+        "SELECT q.question_id,q.module,q.task,q.part,q.question_type,q.title,"
+        "q.content,q.passage_id,p.title AS passage_title,q.topics_text,"
+        "q.source_type,q.authenticity,q.corpus_id,q.review_status,"
+        "q.practice_mode,q.standard_profile,q.conformance_status "
+        "FROM questions q "
+        "LEFT JOIN question_passages p ON p.passage_id=q.passage_id"
+    )
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
     sql += " ORDER BY q.question_id LIMIT ? OFFSET ?"
     params.extend([max(1, min(int(limit), 500)), max(0, int(offset))])
     with connect(home) as conn:
         return conn.execute(sql, params).fetchall()
+
+
+def count_questions(
+    home: Path,
+    *, query: str | None = None, module: str | None = None, task: str | None = None,
+    part: int | str | None = None, question_type: str | None = None,
+    topic: str | None = None, source_type: str | None = None,
+    corpus_id: str | None = None, passage_id: str | None = None,
+    exclude_completed: bool = False, learner_ready: bool = False,
+) -> int:
+    """Count the current question selection without materialising its rows."""
+    initialise_database(home)
+    clauses: list[str] = []
+    params: list[Any] = []
+    for column, value in (
+        ("q.module", module), ("q.task", task), ("q.part", part),
+        ("q.question_type", question_type),
+        ("q.source_type", source_type), ("q.corpus_id", corpus_id),
+        ("q.passage_id", passage_id),
+    ):
+        if value:
+            clauses.append(f"{column}=?")
+            params.append(value)
+    if topic:
+        clauses.append("LOWER(q.topics_text) LIKE ?")
+        params.append(f"%{topic.lower()}%")
+    if query:
+        clauses.append(
+            "(LOWER(q.content) LIKE ? OR LOWER(COALESCE(q.title,'')) LIKE ? "
+            "OR LOWER(COALESCE(p.title,'')) LIKE ? OR LOWER(q.topics_text) LIKE ?)"
+        )
+        value = f"%{query.lower()}%"
+        params.extend([value, value, value, value])
+    if exclude_completed:
+        clauses.append(
+            "NOT EXISTS(SELECT 1 FROM sessions s "
+            "WHERE s.question_id=q.question_id AND s.status='completed') "
+            "AND NOT EXISTS(SELECT 1 FROM question_attempts qa "
+            "JOIN sessions s2 ON s2.session_id=qa.session_id "
+            "WHERE qa.question_id=q.question_id AND s2.status='completed')"
+        )
+    if learner_ready:
+        clauses.extend(("q.review_status='reviewed'", "q.conformance_status='verified'"))
+    sql = (
+        "SELECT COUNT(*) FROM questions q "
+        "LEFT JOIN question_passages p ON p.passage_id=q.passage_id"
+    )
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    with connect(home) as conn:
+        return int(conn.execute(sql, params).fetchone()[0])
 
 
 def get_question(home: Path, question_id: str, include_answer: bool = False) -> dict[str, Any] | None:
@@ -1591,6 +1919,10 @@ def get_question(home: Path, question_id: str, include_answer: bool = False) -> 
                     "Reading answers are locked until the active timed-practice Session is submitted"
                 )
         data = json.loads(row["payload_json"])
+        # Indexed review columns are the transactional learner-access authority.
+        # Overlay them so stale imported payload metadata cannot bypass the gate.
+        data["review_status"] = row["review_status"]
+        data["conformance_status"] = row["conformance_status"]
         if row["passage_id"]:
             passage = conn.execute("SELECT passage_id,title,body FROM question_passages WHERE passage_id=?", (row["passage_id"],)).fetchone()
             if passage:
@@ -2139,20 +2471,31 @@ def list_media_assets(
 
 def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
     initialise_database(home)
+    inferred_backend_kind = {
+        "mock": "mock",
+        "manual": "manual",
+        "codex-managed": "managed_runtime",
+    }.get(str(run["adapter_id"]), "external_agent")
     with connect(home) as conn:
         conn.execute(
             """
             INSERT INTO agent_runs(
-              run_id,study_session_id,adapter_id,agent_provider,agent_version,model_id,
+              run_id,study_session_id,adapter_id,capability_id,execution_profile_id,
+              model_provider_id,backend_kind,transport,auth_mode,agent_provider,agent_version,model_id,
               model_display_name,agent_session_id,launcher_kind,capabilities_json,
               calibration_status,action,output_contract,
               base_revision,status,error_code,request_json,result_json,usage_json,
               created_at,started_at,completed_at,timeout_seconds,attempt_count,
-              cancel_requested,heartbeat_at,recovery_action,execution_ref
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              cancel_requested,heartbeat_at,recovery_action,execution_ref,skill_hash,
+              inference_route_json
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 run["run_id"], run.get("study_session_id"), run["adapter_id"],
+                run.get("capability_id"), run.get("execution_profile_id"),
+                run.get("model_provider_id"),
+                run.get("backend_kind", inferred_backend_kind), run.get("transport"),
+                run.get("auth_mode"),
                 run.get("agent_provider"), run.get("agent_version"), run.get("model_id"),
                 run.get("model_display_name"), run.get("agent_session_id"),
                 run.get("launcher_kind", "unknown"),
@@ -2169,6 +2512,8 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
                 int(bool(run.get("cancel_requested", False))),
                 run.get("heartbeat_at"), run.get("recovery_action"),
                 run.get("execution_ref"),
+                run.get("skill_hash"),
+                json.dumps(run.get("inference_route") or [], ensure_ascii=False),
             ),
         )
     return get_agent_run(home, run["run_id"]) or run
@@ -2176,12 +2521,15 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
 
 def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
     allowed = {
+        "capability_id", "execution_profile_id", "model_provider_id",
+        "backend_kind", "transport",
+        "auth_mode",
         "agent_provider", "agent_version", "model_id", "model_display_name",
         "agent_session_id", "launcher_kind", "capabilities_json",
         "calibration_status", "status", "error_code", "result_json", "usage_json",
         "started_at", "completed_at", "timeout_seconds", "attempt_count",
         "cancel_requested", "heartbeat_at", "recovery_action", "execution_ref",
-        "base_revision",
+        "base_revision", "skill_hash", "inference_route_json",
     }
     columns: list[str] = []
     values: list[Any] = []
@@ -2193,6 +2541,10 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
             column, value = "usage_json", json.dumps(value, ensure_ascii=False)
         elif key == "capabilities":
             column, value = "capabilities_json", json.dumps(value, ensure_ascii=False)
+        elif key == "inference_route":
+            column, value = "inference_route_json", json.dumps(
+                value, ensure_ascii=False
+            )
         if column not in allowed:
             continue
         columns.append(f"{column}=?")
@@ -2219,6 +2571,12 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "run_id": row["run_id"],
         "study_session_id": row["study_session_id"],
         "adapter_id": row["adapter_id"],
+        "capability_id": row["capability_id"],
+        "execution_profile_id": row["execution_profile_id"],
+        "model_provider_id": row["model_provider_id"],
+        "backend_kind": row["backend_kind"],
+        "transport": row["transport"],
+        "auth_mode": row["auth_mode"],
         "agent_provider": row["agent_provider"],
         "agent_version": row["agent_version"],
         "model_id": row["model_id"],
@@ -2244,6 +2602,8 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "heartbeat_at": row["heartbeat_at"],
         "recovery_action": row["recovery_action"],
         "execution_ref": row["execution_ref"],
+        "skill_hash": row["skill_hash"],
+        "inference_route": json.loads(row["inference_route_json"]),
     }
 
 

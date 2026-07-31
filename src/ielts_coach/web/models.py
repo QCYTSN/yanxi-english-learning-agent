@@ -79,6 +79,21 @@ class TodayMaterialise(BaseModel):
     slot: Literal["primary", "consolidation", "diagnostic"]
 
 
+class TodayIntent(BaseModel):
+    text: str = Field(min_length=1, max_length=500)
+
+
+class StudyThreadCreate(BaseModel):
+    title: str = Field(default="新的 IELTS 学习对话", min_length=1, max_length=120)
+    module: Literal["reading", "writing", "mixed"] = "mixed"
+    model_provider_id: str | None = Field(default=None, max_length=120)
+    source_context: dict[str, Any] = Field(default_factory=dict)
+
+
+class StudyThreadUpdate(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+
+
 class DiagnosticAttach(BaseModel):
     session_id: str = Field(min_length=1, max_length=120)
 
@@ -118,7 +133,7 @@ class ListeningAttemptSubmit(BaseModel):
 
 
 class SpeakingHandoffCreate(BaseModel):
-    mode: Literal["full_mock", "part2"] = "full_mock"
+    mode: Literal["full_mock", "part1", "part2", "part3"] = "full_mock"
     provider: str = Field(default="external_voice_live", min_length=1, max_length=100)
     question_ids: list[str] | None = Field(default=None, max_length=20)
     seed: int | None = None
@@ -146,8 +161,14 @@ class StoryCreate(BaseModel):
 
 
 class AgentRunCreate(BaseModel):
-    adapter_id: Literal["mock", "manual", "opencode", "claude"]
-    study_session_id: str
+    adapter_id: Literal[
+        "mock", "manual", "opencode", "claude", "codex-managed"
+    ] | None = None
+    model_provider_id: str | None = Field(default=None, max_length=120)
+    execution_profile_id: str | None = Field(default=None, max_length=120)
+    study_session_id: str | None = Field(default=None, max_length=120)
+    study_thread_id: str | None = Field(default=None, max_length=120)
+    user_message_id: str | None = Field(default=None, max_length=120)
     action: str
     output_contract: Literal[
         "writing-review@1",
@@ -158,6 +179,7 @@ class AgentRunCreate(BaseModel):
         "study-plan@1",
         "diagnostic-summary@1",
         "weekly-coaching@1",
+        "study-help@1",
     ]
     timeout_seconds: int = Field(default=300, ge=5, le=1800)
     source_type: str | None = None
@@ -167,6 +189,94 @@ class AgentRunCreate(BaseModel):
     model_id: str | None = Field(default=None, max_length=200)
     model_display_name: str | None = Field(default=None, max_length=200)
     agent_session_id: str | None = Field(default=None, max_length=300)
+
+
+class ExecutionProfileUpdate(BaseModel):
+    model_id: str | None = Field(default=None, max_length=200)
+    reasoning_effort: str | None = Field(default=None, max_length=40)
+    is_enabled: bool | None = None
+    is_default: bool | None = None
+    config: dict[str, Any] | None = None
+
+
+class ModelProviderCreate(BaseModel):
+    provider_id: str = Field(
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9_-]*$",
+    )
+    display_name: str = Field(min_length=1, max_length=120)
+    provider_kind: Literal["openai_compatible", "local_http"]
+    base_url: str = Field(min_length=8, max_length=500)
+    model_id: str = Field(min_length=1, max_length=200)
+    auth_mode: Literal["api_key", "none"] = "api_key"
+    api_key: str | None = Field(default=None, min_length=1, max_length=4000)
+    role: Literal["primary", "fallback", "disabled"] = "disabled"
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class ModelProviderUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=1, max_length=120)
+    base_url: str | None = Field(default=None, min_length=8, max_length=500)
+    model_id: str | None = Field(default=None, min_length=1, max_length=200)
+    reasoning_effort: str | None = Field(default=None, max_length=40)
+    role: Literal["primary", "fallback", "disabled"] | None = None
+    fallback_order: int | None = Field(default=None, ge=1, le=100)
+    is_enabled: bool | None = None
+    api_key: str | None = Field(default=None, min_length=1, max_length=4000)
+    clear_api_key: bool = False
+    config: dict[str, Any] | None = None
+
+
+class ContentImportPagePlanUpdate(BaseModel):
+    stored_name: str = Field(min_length=1, max_length=180)
+    pages: dict[str, Literal[
+        "unassigned",
+        "passage",
+        "questions",
+        "answer_key",
+        "task_visual",
+        "transcript",
+        "instructions",
+        "exclude",
+    ]]
+
+
+class ContentImportOcrRequest(BaseModel):
+    stored_name: str = Field(min_length=1, max_length=180)
+    pages: list[int] = Field(min_length=1, max_length=50)
+
+
+class ContentImportDraftSegmentUpdate(BaseModel):
+    text: str = Field(default="", max_length=500_000)
+    review_status: Literal["needs_review", "reviewed", "excluded"]
+    expected_revision: int = Field(ge=1)
+
+
+class AudioTranscriptCue(BaseModel):
+    cue_id: str | None = Field(default=None, max_length=80)
+    start_seconds: float = Field(ge=0)
+    end_seconds: float = Field(ge=0)
+    text: str = Field(min_length=1, max_length=20_000)
+
+
+class ContentImportAudioReviewUpdate(BaseModel):
+    stored_name: str = Field(min_length=1, max_length=180)
+    transcript: str = Field(default="", max_length=500_000)
+    cues: list[AudioTranscriptCue] = Field(default_factory=list, max_length=5000)
+    duration_seconds: float | None = Field(default=None, ge=0, le=86_400)
+    review_status: Literal["needs_review", "reviewed"]
+    expected_revision: int = Field(ge=0)
+
+
+class ContentImportBatchDelete(BaseModel):
+    import_ids: list[str] = Field(min_length=1, max_length=100)
+    confirmed: bool = False
+
+
+class CodexLoginStart(BaseModel):
+    login_type: Literal["chatgpt", "chatgptDeviceCode", "apiKey"]
+    api_key: str | None = Field(default=None, min_length=1, max_length=1000)
 
 
 class AgentResultImport(BaseModel):

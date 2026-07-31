@@ -606,3 +606,36 @@ def complete_practice_unit(
             (now, now, resolved_unit_id),
         )
     return get_practice_unit(home, resolved_unit_id)
+
+
+def materialise_progress_action(home: Path, action_id: str) -> dict[str, Any]:
+    from .progress_dashboard import build_progress_dashboard
+
+    dashboard = build_progress_dashboard(home)
+    action = next(
+        (
+            item
+            for item in dashboard["next_actions"]
+            if item["action_id"] == action_id
+        ),
+        None,
+    )
+    if action is None:
+        raise ValueError("This progress action is no longer current; refresh Progress")
+    if action["action_kind"] == "review":
+        return start_review_task(home, str(action["review_task_id"]))
+    if action["action_kind"] == "diagnostic":
+        return materialise_today_unit(home, "diagnostic")
+    return _create_unit(
+        home,
+        unit_kind="practice",
+        module=str(action["module"]),
+        title=str(action["title"]),
+        status="planned",
+        scheduled_for=date.today().isoformat(),
+        source_type="progress_action",
+        source_key=f"progress:{date.today().isoformat()}:{action_id}",
+        route=str(action["route"]),
+        estimated_minutes=int(action["estimated_minutes"]),
+        payload={"progress_action": action},
+    )

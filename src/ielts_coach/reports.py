@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from statistics import mean
@@ -128,7 +129,7 @@ def build_trend_report(home: Path, limit: int = 10) -> str:
 
     grouped: dict[tuple[str, str], list[float]] = defaultdict(list)
     for row in criteria:
-        if build_score_result(row)["eligible_for_progress"]:
+        if build_score_result(json.loads(row["payload_json"]))["eligible_for_progress"]:
             grouped[(row["module"], row["criterion"])].append(float(row["value"]))
     lines.extend(["", "## 写作/口语分项"])
     if not grouped:

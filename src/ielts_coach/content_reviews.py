@@ -261,6 +261,164 @@ def record_content_review(
     return get_target_review(home, target_type, target_id, include_material=False)
 
 
+def approve_content_batch(
+    home: Path,
+    *,
+    targets: list[tuple[str, str]],
+    reviewer: str,
+    notes: str,
+) -> dict[str, int]:
+    """Approve an already-audited target set without repeated dependency scans."""
+
+    reviewer = reviewer.strip()
+    if not reviewer or len(reviewer) > 100:
+        raise ValueError("A reviewer name of at most 100 characters is required")
+    if len(notes) > 5000:
+        raise ValueError("Review notes are too long")
+    unique = list(dict.fromkeys(targets))
+    for target_type, _ in unique:
+        _validate_target_type(target_type)
+
+    non_packs: list[tuple[str, str, dict[str, Any], dict[str, bool], str]] = []
+    packs: list[tuple[str, str, dict[str, Any], dict[str, bool], str]] = []
+    for target_type, target_id in unique:
+        material, _ = _load_target(home, target_type, target_id)
+        checklist = {
+            key: True for key in required_checklist(target_type, material)
+        }
+        item = (
+            target_type,
+            target_id,
+            material,
+            checklist,
+            review_content_hash(home, target_type, target_id),
+        )
+        if target_type == "assessment_pack":
+            packs.append(item)
+            continue
+        _validate_approval(home, target_type, target_id, material, checklist)
+        non_packs.append(item)
+
+    now = _now()
+    initialise_database(home)
+    with connect(home) as conn:
+        for target_type, target_id, material, checklist, content_hash in non_packs:
+            _insert_batch_approval(
+                conn,
+                target_type=target_type,
+                target_id=target_id,
+                content_hash=content_hash,
+                reviewer=reviewer,
+                checklist=checklist,
+                notes=notes,
+                now=now,
+            )
+            if target_type == "question":
+                candidate = dict(material)
+                candidate["review_status"] = "reviewed"
+                report = assess_question(candidate)
+                candidate["conformance_status"] = report["status"]
+                candidate["conformance_report"] = report
+                conn.execute(
+                    """
+                    UPDATE questions
+                    SET review_status='reviewed',conformance_status=?,
+                        payload_json=?,updated_at=?
+                    WHERE question_id=?
+                    """,
+                    (
+                        candidate["conformance_status"],
+                        json.dumps(candidate, ensure_ascii=False, default=str),
+                        now,
+                        target_id,
+                    ),
+                )
+
+    # Pack validation intentionally runs after question/passage approvals exist.
+    prepared_packs: list[
+        tuple[str, str, dict[str, Any], dict[str, bool], str]
+    ] = []
+    for item in packs:
+        target_type, target_id, material, checklist, content_hash = item
+        _validate_approval(home, target_type, target_id, material, checklist)
+        prepared_packs.append(item)
+    with connect(home) as conn:
+        for target_type, target_id, material, checklist, content_hash in prepared_packs:
+            _insert_batch_approval(
+                conn,
+                target_type=target_type,
+                target_id=target_id,
+                content_hash=content_hash,
+                reviewer=reviewer,
+                checklist=checklist,
+                notes=notes,
+                now=now,
+            )
+            candidate = dict(material)
+            candidate["review_status"] = "reviewed"
+            report = assess_pack(candidate)
+            candidate["conformance_status"] = report["status"]
+            candidate["conformance_report"] = report
+            conn.execute(
+                """
+                UPDATE assessment_packs
+                SET review_status='reviewed',conformance_status=?,
+                    payload_json=?,updated_at=?
+                WHERE pack_id=?
+                """,
+                (
+                    candidate["conformance_status"],
+                    json.dumps(candidate, ensure_ascii=False, default=str),
+                    now,
+                    target_id,
+                ),
+            )
+    return {
+        "questions": sum(item[0] == "question" for item in non_packs),
+        "passages": sum(item[0] == "passage" for item in non_packs),
+        "assessment_packs": len(prepared_packs),
+    }
+
+
+def _insert_batch_approval(
+    conn: Any,
+    *,
+    target_type: str,
+    target_id: str,
+    content_hash: str,
+    reviewer: str,
+    checklist: dict[str, bool],
+    notes: str,
+    now: str,
+) -> None:
+    conn.execute(
+        """
+        UPDATE content_reviews SET superseded_at=?
+        WHERE target_type=? AND target_id=? AND content_hash=?
+          AND superseded_at IS NULL
+        """,
+        (now, target_type, target_id, content_hash),
+    )
+    conn.execute(
+        """
+        INSERT INTO content_reviews(
+          review_id,target_type,target_id,content_hash,reviewer,decision,
+          checklist_json,notes,created_at,superseded_at
+        ) VALUES(?,?,?,?,?,'approved',?,?,?,NULL)
+        """,
+        (
+            f"REV-{secrets.token_hex(8).upper()}",
+            target_type,
+            target_id,
+            content_hash,
+            reviewer,
+            json.dumps(checklist, ensure_ascii=False, sort_keys=True),
+            notes,
+            now,
+        ),
+    )
+
+
 def refresh_target_status(home: Path, target_type: str, target_id: str) -> None:
     material, _ = _load_target(home, target_type, target_id)
     state = _review_state(home, target_type, target_id)
@@ -609,20 +767,90 @@ def _validate_approval(
 
 
 def _pack_dependency_status(home: Path, pack: dict[str, Any]) -> dict[str, Any]:
-    missing_questions = [
-        str(value)
-        for value in (pack.get("question_ids") or [])
-        if _review_state(home, "question", str(value))["local_review_status"] != "approved"
-    ]
+    question_ids = [str(value) for value in (pack.get("question_ids") or [])]
+    passage_ids = [str(value) for value in (pack.get("passage_ids") or [])]
+    initialise_database(home)
+    with connect(home) as conn:
+        question_material = _payloads_by_id(
+            conn,
+            table="questions",
+            key="question_id",
+            ids=question_ids,
+        )
+        linked_passage_ids = {
+            str(material["passage_id"])
+            for material in question_material.values()
+            if material.get("passage_id")
+        }
+        all_passage_ids = list(dict.fromkeys([*passage_ids, *sorted(linked_passage_ids)]))
+        passage_material = _payloads_by_id(
+            conn,
+            table="question_passages",
+            key="passage_id",
+            ids=all_passage_ids,
+        )
+        review_rows = conn.execute(
+            """
+            SELECT target_type,target_id,content_hash
+            FROM content_reviews
+            WHERE decision='approved' AND superseded_at IS NULL
+              AND target_type IN ('question','passage')
+            """
+        ).fetchall()
+    approved = {
+        (str(row["target_type"]), str(row["target_id"]), str(row["content_hash"]))
+        for row in review_rows
+    }
+
+    missing_questions: list[str] = []
+    for question_id in question_ids:
+        material = question_material.get(question_id)
+        if material is None:
+            missing_questions.append(question_id)
+            continue
+        hash_material = dict(material)
+        passage_id = material.get("passage_id")
+        if passage_id and str(passage_id) in passage_material:
+            hash_material["_linked_passage"] = passage_material[str(passage_id)]
+        content_hash = _content_digest(hash_material)
+        if ("question", question_id, content_hash) not in approved:
+            missing_questions.append(question_id)
+
     missing_passages = [
-        str(value)
-        for value in (pack.get("passage_ids") or [])
-        if _review_state(home, "passage", str(value))["local_review_status"] != "approved"
+        passage_id
+        for passage_id in passage_ids
+        if passage_id not in passage_material
+        or (
+            "passage",
+            passage_id,
+            _content_digest(passage_material[passage_id]),
+        )
+        not in approved
     ]
     return {
         "ready": not missing_questions and not missing_passages,
         "missing_question_reviews": missing_questions,
         "missing_passage_reviews": missing_passages,
+    }
+
+
+def _payloads_by_id(
+    conn: Any,
+    *,
+    table: str,
+    key: str,
+    ids: list[str],
+) -> dict[str, dict[str, Any]]:
+    if not ids:
+        return {}
+    placeholders = ",".join("?" for _ in ids)
+    rows = conn.execute(
+        f"SELECT {key},payload_json FROM {table} WHERE {key} IN ({placeholders})",
+        ids,
+    ).fetchall()
+    return {
+        str(row[key]): json.loads(row["payload_json"])
+        for row in rows
     }
 
 

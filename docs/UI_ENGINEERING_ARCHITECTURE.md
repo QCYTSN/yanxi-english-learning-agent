@@ -1,17 +1,60 @@
 # UI engineering architecture
 
-Status: implemented through V0.9 functional baseline (2026-07-23).
+Status: current implementation authority for the local learning UI.
 
 This document is authoritative for process, data and integration boundaries.
-Visual style remains undecided. `UI_PRODUCT_SPEC.md` contains workflow ideas and
-provisional visual exploration only.
+The current visual direction is a quiet academic study desk. The interaction
+and information architecture are implemented; visual refinement may continue
+without changing the contracts in this document.
 
-V0.7 implements the complete first usable **companion UI** boundary: packaged
-local web service, deterministic Writing/Reading/Listening workflows, external
-Voice/Live Speaking handoff, evidence feedback, history/progress, Media
-Registry, TextAnchor, MockAdapter and ManualAdapter. Vendor process adapters
-(OpenCode/Claude/Codex) and a desktop shell remain later, separately testable
-increments; the browser never depends on terminal presentation text.
+The UI is a complete local learning surface for Writing, Reading, Listening and
+Speaking. It includes deterministic navigation, evidence feedback,
+history/progress, Media Registry, TextAnchor, structured assessment runners and
+an external Voice/Live Speaking handoff. The browser never parses terminal
+presentation text.
+
+The provider/runtime decision is authoritative in
+[`ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md). The UI now requests versioned
+Capabilities through the Teaching Runtime. Core learning uses an active Model
+Provider route. Claude Code, OpenCode, Codex CLI and Manual handoff are isolated
+under Advanced settings and cannot become teaching providers.
+
+## 0. Current information architecture
+
+The persistent shell intentionally exposes only four learning destinations:
+
+```text
+Today / Practice / Library / Progress
+```
+
+Settings is isolated at the bottom of the navigation. Normal learning pages do
+not display provider diagnostics, CLI paths or configuration controls.
+
+`Library` is learner-facing: it contains only material discovery, pack
+selection and entry into practice. Raw uploads, readiness checks, human review
+and import operations live in the separate `/content-studio` route. Content
+Studio is reached through the Library management action and is deliberately not
+a fifth primary learning destination.
+
+Today combines deterministic learning entry with a focused material question:
+
+```text
+four module shortcuts
+-> deterministic Runtime route
+-> resume one active activity or start one recommended task
+
+uploaded material plus a question
+-> persistent Study Thread
+-> validated IELTS teacher response
+-> optional promotion into Content Studio
+```
+
+The Study Thread is not a general assistant or a formal practice Session. It
+keeps its own messages and attachments, uses the fixed IELTS teacher policy,
+and does not create score history. Model tokens are not used to interpret clear
+navigation requests. Connection configuration lives under Settings, and
+onboarding offers ChatGPT login, a custom OpenAI-compatible API, or "configure
+later".
 
 ## 1. Engineering objective
 
@@ -23,7 +66,7 @@ Build a local study application that:
 - does not duplicate IELTS rules in frontend code;
 - can connect to multiple Agent implementations through adapters;
 - remains usable in a limited manual mode when no callable Agent exists;
-- does not add a direct model-provider API in the first frontend phase.
+- keeps model/runtime connection details behind the Inference Broker.
 
 The frontend is not a second IELTS system. It is a client of the current
 system.
@@ -38,13 +81,13 @@ system.
                            │ HTTP + Server-Sent Events
 ┌──────────────────────────▼──────────────────────────────────┐
 │ Local Application Service                                  │
-│ API, launch token, orchestration, media, Agent run state    │
+│ API, launch token, orchestration, media, job state          │
 └───────────────┬──────────────────────────┬──────────────────┘
-                │ Python calls             │ AgentAdapter
+                │ Python calls             │ Capability / Broker
 ┌───────────────▼─────────────────┐  ┌─────▼──────────────────┐
-│ Existing IELTS Core             │  │ Agent Gateway          │
-│ Runtime, validation, corpus,    │  │ Claude/OpenCode/manual │
-│ privacy, rubric, progress       │  │ future adapters        │
+│ Existing IELTS Core             │  │ Inference Broker       │
+│ Runtime, validation, corpus,    │  │ Codex/CLI/manual/mock  │
+│ privacy, rubric, progress       │  │ execution profiles     │
 └───────────────┬─────────────────┘  └────────────────────────┘
                 │
 ┌───────────────▼─────────────────────────────────────────────┐
@@ -57,8 +100,8 @@ Dependency direction is one way:
 
 ```text
 UI -> Application Service -> IELTS Core
-                       \----> Agent Gateway
-Agent Gateway --------validated output------> IELTS Core
+                       \----> Inference Broker
+Inference Broker -----validated output------> IELTS Core
 ```
 
 The IELTS Core never imports React concerns or vendor-specific Agent code.
@@ -119,15 +162,34 @@ conversation interface to the page.
 - ordinary HTTP POST for user actions and cancellation;
 - no WebSocket in the first version.
 
-### Content workbench boundary
+### Study Thread and content workbench boundary
+
+User-supplied screenshots, PDFs, Word documents and text files first belong to
+a local Study Thread. Images are registered through Media Registry; documents
+are stored under the thread attachment directory. A bounded recent
+conversation, initial source material and current-message attachments are
+compiled for each model request. The browser chat history is never the data
+source.
+
+Only an explicit "整理成练习" action copies thread attachments into the content
+inbox. The resulting import is prepared in the background and remains
+unreviewed until OCR, page roles, question structure and local review are
+complete.
 
 Raw PDF, image and audio uploads are copied only into
-`IELTS_HOME/corpus/inbox/<import_id>` and recorded with a hash. They remain
-`needs_structuring`; the system does not silently OCR them or claim they are
-questions. A prepared `manifest.yaml` plus referenced JSONL can be validated
-and indexed. Indexed questions can then be selected into an Assessment Pack;
-the Runtime derives its structure, and a reviewed full pack is blocked until
-all referenced items are independently verified.
+`IELTS_HOME/corpus/inbox/<import_id>` and recorded with a hash. PDF preparation
+is a persisted background job: it records page count and metadata, extracts a
+short page text preview when possible, marks image-only pages as OCR-required,
+and lets a reviewer assign page roles. The original file is served only through
+an authenticated import-specific route. Preparation never claims the pages are
+questions and never indexes them automatically.
+
+A prepared `manifest.yaml` plus referenced JSONL can still be validated and
+indexed. Indexed questions can then be selected into an Assessment Pack; the
+Runtime derives its structure, and a reviewed full pack is blocked until all
+referenced items are independently verified. OCR execution and page-plan to
+question-draft conversion remain explicit later stages. Screenshots are treated
+as one-page documents and can use the same local OCR and page-role review flow.
 
 ### Packaging
 
@@ -687,7 +749,8 @@ Recommended defaults:
 4. HTTP + SSE, no WebSocket initially;
 5. MockAdapter first, no real Agent in E0;
 6. existing Runtime remains authoritative;
-7. no direct model-provider API;
+7. direct model-provider APIs are allowed only through the versioned
+   `ModelProvider` boundary and Teaching Runtime policy;
 8. visual style deferred;
 9. Codex desktop classified as tool-hosted until a native invocation interface
    is verified;

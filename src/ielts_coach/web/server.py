@@ -169,16 +169,26 @@ def open_ui(home: Path, *, port: int = 0, open_browser: bool = True) -> str:
     # and install idempotent bundled resources before starting a new service.
     initialise_home(home)
 
-    command = [
-        sys.executable,
-        "-m",
-        "ielts_coach.web.background",
-        "serve",
-        "--home",
-        str(home),
-        "--port",
-        str(port),
-    ]
+    if getattr(sys, "frozen", False):
+        command = [
+            sys.executable,
+            "--serve",
+            "--home",
+            str(home),
+            "--port",
+            str(port),
+        ]
+    else:
+        command = [
+            sys.executable,
+            "-m",
+            "ielts_coach.web.background",
+            "serve",
+            "--home",
+            str(home),
+            "--port",
+            str(port),
+        ]
     kwargs: dict[str, Any] = {
         "stdin": subprocess.DEVNULL,
         "stdout": subprocess.DEVNULL,

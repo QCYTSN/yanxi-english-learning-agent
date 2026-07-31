@@ -17,15 +17,31 @@ def _resource_file(relative: str):
 
 
 def install_starter_corpus(home: Path, force: bool = False) -> bool:
-    """Install the project-owned corpus, upgrading stale bundled files safely.
+    """Install the opt-in project-owned development fixture corpus.
 
-    The starter corpus is managed by the application rather than user-owned.
-    Refreshing these files is therefore safe and is required for V0.1 homes,
-    whose manifest did not contain the V0.2 question-file index.
+    Public initialisation never calls this function. It exists so automated
+    tests and explicit development homes can exercise complete learning flows.
     """
     target = home / "corpus" / "starter-open"
     target.mkdir(parents=True, exist_ok=True)
     source_dir = _resource_file("starter-corpus")
+    changed = False
+    for item in source_dir.iterdir():
+        if not item.is_file():
+            continue
+        destination = target / item.name
+        with resources.as_file(item) as source_path:
+            if force or not destination.exists() or source_path.read_bytes() != destination.read_bytes():
+                shutil.copy2(source_path, destination)
+                changed = True
+    return changed
+
+
+def install_original_mock_corpus(home: Path, force: bool = False) -> bool:
+    """Install the reviewed project-original full-mock corpus."""
+    target = home / "corpus" / "original-mocks"
+    target.mkdir(parents=True, exist_ok=True)
+    source_dir = _resource_file("original-mocks")
     changed = False
     for item in source_dir.iterdir():
         if not item.is_file():

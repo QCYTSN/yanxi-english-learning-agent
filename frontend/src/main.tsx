@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { App } from './App'
 import { establishUiSession } from './api/client'
 import './styles.css'
+import './workspace.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

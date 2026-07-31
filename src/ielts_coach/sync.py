@@ -6,7 +6,15 @@ from pathlib import Path
 
 import yaml
 
-SKILLS = ("ielts", "ielts-writing", "ielts-speaking", "ielts-reading", "ielts-progress", "ielts-corpus")
+SKILLS = (
+    "ielts",
+    "ielts-writing",
+    "ielts-speaking",
+    "ielts-reading",
+    "ielts-progress",
+    "ielts-corpus",
+    "ielts-study-help",
+)
 TARGETS = (Path(".claude/skills"), Path(".agents/skills"), Path(".opencode/skills"))
 
 
