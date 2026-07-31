@@ -10,7 +10,7 @@ test('launches the packaged four-module study desk on a small screen', async ({ 
   await expect(page).toHaveURL(/\/today$/)
   await expect(page.getByRole('heading', { name: /今天/ }).first()).toBeVisible()
   await expect(page.getByRole('navigation', { name: '学习导航' })).toBeVisible()
-  await expect(page.getByPlaceholder('上传题目、原文或作文，然后告诉我你想弄懂什么…')).toBeVisible()
+  await expect(page.getByRole('textbox', { name: '向 IELTS 教师提问' })).toBeVisible()
   for (const module of ['听力', '阅读', '写作', '口语']) {
     await expect(page.getByRole('button', { name: module, exact: true })).toBeVisible()
   }

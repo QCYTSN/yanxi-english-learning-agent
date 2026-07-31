@@ -38,10 +38,17 @@ def install_starter_corpus(home: Path, force: bool = False) -> bool:
 
 
 def install_original_mock_corpus(home: Path, force: bool = False) -> bool:
-    """Install the reviewed project-original full-mock corpus."""
+    """Install the optional reviewed project-original full-mock corpus.
+
+    Release builds intentionally omit private and unpublished practice content.
+    A clean installation must therefore remain usable when this development
+    resource directory is not present.
+    """
+    source_dir = _resource_file("original-mocks")
+    if not source_dir.is_dir():
+        return False
     target = home / "corpus" / "original-mocks"
     target.mkdir(parents=True, exist_ok=True)
-    source_dir = _resource_file("original-mocks")
     changed = False
     for item in source_dir.iterdir():
         if not item.is_file():
