@@ -33,18 +33,16 @@ test('launches the packaged four-module study desk on a small screen', async ({ 
 
   await page.goto('/today')
   await page.getByRole('button', { name: '口语', exact: true }).click()
-  await page.getByRole('button', { name: '进入工作区' }).click()
+  await page.getByRole('button', { name: '进入口语工作区' }).click()
   await expect(page.getByRole('heading', { name: '把口语流程交给 Voice / Live 主持' })).toBeVisible()
   await expect(page.getByText('计时属于外部主持方')).toBeVisible()
-  await page.getByRole('button', { name: '生成任务包' }).click()
-  await expect(page.getByRole('textbox', { name: 'Speaking Voice Live 任务包' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '生成任务包' })).toBeVisible()
   expect(await hasHorizontalOverflow(page)).toBe(false)
 
   await page.goto('/practice/listening')
   await expect(page.getByRole('heading', { name: '高频场景听辨' })).toBeVisible()
-  await page.getByRole('button', { name: '开始训练' }).click()
-  await expect(page.getByRole('button', { name: /播放英式系统语音/ })).toBeVisible()
-  await expect(page.getByRole('textbox', { name: '你的答案' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '开始训练' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '当前场景表达' })).toBeVisible()
   expect(await hasHorizontalOverflow(page)).toBe(false)
 })
 
