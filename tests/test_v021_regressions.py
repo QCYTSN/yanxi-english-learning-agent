@@ -48,11 +48,17 @@ def test_v01_starter_manifest_is_safely_upgraded_and_indexed(tmp_path: Path):
     assert upgraded["corpus_version"] == 2
     assert upgraded["files"]
     with connect(home) as conn:
-        assert conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0] == 167
         assert conn.execute(
-            "SELECT COUNT(*) FROM questions WHERE module='reading'"
-        ).fetchone()[0] == 96
-        assert conn.execute("SELECT COUNT(*) FROM question_passages").fetchone()[0] == 10
+            "SELECT COUNT(*) FROM questions WHERE corpus_id='ielts-ai-coach-starter'"
+        ).fetchone()[0] == 61
+        assert conn.execute(
+            """SELECT COUNT(*) FROM questions
+               WHERE corpus_id='ielts-ai-coach-starter' AND module='reading'"""
+        ).fetchone()[0] == 16
+        assert conn.execute(
+            """SELECT COUNT(*) FROM question_passages
+               WHERE corpus_id='ielts-ai-coach-starter'"""
+        ).fetchone()[0] == 4
     assert load_profile(home)["profile_version"] == 3
     assert load_settings(home)["question_draw_limit"] == 100000
 

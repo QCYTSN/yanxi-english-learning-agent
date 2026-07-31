@@ -29,5 +29,5 @@ def test_seven_skill_architecture_and_workflow_guards():
     material_dialogue = (
         root / "ielts-study-help" / "SKILL.md"
     ).read_text(encoding="utf-8")
-    assert "answer withheld" in material_dialogue
+    assert "withhold the answer" in material_dialogue
     assert "contextual meaning first" in material_dialogue
