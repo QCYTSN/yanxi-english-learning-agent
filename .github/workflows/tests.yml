@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      IELTS_HOME: ${{ runner.temp }}/ielts-e2e
+      IELTS_HOME: ${{ github.workspace }}/.e2e/ielts-home
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
