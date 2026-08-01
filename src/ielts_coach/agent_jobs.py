@@ -11,6 +11,7 @@ from .inference import InferenceBroker
 from .session_manager import show_session
 from .storage import (
     append_agent_run_event,
+    close_open_provider_attempts,
     connect,
     get_agent_run,
     update_agent_run,
@@ -55,6 +56,17 @@ class AgentJobManager:
                 self.enqueue(run_id)
                 recovered += 1
             else:
+                close_open_provider_attempts(
+                    self.home,
+                    run_id,
+                    status="interrupted",
+                    failure_stage="recovery",
+                    error_code="SERVICE_RESTARTED",
+                    error_message=(
+                        "The local service restarted before this provider "
+                        "attempt completed."
+                    ),
+                )
                 update_agent_run(
                     self.home,
                     run_id,
@@ -107,6 +119,14 @@ class AgentJobManager:
             )
         except Exception:
             pass
+        close_open_provider_attempts(
+            self.home,
+            run_id,
+            status="cancelled",
+            failure_stage="cancellation",
+            error_code="AGENT_CANCELLED",
+            error_message="The user cancelled the Agent task.",
+        )
         updated = update_agent_run(
             self.home,
             run_id,
@@ -228,7 +248,16 @@ class AgentJobManager:
             if callable(usage_reader):
                 runtime_usage = usage_reader(run_id)
                 if runtime_usage:
-                    update_agent_run(self.home, run_id, usage=runtime_usage)
+                    current = update_agent_run(
+                        self.home,
+                        run_id,
+                        usage=runtime_usage,
+                    )
+            run = current
+            validation_reader = getattr(adapter, "execution_validation", None)
+            provider_validation = (
+                validation_reader(run_id) if callable(validation_reader) else {}
+            )
             if run.get("backend_kind") == "manual":
                 update_agent_run(
                     self.home,
@@ -256,7 +285,12 @@ class AgentJobManager:
                 "status",
                 {"stage": "validating", "label": "Validating structured result"},
             )
-            validated = validate_agent_contract(run["output_contract"], result)
+            validated = (
+                result
+                if provider_validation.get("validated") is True
+                and provider_validation.get("contract") == run["output_contract"]
+                else validate_agent_contract(run["output_contract"], result)
+            )
             if run.get("backend_kind") == "mock":
                 update_agent_run(
                     self.home,
@@ -387,6 +421,14 @@ class AgentJobManager:
         current = get_agent_run(self.home, run_id)
         if current and current["status"] == "cancelled":
             return
+        close_open_provider_attempts(
+            self.home,
+            run_id,
+            status="failed",
+            failure_stage="timeout" if code == "AGENT_TIMEOUT" else "job",
+            error_code=code,
+            error_message=message,
+        )
         update_agent_run(
             self.home,
             run_id,

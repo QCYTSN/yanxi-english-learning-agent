@@ -11,7 +11,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 20
+SCHEMA_VERSION = 21
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -543,6 +543,30 @@ CREATE TABLE IF NOT EXISTS agent_run_events (
     UNIQUE(run_id,sequence),
     FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS provider_attempts (
+    attempt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    attempt_index INTEGER NOT NULL,
+    run_attempt INTEGER NOT NULL DEFAULT 1,
+    provider_id TEXT NOT NULL,
+    provider_kind TEXT,
+    model_id TEXT,
+    fallback_index INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL,
+    failure_stage TEXT,
+    error_code TEXT,
+    error_message TEXT,
+    result_hash TEXT,
+    identity_json TEXT NOT NULL DEFAULT '{}',
+    usage_json TEXT NOT NULL DEFAULT '{}',
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    UNIQUE(run_id,attempt_index),
+    FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_provider_attempts_run
+ON provider_attempts(run_id,attempt_index);
 
 CREATE TABLE IF NOT EXISTS coaching_artifacts (
     artifact_id TEXT PRIMARY KEY,
@@ -2667,6 +2691,169 @@ def list_agent_run_events(home: Path, run_id: str, after: int = 0) -> list[dict[
         }
         for row in rows
     ]
+
+
+def create_provider_attempt(
+    home: Path,
+    *,
+    run_id: str,
+    provider_id: str,
+    provider_kind: str | None,
+    model_id: str | None,
+    fallback_index: int,
+) -> dict[str, Any]:
+    """Start an auditable provider candidate attempt for an Agent run."""
+    initialise_database(home)
+    started_at = _now()
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT COALESCE(MAX(attempt_index),0)+1 AS next_index "
+            "FROM provider_attempts WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        attempt_index = int(row["next_index"])
+        run_row = conn.execute(
+            "SELECT attempt_count FROM agent_runs WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        if not run_row:
+            raise ValueError(f"Unknown Agent run: {run_id}")
+        attempt_id = f"{run_id}:provider:{attempt_index}"
+        conn.execute(
+            """
+            INSERT INTO provider_attempts(
+              attempt_id,run_id,attempt_index,run_attempt,provider_id,
+              provider_kind,model_id,fallback_index,status,started_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                attempt_id,
+                run_id,
+                attempt_index,
+                int(run_row["attempt_count"] or 1),
+                provider_id,
+                provider_kind,
+                model_id,
+                int(fallback_index),
+                "running",
+                started_at,
+            ),
+        )
+    return get_provider_attempt(home, attempt_id) or {
+        "attempt_id": attempt_id,
+        "run_id": run_id,
+        "attempt_index": attempt_index,
+    }
+
+
+def update_provider_attempt(
+    home: Path,
+    attempt_id: str,
+    **changes: Any,
+) -> dict[str, Any]:
+    allowed = {
+        "status",
+        "failure_stage",
+        "error_code",
+        "error_message",
+        "result_hash",
+        "identity_json",
+        "usage_json",
+        "completed_at",
+    }
+    columns: list[str] = []
+    values: list[Any] = []
+    for key, value in changes.items():
+        column = key
+        if key == "identity":
+            column, value = "identity_json", json.dumps(value or {}, ensure_ascii=False)
+        elif key == "usage":
+            column, value = "usage_json", json.dumps(value or {}, ensure_ascii=False)
+        if column not in allowed:
+            continue
+        columns.append(f"{column}=?")
+        values.append(value)
+    if columns:
+        values.append(attempt_id)
+        with connect(home) as conn:
+            conn.execute(
+                f"UPDATE provider_attempts SET {','.join(columns)} "
+                "WHERE attempt_id=? AND completed_at IS NULL",
+                values,
+            )
+    return get_provider_attempt(home, attempt_id) or {}
+
+
+def close_open_provider_attempts(
+    home: Path,
+    run_id: str,
+    *,
+    status: str,
+    failure_stage: str,
+    error_code: str,
+    error_message: str,
+) -> int:
+    """Close unfinished attempts when their owning job stops unexpectedly."""
+    initialise_database(home)
+    with connect(home) as conn:
+        cursor = conn.execute(
+            """
+            UPDATE provider_attempts
+            SET status=?,failure_stage=?,error_code=?,error_message=?,completed_at=?
+            WHERE run_id=? AND completed_at IS NULL
+            """,
+            (
+                status,
+                failure_stage,
+                error_code,
+                error_message[-2000:],
+                _now(),
+                run_id,
+            ),
+        )
+    return int(cursor.rowcount)
+
+
+def get_provider_attempt(home: Path, attempt_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM provider_attempts WHERE attempt_id=?",
+            (attempt_id,),
+        ).fetchone()
+    return _provider_attempt_row(row) if row else None
+
+
+def list_provider_attempts(home: Path, run_id: str) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        rows = conn.execute(
+            "SELECT * FROM provider_attempts WHERE run_id=? ORDER BY attempt_index",
+            (run_id,),
+        ).fetchall()
+    return [_provider_attempt_row(row) for row in rows]
+
+
+def _provider_attempt_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "attempt_id": row["attempt_id"],
+        "run_id": row["run_id"],
+        "attempt_index": int(row["attempt_index"]),
+        "run_attempt": int(row["run_attempt"]),
+        "provider_id": row["provider_id"],
+        "provider_kind": row["provider_kind"],
+        "model_id": row["model_id"],
+        "fallback_index": int(row["fallback_index"]),
+        "status": row["status"],
+        "failure_stage": row["failure_stage"],
+        "error_code": row["error_code"],
+        "error_message": row["error_message"],
+        "result_hash": row["result_hash"],
+        "identity": json.loads(row["identity_json"]),
+        "usage": json.loads(row["usage_json"]),
+        "started_at": row["started_at"],
+        "completed_at": row["completed_at"],
+    }
 
 
 def save_coaching_artifact(

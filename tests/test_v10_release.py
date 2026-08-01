@@ -30,7 +30,9 @@ from ielts_coach.storage import (
     SCHEMA_VERSION,
     connect,
     create_agent_run,
+    create_provider_attempt,
     get_agent_run,
+    list_provider_attempts,
 )
 from ielts_coach.web.app import create_app
 from ielts_coach.web.auth import AuthState
@@ -207,7 +209,7 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
 def test_current_schema_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 20
+    assert SCHEMA_VERSION == 21
     create_agent_run(
         home,
         {
@@ -218,6 +220,14 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
             "status": "running",
         },
     )
+    create_provider_attempt(
+        home,
+        run_id="run_interrupted",
+        provider_id="provider-before-restart",
+        provider_kind="openai_compatible",
+        model_id="model-before-restart",
+        fallback_index=0,
+    )
     manager = AgentJobManager(home)
     try:
         result = manager.recover()
@@ -225,6 +235,9 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
         run = get_agent_run(home, "run_interrupted")
         assert run and run["status"] == "failed"
         assert run["recovery_action"] == "retry"
+        attempts = list_provider_attempts(home, "run_interrupted")
+        assert attempts[0]["status"] == "interrupted"
+        assert attempts[0]["failure_stage"] == "recovery"
     finally:
         manager.shutdown()
     with connect(home) as conn:
@@ -234,7 +247,7 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
         agent_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(agent_runs)")
         }
-    assert version == "20"
+    assert version == "21"
     assert {"timeout_seconds", "attempt_count", "cancel_requested"}.issubset(
         agent_columns
     )

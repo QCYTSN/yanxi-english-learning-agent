@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import mimetypes
 import urllib.error
@@ -12,6 +13,11 @@ from typing import Any, Callable
 
 from .agent_gateway import get_adapter
 from .agent_gateway.base import AgentCapabilities, AgentIdentity
+from .agent_contracts import (
+    AgentContractValidationError,
+    validate_agent_contract_domain,
+    validate_agent_contract_schema,
+)
 from .credential_store import (
     credential_protection,
     delete_credential,
@@ -25,7 +31,12 @@ from .skill_policy import (
     provider_output_schema,
     strip_json_fence,
 )
-from .storage import connect, initialise_database
+from .storage import (
+    connect,
+    create_provider_attempt,
+    initialise_database,
+    update_provider_attempt,
+)
 
 
 ProviderEvent = Callable[[dict[str, Any]], None]
@@ -545,16 +556,17 @@ class ModelProviderChainAdapter:
         self.route = route
         self._identity: dict[str, dict[str, Any]] = {}
         self._usage: dict[str, dict[str, Any]] = {}
+        self._validation: dict[str, dict[str, Any]] = {}
         self._active_adapter: dict[str, Any] = {}
 
     def probe(self) -> AgentCapabilities:
         capabilities = [_provider_capabilities(item) for item in self.route]
         return AgentCapabilities(
-            structured_output=all(item.structured_output for item in capabilities),
+            structured_output=any(item.structured_output for item in capabilities),
             streaming=any(item.streaming for item in capabilities),
             session_resume=False,
-            image_input=all(item.image_input for item in capabilities),
-            audio_input=all(item.audio_input for item in capabilities),
+            image_input=any(item.image_input for item in capabilities),
+            audio_input=any(item.audio_input for item in capabilities),
             tool_execution=False,
             remote_processing=any(item.remote_processing for item in capabilities),
             cancellation=any(item.cancellation for item in capabilities),
@@ -591,8 +603,18 @@ class ModelProviderChainAdapter:
         emit: ProviderEvent | None,
     ) -> dict[str, Any]:
         execution_ref = str(request["request_id"])
+        contract = str(request.get("output_contract") or "")
         failures: list[dict[str, str]] = []
         for index, provider in enumerate(self.route):
+            if emit and index > 0:
+                emit(
+                    {
+                        "stage": "fallback_started",
+                        "label": "Trying fallback model",
+                        "provider_id": provider["provider_id"],
+                        "fallback_index": index,
+                    }
+                )
             if emit:
                 emit(
                     {
@@ -605,7 +627,27 @@ class ModelProviderChainAdapter:
                         "provider_id": provider["provider_id"],
                     }
                 )
+            attempt = create_provider_attempt(
+                home,
+                run_id=execution_ref,
+                provider_id=str(provider["provider_id"]),
+                provider_kind=str(provider.get("provider_kind") or ""),
+                model_id=provider.get("model_id"),
+                fallback_index=index,
+            )
+            candidate: dict[str, Any] | None = None
+            identity: dict[str, Any] = {}
+            usage: dict[str, Any] = {}
             try:
+                unsupported = _unsupported_media_types(provider, request)
+                if unsupported:
+                    names = ", ".join(sorted(unsupported))
+                    exc = ModelProviderError(
+                        f"Provider does not support required media: {names}",
+                        code="MODEL_PROVIDER_CAPABILITY_MISMATCH",
+                    )
+                    exc.stage = "capability"
+                    raise exc
                 if provider["provider_kind"] == "codex_oauth_bridge":
                     adapter = get_adapter("codex-managed")
                     self._active_adapter[execution_ref] = adapter
@@ -614,7 +656,7 @@ class ModelProviderChainAdapter:
                         "execution_profile": _codex_profile(provider),
                     }
                     start_with_events = getattr(adapter, "start_with_events", None)
-                    result = (
+                    candidate = (
                         start_with_events(home, provider_request, emit)
                         if callable(start_with_events) and emit
                         else adapter.start(home, provider_request)
@@ -626,7 +668,7 @@ class ModelProviderChainAdapter:
                         execution_ref
                     )
                 else:
-                    result, usage = _http_invoke(
+                    candidate, usage = _http_invoke(
                         home, provider, request, emit=emit
                     )
                     identity = {
@@ -635,6 +677,24 @@ class ModelProviderChainAdapter:
                         "model_display_name": provider.get("model_id"),
                         "launcher_kind": "model_provider_http",
                     }
+                if emit:
+                    emit(
+                        {
+                            "stage": "schema_validation",
+                            "label": "Checking structured response",
+                            "provider_id": provider["provider_id"],
+                        }
+                    )
+                structured = validate_agent_contract_schema(contract, candidate)
+                if emit:
+                    emit(
+                        {
+                            "stage": "domain_validation",
+                            "label": "Checking IELTS teaching rules",
+                            "provider_id": provider["provider_id"],
+                        }
+                    )
+                validated = validate_agent_contract_domain(contract, structured)
                 self._identity[execution_ref] = {
                     **identity,
                     "model_provider_id": provider["provider_id"],
@@ -644,21 +704,83 @@ class ModelProviderChainAdapter:
                     "model_provider_id": provider["provider_id"],
                     "fallback_index": index,
                 }
-                return result
-            except Exception as exc:
-                failures.append(
-                    {
-                        "provider_id": str(provider["provider_id"]),
-                        "code": str(getattr(exc, "code", "MODEL_PROVIDER_FAILED")),
-                        "message": str(exc)[-500:],
-                    }
+                self._validation[execution_ref] = {
+                    "validated": True,
+                    "contract": contract,
+                    "provider_attempt_id": attempt["attempt_id"],
+                }
+                update_provider_attempt(
+                    home,
+                    str(attempt["attempt_id"]),
+                    status="validated",
+                    result_hash=_result_hash(validated),
+                    identity=identity,
+                    usage=usage,
+                    completed_at=_now(),
                 )
                 if emit:
                     emit(
                         {
-                            "stage": "provider_failed",
-                            "label": "Model connection failed",
+                            "stage": "provider_validated",
+                            "label": "Model response accepted",
                             "provider_id": provider["provider_id"],
+                            "provider_attempt_id": attempt["attempt_id"],
+                        }
+                    )
+                return validated
+            except Exception as exc:
+                code = str(getattr(exc, "code", "MODEL_PROVIDER_FAILED"))
+                failure_stage = str(getattr(exc, "stage", "invocation"))
+                status = (
+                    "rejected"
+                    if isinstance(exc, AgentContractValidationError)
+                    else "skipped"
+                    if failure_stage == "capability"
+                    else "failed"
+                )
+                failures.append(
+                    {
+                        "provider_id": str(provider["provider_id"]),
+                        "code": code,
+                        "stage": failure_stage,
+                        "message": str(exc)[-500:],
+                    }
+                )
+                update_provider_attempt(
+                    home,
+                    str(attempt["attempt_id"]),
+                    status=status,
+                    failure_stage=failure_stage,
+                    error_code=code,
+                    error_message=str(exc)[-2000:],
+                    result_hash=(
+                        _result_hash(candidate) if candidate is not None else None
+                    ),
+                    identity=identity,
+                    usage=usage,
+                    completed_at=_now(),
+                )
+                if emit:
+                    emit(
+                        {
+                            "stage": (
+                                "provider_rejected"
+                                if status == "rejected"
+                                else "provider_skipped"
+                                if status == "skipped"
+                                else "provider_failed"
+                            ),
+                            "label": (
+                                "Model response rejected"
+                                if status == "rejected"
+                                else "Model cannot handle this material"
+                                if status == "skipped"
+                                else "Model connection failed"
+                            ),
+                            "provider_id": provider["provider_id"],
+                            "provider_attempt_id": attempt["attempt_id"],
+                            "failure_stage": failure_stage,
+                            "code": code,
                             "will_try_fallback": index + 1 < len(self.route),
                         }
                     )
@@ -693,8 +815,40 @@ class ModelProviderChainAdapter:
     def execution_usage(self, execution_ref: str) -> dict[str, Any]:
         return dict(self._usage.pop(execution_ref, {}))
 
+    def execution_validation(self, execution_ref: str) -> dict[str, Any]:
+        return dict(self._validation.pop(execution_ref, {}))
+
     def shutdown(self) -> None:
         get_adapter("codex-managed").shutdown()
+
+
+def _unsupported_media_types(
+    provider: dict[str, Any],
+    request: dict[str, Any],
+) -> set[str]:
+    capabilities = _provider_capabilities(provider)
+    required = {
+        str(item.get("media_type"))
+        for item in (request.get("media_refs") or [])
+        if item.get("available_to_agent")
+    }
+    unsupported: set[str] = set()
+    if "image" in required and not capabilities.image_input:
+        unsupported.add("image")
+    if "audio" in required and not capabilities.audio_input:
+        unsupported.add("audio")
+    return unsupported
+
+
+def _result_hash(result: dict[str, Any]) -> str:
+    payload = json.dumps(
+        result,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def _provider_capabilities(provider: dict[str, Any]) -> AgentCapabilities:

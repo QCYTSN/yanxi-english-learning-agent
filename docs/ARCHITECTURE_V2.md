@@ -127,8 +127,22 @@ status and recovery action
 ```
 
 The Provider chain tries the primary route first and then configured fallbacks.
-Every candidate result still goes through Schema and semantic validation.
-Models never receive a database connection and never write Session files.
+Each provider is one complete, auditable Attempt:
+
+```text
+invoke provider
+-> validate JSON Schema
+-> validate deterministic IELTS teaching rules
+-> accept candidate or continue to the next provider
+```
+
+Transport success alone never ends the route. A structurally invalid response,
+a response that violates Reading/Writing/Speaking integrity, or a provider that
+cannot process required media is recorded and causes the next eligible fallback
+to run. Attempt records contain failure stage, error code, provider/model
+identity, usage metadata and a result hash; they do not duplicate private model
+output. Models never receive a database connection and never write Session
+files.
 
 The deterministic pipeline test remains available only as a developer check.
 It reports that no model was used, never emits an IELTS score and never becomes
@@ -179,9 +193,11 @@ decision. Any future database change must preserve SQLite import/export and
 the Runtime's exclusive persistence ownership.
 
 Schema v19 added provider routes, external-Agent profiles and inference
-provenance. Schema v20 adds persistent Study Threads, messages and attachment
-metadata. Migrations retain pre-migration snapshots and remain compatible with
-V0.1 user data.
+provenance. Schema v20 added persistent Study Threads, messages and attachment
+metadata. Schema v21 adds immutable Provider Attempt audit records and closes
+unfinished attempts during cancellation, timeout or service-restart recovery.
+Migrations retain pre-migration snapshots and remain compatible with V0.1 user
+data.
 
 ## 7. Product information architecture
 
@@ -253,6 +269,6 @@ The architecture is accepted when:
 - complete Skills and Schemas are compiled for every model call;
 - external Agents cannot be selected for teaching inference;
 - provider output must pass validation before persistence;
-- schema v20 migrates historical homes with a recoverable snapshot;
+- schema v21 migrates historical homes with a recoverable snapshot;
 - normal learning works without exposing provider configuration;
 - frontend build, lint and tests plus backend regression tests pass.

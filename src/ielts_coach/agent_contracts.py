@@ -14,7 +14,7 @@ from .assessment_runtime import (
     bind_speaking_result,
     persist_writing_mock_review,
 )
-from .validation import validate_data
+from .validation import validate_data_semantics, validate_schema_data
 from .study_threads import add_assistant_message
 
 
@@ -29,18 +29,70 @@ CONTRACT_SKILLS = {
 }
 
 
-def validate_agent_contract(contract: str, result: dict[str, Any]) -> dict[str, Any]:
+class AgentContractValidationError(ValueError):
+    """A provider candidate failed a named contract validation boundary."""
+
+    def __init__(self, message: str, *, stage: str, code: str) -> None:
+        super().__init__(message)
+        self.stage = stage
+        self.code = code
+
+
+def _contract_schema(contract: str) -> str:
     schema = CONTRACT_SCHEMAS.get(contract)
     if not schema:
         name, _, version = contract.partition("@")
         if name in {item.partition("@")[0] for item in CONTRACT_SCHEMAS}:
-            raise ValueError(
-                f"Unsupported {name} contract version {version or 'missing'}"
+            raise AgentContractValidationError(
+                f"Unsupported {name} contract version {version or 'missing'}",
+                stage="contract",
+                code="AGENT_OUTPUT_CONTRACT_UNSUPPORTED",
             )
-        raise ValueError(f"Unknown Agent output contract: {contract}")
-    validated = validate_data(result, schema)
-    _semantic_validation(contract, validated)
+        raise AgentContractValidationError(
+            f"Unknown Agent output contract: {contract}",
+            stage="contract",
+            code="AGENT_OUTPUT_CONTRACT_UNKNOWN",
+        )
+    return schema
+
+
+def validate_agent_contract_schema(
+    contract: str,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    schema = _contract_schema(contract)
+    try:
+        return validate_schema_data(result, schema)
+    except Exception as exc:
+        raise AgentContractValidationError(
+            str(exc),
+            stage="schema",
+            code="AGENT_OUTPUT_SCHEMA_INVALID",
+        ) from exc
+
+
+def validate_agent_contract_domain(
+    contract: str,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    schema = _contract_schema(contract)
+    try:
+        validated = validate_data_semantics(result, schema)
+        _semantic_validation(contract, validated)
+    except AgentContractValidationError:
+        raise
+    except Exception as exc:
+        raise AgentContractValidationError(
+            str(exc),
+            stage="domain",
+            code="AGENT_OUTPUT_DOMAIN_INVALID",
+        ) from exc
     return validated
+
+
+def validate_agent_contract(contract: str, result: dict[str, Any]) -> dict[str, Any]:
+    structured = validate_agent_contract_schema(contract, result)
+    return validate_agent_contract_domain(contract, structured)
 
 
 def persist_agent_contract(

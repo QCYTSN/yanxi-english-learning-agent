@@ -152,6 +152,7 @@ from ..storage import (
     list_error_profile,
     list_assessment_packs,
     list_media_assets,
+    list_provider_attempts,
     list_sessions,
     latest_active_session,
     save_study_draft,
@@ -2419,7 +2420,16 @@ def create_app(
         run = get_agent_run(target, run_id)
         if not run:
             raise HTTPException(status_code=404, detail="Agent run not found")
-        return run
+        return {**run, "provider_attempts": list_provider_attempts(target, run_id)}
+
+    @app.get(
+        "/api/v1/agent-runs/{run_id}/attempts",
+        dependencies=[Depends(require_session)],
+    )
+    def agent_run_attempts(run_id: str) -> list[dict[str, Any]]:
+        if not get_agent_run(target, run_id):
+            raise HTTPException(status_code=404, detail="Agent run not found")
+        return list_provider_attempts(target, run_id)
 
     @app.post("/api/v1/agent-runs/{run_id}/cancel", dependencies=[Depends(require_session)])
     def agent_run_cancel(run_id: str) -> dict[str, Any]:

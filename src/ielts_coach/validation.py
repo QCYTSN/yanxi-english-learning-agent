@@ -34,9 +34,20 @@ def load_schema(name: str) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
+def validate_schema_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
+    """Validate only the JSON shape and return a normalised copy.
+
+    Keeping structural validation separate lets the inference route reject a
+    malformed provider response before running IELTS-specific policy checks.
+    """
     normalised = normalise_json_value(data)
     jsonschema.validate(normalised, load_schema(schema_name), format_checker=FormatChecker())
+    return normalised
+
+
+def validate_data_semantics(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
+    """Validate deterministic domain rules for already structured data."""
+    normalised = normalise_json_value(data)
     if schema_name == "session":
         _validate_session_semantics(normalised)
     elif schema_name == "profile":
@@ -69,6 +80,11 @@ def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
         if declared == "verified" and report["status"] != "verified":
             raise ValueError("Assessment pack claims verified conformance but failed: " + "; ".join(report["errors"] or report["warnings"]))
     return normalised
+
+
+def validate_data(data: dict[str, Any], schema_name: str) -> dict[str, Any]:
+    normalised = validate_schema_data(data, schema_name)
+    return validate_data_semantics(normalised, schema_name)
 
 
 def _validate_writing_review_semantics(data: dict[str, Any]) -> None:

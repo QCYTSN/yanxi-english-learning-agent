@@ -11,13 +11,19 @@ from ielts_coach.credential_store import get_credential
 from ielts_coach.inference import InferenceBroker
 from ielts_coach.init_home import initialise_home
 from ielts_coach.model_providers import (
+    ModelProviderChainAdapter,
     active_model_route,
     create_model_provider,
     list_model_providers,
     update_model_provider,
 )
 from ielts_coach.skill_policy import compile_skill_envelope, provider_output_schema
-from ielts_coach.storage import connect, create_agent_run, get_agent_run
+from ielts_coach.storage import (
+    connect,
+    create_agent_run,
+    get_agent_run,
+    list_provider_attempts,
+)
 from ielts_coach.web.app import create_app
 from ielts_coach.web.auth import AuthState
 
@@ -251,3 +257,195 @@ def test_provider_route_requires_credentials_and_preserves_reasoning(
             model_id="model-test",
             auth_mode="none",
         )
+
+
+def _study_plan(*, valid: bool = True) -> dict[str, object]:
+    return {
+        "contract_version": 1,
+        "period": "2026-W31",
+        "allocation": {
+            "listening": 0.25 if valid else 0.5,
+            "reading": 0.25 if valid else 0.5,
+            "writing": 0.25 if valid else 0.5,
+            "speaking": 0.25 if valid else 0.5,
+        },
+        "tasks": [
+            {
+                "module": "reading",
+                "title": "Evidence review",
+                "minutes": 30,
+                "reason": "Current priority",
+            }
+        ],
+        "evidence_summary": ["One eligible Reading sample."],
+    }
+
+
+@pytest.mark.parametrize(
+    ("invalid_candidate", "expected_stage"),
+    [
+        ({"contract_version": 1}, "schema"),
+        (_study_plan(valid=False), "domain"),
+    ],
+)
+def test_provider_route_falls_back_after_contract_rejection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    invalid_candidate: dict[str, object],
+    expected_stage: str,
+):
+    home = tmp_path / "home"
+    initialise_home(home)
+    create_model_provider(
+        home,
+        provider_id="invalid-primary",
+        display_name="Invalid primary",
+        provider_kind="openai_compatible",
+        base_url="https://primary.example.test/v1",
+        model_id="primary-model",
+        api_key="primary-secret",
+        role="primary",
+    )
+    create_model_provider(
+        home,
+        provider_id="valid-fallback",
+        display_name="Valid fallback",
+        provider_kind="openai_compatible",
+        base_url="https://fallback.example.test/v1",
+        model_id="fallback-model",
+        api_key="fallback-secret",
+        role="fallback",
+    )
+    run_id = f"run-validation-{expected_stage}"
+    create_agent_run(
+        home,
+        {
+            "run_id": run_id,
+            "adapter_id": "model-provider-chain",
+            "backend_kind": "model_provider",
+            "action": "plan",
+            "output_contract": "study-plan@1",
+            "status": "running",
+            "inference_route": ["invalid-primary", "valid-fallback"],
+        },
+    )
+    calls: list[str] = []
+
+    def fake_invoke(home_arg, provider, request, *, emit):
+        del home_arg, request, emit
+        calls.append(provider["provider_id"])
+        if provider["provider_id"] == "invalid-primary":
+            return invalid_candidate, {"input_tokens": 10}
+        return _study_plan(), {"input_tokens": 12, "output_tokens": 18}
+
+    monkeypatch.setattr(
+        "ielts_coach.model_providers._http_invoke",
+        fake_invoke,
+    )
+    route = active_model_route(home)
+    adapter = ModelProviderChainAdapter(route)
+    events: list[dict[str, object]] = []
+
+    result = adapter.start_with_events(
+        home,
+        {
+            "request_id": run_id,
+            "output_contract": "study-plan@1",
+            "media_refs": [],
+        },
+        events.append,
+    )
+
+    assert result == _study_plan()
+    assert calls == ["invalid-primary", "valid-fallback"]
+    attempts = list_provider_attempts(home, run_id)
+    assert [item["status"] for item in attempts] == ["rejected", "validated"]
+    assert attempts[0]["failure_stage"] == expected_stage
+    assert attempts[0]["error_code"] == (
+        "AGENT_OUTPUT_SCHEMA_INVALID"
+        if expected_stage == "schema"
+        else "AGENT_OUTPUT_DOMAIN_INVALID"
+    )
+    assert len(attempts[1]["result_hash"]) == 64
+    assert adapter.execution_identity(run_id)["model_provider_id"] == (
+        "valid-fallback"
+    )
+    assert adapter.execution_usage(run_id)["fallback_index"] == 1
+    assert adapter.execution_validation(run_id)["validated"] is True
+    assert any(item["stage"] == "provider_rejected" for item in events)
+    assert any(item["stage"] == "fallback_started" for item in events)
+    assert any(item["stage"] == "provider_validated" for item in events)
+
+
+def test_provider_route_skips_media_incompatible_primary(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    home = tmp_path / "home"
+    initialise_home(home)
+    create_model_provider(
+        home,
+        provider_id="text-primary",
+        display_name="Text primary",
+        provider_kind="openai_compatible",
+        base_url="https://text.example.test/v1",
+        model_id="text-model",
+        api_key="text-secret",
+        role="primary",
+    )
+    create_model_provider(
+        home,
+        provider_id="vision-fallback",
+        display_name="Vision fallback",
+        provider_kind="openai_compatible",
+        base_url="https://vision.example.test/v1",
+        model_id="vision-model",
+        api_key="vision-secret",
+        role="fallback",
+        config={"image_input": True},
+    )
+    run_id = "run-media-capability"
+    create_agent_run(
+        home,
+        {
+            "run_id": run_id,
+            "adapter_id": "model-provider-chain",
+            "backend_kind": "model_provider",
+            "action": "plan",
+            "output_contract": "study-plan@1",
+            "status": "running",
+        },
+    )
+    calls: list[str] = []
+
+    def fake_invoke(home_arg, provider, request, *, emit):
+        del home_arg, request, emit
+        calls.append(provider["provider_id"])
+        return _study_plan(), {}
+
+    monkeypatch.setattr(
+        "ielts_coach.model_providers._http_invoke",
+        fake_invoke,
+    )
+    adapter = ModelProviderChainAdapter(active_model_route(home))
+    assert adapter.probe().image_input is True
+    adapter.start(
+        home,
+        {
+            "request_id": run_id,
+            "output_contract": "study-plan@1",
+            "media_refs": [
+                {
+                    "media_id": "image-1",
+                    "media_type": "image",
+                    "available_to_agent": True,
+                }
+            ],
+        },
+    )
+
+    assert calls == ["vision-fallback"]
+    attempts = list_provider_attempts(home, run_id)
+    assert attempts[0]["status"] == "skipped"
+    assert attempts[0]["failure_stage"] == "capability"
+    assert attempts[1]["status"] == "validated"

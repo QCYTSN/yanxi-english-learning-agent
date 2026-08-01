@@ -90,6 +90,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - executable Progress next actions backed by idempotent PracticeUnit materialisation
 - weekly evidence summary, error inbox and report archive in the local UI
 - schema v20 Capability Registry, Study Threads and versioned inference provenance
+- schema v21 validation-aware Provider Attempts with structured, domain and
+  media-capability fallback plus restart-safe audit closure
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
