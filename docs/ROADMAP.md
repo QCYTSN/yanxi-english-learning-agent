@@ -98,6 +98,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   Session Markdown/SQLite projections with explicit reconciliation
 - schema v24 canonical Agent lifecycle events, privacy-safe append-only audit
   facts, expiring launch tokens and session-bound CSRF protection
+- schema v25 allowlisted Tutor domain queries, learner-managed soft memories,
+  bounded long-thread summaries and local learning-history retrieval
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite

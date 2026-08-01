@@ -15,7 +15,7 @@
   ],
   "properties": {
     "contract_version": {"const": 1},
-    "module": {"enum": ["reading", "writing", "mixed"]},
+    "module": {"enum": ["listening", "reading", "writing", "speaking", "mixed"]},
     "request_kind": {
       "enum": [
         "question_explanation",

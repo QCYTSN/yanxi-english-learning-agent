@@ -13,7 +13,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 24
+SCHEMA_VERSION = 25
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -700,6 +700,36 @@ CREATE TABLE IF NOT EXISTS study_thread_attachments (
 );
 CREATE INDEX IF NOT EXISTS idx_study_attachments_thread
 ON study_thread_attachments(thread_id,created_at);
+
+CREATE TABLE IF NOT EXISTS study_thread_summaries (
+    thread_id TEXT PRIMARY KEY,
+    summary TEXT NOT NULL,
+    message_count INTEGER NOT NULL,
+    through_message_id TEXT,
+    summary_hash TEXT NOT NULL,
+    generated_by TEXT NOT NULL DEFAULT 'deterministic',
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS learner_memories (
+    memory_id TEXT PRIMARY KEY,
+    memory_type TEXT NOT NULL,
+    statement TEXT NOT NULL,
+    confidence REAL NOT NULL CHECK(confidence>=0 AND confidence<=1),
+    evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+    scope TEXT NOT NULL DEFAULT 'teaching_style',
+    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','dismissed')),
+    source_thread_id TEXT,
+    source_session_id TEXT,
+    created_at TEXT NOT NULL,
+    last_confirmed_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(source_thread_id) REFERENCES study_threads(thread_id) ON DELETE SET NULL,
+    FOREIGN KEY(source_session_id) REFERENCES sessions(session_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_learner_memories_active
+ON learner_memories(status,memory_type,updated_at DESC);
 
 CREATE TABLE IF NOT EXISTS ui_settings (
     key TEXT PRIMARY KEY,
@@ -3339,6 +3369,266 @@ def list_audit_events(
             "metadata": json.loads(row["metadata_json"]),
         }
         for row in rows
+    ]
+
+
+def save_thread_summary(
+    home: Path,
+    *,
+    thread_id: str,
+    summary: str,
+    message_count: int,
+    through_message_id: str | None,
+    generated_by: str = "deterministic",
+) -> dict[str, Any]:
+    initialise_database(home)
+    clean = summary.strip()
+    if not clean:
+        raise ValueError("Thread summary cannot be empty")
+    now = _now()
+    summary_hash = hashlib.sha256(clean.encode("utf-8")).hexdigest()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO study_thread_summaries(
+              thread_id,summary,message_count,through_message_id,summary_hash,
+              generated_by,updated_at
+            ) VALUES(?,?,?,?,?,?,?)
+            ON CONFLICT(thread_id) DO UPDATE SET
+              summary=excluded.summary,
+              message_count=excluded.message_count,
+              through_message_id=excluded.through_message_id,
+              summary_hash=excluded.summary_hash,
+              generated_by=excluded.generated_by,
+              updated_at=excluded.updated_at
+            """,
+            (
+                thread_id,
+                clean,
+                max(0, int(message_count)),
+                through_message_id,
+                summary_hash,
+                generated_by,
+                now,
+            ),
+        )
+    return get_thread_summary(home, thread_id) or {}
+
+
+def get_thread_summary(home: Path, thread_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM study_thread_summaries WHERE thread_id=?", (thread_id,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def create_learner_memory(
+    home: Path,
+    *,
+    memory_type: str,
+    statement: str,
+    confidence: float,
+    evidence_refs: list[str] | None = None,
+    scope: str = "teaching_style",
+    source_thread_id: str | None = None,
+    source_session_id: str | None = None,
+    memory_id: str | None = None,
+) -> dict[str, Any]:
+    initialise_database(home)
+    clean = " ".join(statement.strip().split())
+    if not clean:
+        raise ValueError("Learner memory statement cannot be empty")
+    confidence = float(confidence)
+    if not 0 <= confidence <= 1:
+        raise ValueError("Learner memory confidence must be between 0 and 1")
+    memory_id = memory_id or f"memory_{uuid.uuid4().hex}"
+    now = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO learner_memories(
+              memory_id,memory_type,statement,confidence,evidence_refs_json,
+              scope,status,source_thread_id,source_session_id,created_at,
+              last_confirmed_at,updated_at
+            ) VALUES(?,?,?,?,?,?,'active',?,?,?,?,?)
+            """,
+            (
+                memory_id,
+                memory_type[:80],
+                clean[:2000],
+                confidence,
+                json.dumps(evidence_refs or [], ensure_ascii=False),
+                scope[:80],
+                source_thread_id,
+                source_session_id,
+                now,
+                now,
+                now,
+            ),
+        )
+    return get_learner_memory(home, memory_id) or {}
+
+
+def get_learner_memory(home: Path, memory_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+        ).fetchone()
+    return _learner_memory_row(row) if row else None
+
+
+def list_learner_memories(
+    home: Path,
+    *,
+    status: str = "active",
+    memory_type: str | None = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    clauses = ["status=?"]
+    params: list[Any] = [status]
+    if memory_type:
+        clauses.append("memory_type=?")
+        params.append(memory_type)
+    params.append(max(1, min(int(limit), 200)))
+    with connect(home) as conn:
+        rows = conn.execute(
+            "SELECT * FROM learner_memories WHERE "
+            + " AND ".join(clauses)
+            + " ORDER BY confidence DESC,updated_at DESC LIMIT ?",
+            params,
+        ).fetchall()
+    return [_learner_memory_row(row) for row in rows]
+
+
+def update_learner_memory(
+    home: Path,
+    memory_id: str,
+    *,
+    statement: str | None = None,
+    confidence: float | None = None,
+    status: str | None = None,
+    scope: str | None = None,
+) -> dict[str, Any]:
+    existing = get_learner_memory(home, memory_id)
+    if not existing:
+        raise ValueError("Learner memory not found")
+    if status is not None and status not in {"active", "dismissed"}:
+        raise ValueError("Unsupported learner memory status")
+    if confidence is not None and not 0 <= float(confidence) <= 1:
+        raise ValueError("Learner memory confidence must be between 0 and 1")
+    values = {
+        "statement": (
+            " ".join(statement.strip().split())[:2000]
+            if statement is not None
+            else existing["statement"]
+        ),
+        "confidence": float(confidence) if confidence is not None else existing["confidence"],
+        "status": status or existing["status"],
+        "scope": scope[:80] if scope is not None else existing["scope"],
+    }
+    if not values["statement"]:
+        raise ValueError("Learner memory statement cannot be empty")
+    now = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            UPDATE learner_memories
+            SET statement=?,confidence=?,status=?,scope=?,last_confirmed_at=?,updated_at=?
+            WHERE memory_id=?
+            """,
+            (
+                values["statement"],
+                values["confidence"],
+                values["status"],
+                values["scope"],
+                now,
+                now,
+                memory_id,
+            ),
+        )
+    return get_learner_memory(home, memory_id) or {}
+
+
+def delete_learner_memory(home: Path, memory_id: str) -> bool:
+    initialise_database(home)
+    with connect(home) as conn:
+        cursor = conn.execute(
+            "DELETE FROM learner_memories WHERE memory_id=?", (memory_id,)
+        )
+    return cursor.rowcount == 1
+
+
+def _learner_memory_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        **{key: row[key] for key in row.keys() if key != "evidence_refs_json"},
+        "confidence": float(row["confidence"]),
+        "evidence_refs": json.loads(row["evidence_refs_json"]),
+    }
+
+
+def search_learning_history(
+    home: Path,
+    query: str,
+    *,
+    limit: int = 8,
+) -> list[dict[str, Any]]:
+    """Search local conversations, writing versions and error evidence.
+
+    Structured answers and scores remain outside this fuzzy retrieval path.
+    """
+    initialise_database(home)
+    clean = " ".join(query.strip().split())[:240]
+    if not clean:
+        return []
+    escaped = clean.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    pattern = f"%{escaped}%"
+    bounded = max(1, min(int(limit), 50))
+    with connect(home) as conn:
+        message_rows = conn.execute(
+            """
+            SELECT 'study_message' source_type,m.message_id source_id,
+                   t.title title,m.content content,m.created_at created_at
+            FROM study_messages m JOIN study_threads t USING(thread_id)
+            WHERE m.content LIKE ? ESCAPE '\\'
+            ORDER BY m.created_at DESC LIMIT ?
+            """,
+            (pattern, bounded),
+        ).fetchall()
+        writing_rows = conn.execute(
+            """
+            SELECT 'writing_version' source_type,
+                   w.session_id || ':' || w.version_label source_id,
+                   'Writing ' || w.version_label title,w.content content,
+                   w.created_at created_at
+            FROM writing_versions w
+            WHERE w.content LIKE ? ESCAPE '\\'
+            ORDER BY w.created_at DESC LIMIT ?
+            """,
+            (pattern, bounded),
+        ).fetchall()
+        error_rows = conn.execute(
+            """
+            SELECT 'error_record' source_type,
+                   CAST(e.id AS TEXT) source_id,e.tag title,
+                   COALESCE(e.evidence,'') content,s.occurred_at created_at
+            FROM errors e JOIN sessions s USING(session_id)
+            WHERE e.tag LIKE ? ESCAPE '\\' OR COALESCE(e.evidence,'') LIKE ? ESCAPE '\\'
+            ORDER BY s.occurred_at DESC LIMIT ?
+            """,
+            (pattern, pattern, bounded),
+        ).fetchall()
+    combined = [dict(row) for row in (*message_rows, *writing_rows, *error_rows)]
+    combined.sort(key=lambda item: str(item.get("created_at") or ""), reverse=True)
+    return [
+        {
+            **item,
+            "content": str(item.get("content") or "")[:1200],
+        }
+        for item in combined[:bounded]
     ]
 
 

@@ -223,6 +223,12 @@ append-only audit ledger. Audit rows contain identifiers, outcomes, scoped
 metadata and payload hashes, never the learner's essay or conversation text.
 Browser mutations use an HttpOnly UI session together with a session-bound
 double-submit CSRF token; launch tokens expire after a short interval.
+Schema v25 adds a constrained Tutor Orchestrator above the Teaching Runtime.
+It can call only registered domain queries, while command tools return a
+proposal that still requires learner confirmation. Learner memories are soft,
+user-visible and deletable; they may change explanation style but can never
+change a score, answer key or formal Session. Long conversations retain a
+bounded deterministic summary and local history matches carry source IDs.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -296,6 +302,10 @@ The architecture is accepted when:
 - complete Skills and Schemas are compiled for every model call;
 - external Agents cannot be selected for teaching inference;
 - provider output must pass validation before persistence;
-- schema v24 migrates historical homes with a recoverable snapshot;
+- Tutor orchestration can use only registered domain tools and cannot mutate
+  formal state without a learner-confirmed Runtime command;
+- learner soft memories are visible, editable and deletable and never affect
+  formal scores or answer authority;
+- schema v25 migrates historical homes with a recoverable snapshot;
 - normal learning works without exposing provider configuration;
 - frontend build, lint and tests plus backend regression tests pass.

@@ -14,7 +14,12 @@ from xml.etree import ElementTree
 from .content_imports import create_import
 from .media import import_image_bytes, resolve_media_file
 from .question_bank import show_reading_set
-from .storage import connect, initialise_database
+from .storage import (
+    connect,
+    get_thread_summary,
+    initialise_database,
+    save_thread_summary,
+)
 from .text_anchor import create_text_anchor
 
 
@@ -54,8 +59,10 @@ def create_study_thread(
     source_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     initialise_database(home)
-    if module not in {"reading", "writing", "mixed"}:
-        raise ValueError("Study thread module must be reading, writing or mixed")
+    if module not in {"listening", "reading", "writing", "speaking", "mixed"}:
+        raise ValueError(
+            "Study thread module must be listening, reading, writing, speaking or mixed"
+        )
     clean_title = " ".join(title.strip().split())[:120] or "新的 IELTS 学习对话"
     thread_id = _id("thread")
     now = _now()
@@ -147,7 +154,10 @@ def get_study_thread(home: Path, thread_id: str) -> dict[str, Any]:
         }
         for item in message_rows
     ]
-    return _thread_row(row, messages=messages, attachments=attachments)
+    return {
+        **_thread_row(row, messages=messages, attachments=attachments),
+        "conversation_summary": get_thread_summary(home, thread_id),
+    }
 
 
 def rename_study_thread(
@@ -258,6 +268,7 @@ def add_user_message(
             )
         raise
     updated = get_study_thread(home, str(thread["thread_id"]))
+    refresh_study_thread_summary(home, thread_id)
     return next(
         item for item in updated["messages"] if item["message_id"] == message_id
     )
@@ -313,6 +324,7 @@ def add_assistant_message(
             "UPDATE study_threads SET updated_at=? WHERE thread_id=?",
             (now, thread_id),
         )
+    refresh_study_thread_summary(home, thread_id)
     return get_study_message(home, message_id) or {}
 
 
@@ -329,7 +341,8 @@ def study_thread_agent_context(
     )
     if not message or message["role"] != "user":
         raise ValueError("Study thread user message not found")
-    recent = thread["messages"][-12:]
+    summary = refresh_study_thread_summary(home, thread_id)
+    recent = thread["messages"][-10:]
     extracted: list[dict[str, Any]] = []
     remaining_chars = MAX_THREAD_CONTEXT_TEXT
     for attachment in _prioritised_attachments(thread, message_id):
@@ -363,9 +376,62 @@ def study_thread_agent_context(
             }
             for item in recent
         ],
+        "conversation_summary": (
+            {
+                "summary": summary["summary"],
+                "message_count": summary["message_count"],
+                "through_message_id": summary.get("through_message_id"),
+            }
+            if summary
+            else None
+        ),
         "attachment_text": extracted,
         "material_evidence_sufficient": bool(extracted or thread["attachments"]),
     }
+
+
+def refresh_study_thread_summary(
+    home: Path,
+    thread_id: str,
+) -> dict[str, Any] | None:
+    """Keep a bounded, deterministic digest of messages outside the live window."""
+    with connect(home) as conn:
+        rows = conn.execute(
+            """
+            SELECT message_id,role,content,created_at
+            FROM study_messages
+            WHERE thread_id=?
+            ORDER BY created_at,message_id
+            """,
+            (thread_id,),
+        ).fetchall()
+    if len(rows) <= 10:
+        return get_thread_summary(home, thread_id)
+    archived = rows[:-10]
+    existing = get_thread_summary(home, thread_id)
+    if existing and int(existing["message_count"]) == len(archived):
+        return existing
+    parts = []
+    remaining = 3600
+    for row in archived[-24:]:
+        role = "学习者" if row["role"] == "user" else "IELTS 教师"
+        content = " ".join(str(row["content"]).split())
+        excerpt = content[: min(240, remaining)]
+        if not excerpt:
+            continue
+        parts.append(f"{role}：{excerpt}")
+        remaining -= len(excerpt)
+        if remaining <= 0:
+            break
+    if not parts:
+        return existing
+    return save_thread_summary(
+        home,
+        thread_id=thread_id,
+        summary="\n".join(parts),
+        message_count=len(archived),
+        through_message_id=str(archived[-1]["message_id"]),
+    )
 
 
 def thread_media_ids(

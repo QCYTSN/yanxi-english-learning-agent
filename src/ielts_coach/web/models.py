@@ -85,13 +85,35 @@ class TodayIntent(BaseModel):
 
 class StudyThreadCreate(BaseModel):
     title: str = Field(default="新的 IELTS 学习对话", min_length=1, max_length=120)
-    module: Literal["reading", "writing", "mixed"] = "mixed"
+    module: Literal["listening", "reading", "writing", "speaking", "mixed"] = "mixed"
     model_provider_id: str | None = Field(default=None, max_length=120)
     source_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class StudyThreadUpdate(BaseModel):
     title: str = Field(min_length=1, max_length=120)
+
+
+class LearnerMemoryCreate(BaseModel):
+    memory_type: str = Field(min_length=1, max_length=80)
+    statement: str = Field(min_length=1, max_length=2000)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+    evidence_refs: list[str] = Field(default_factory=list, max_length=50)
+    scope: str = Field(default="teaching_style", min_length=1, max_length=80)
+    source_thread_id: str | None = Field(default=None, max_length=120)
+    source_session_id: str | None = Field(default=None, max_length=120)
+
+
+class LearnerMemoryUpdate(BaseModel):
+    statement: str | None = Field(default=None, min_length=1, max_length=2000)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    status: Literal["active", "dismissed"] | None = None
+    scope: str | None = Field(default=None, min_length=1, max_length=80)
+
+
+class TutorContextRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=20_000)
+    module: Literal["listening", "reading", "writing", "speaking"] | None = None
 
 
 class DiagnosticAttach(BaseModel):

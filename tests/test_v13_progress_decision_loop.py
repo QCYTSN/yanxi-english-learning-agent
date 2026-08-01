@@ -55,7 +55,7 @@ def _session(
 def test_current_schema_persists_structured_weekly_reports(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 24
+    assert SCHEMA_VERSION == 25
     with connect(home) as conn:
         tables = {
             row[0]

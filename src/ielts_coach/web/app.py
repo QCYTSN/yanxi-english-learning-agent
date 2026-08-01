@@ -139,6 +139,7 @@ from ..session_manager import (
 )
 from ..storage import (
     append_agent_run_event,
+    create_learner_memory,
     create_agent_run,
     db_path,
     get_agent_run,
@@ -148,6 +149,7 @@ from ..storage import (
     list_agent_run_events,
     list_agent_runs,
     list_audit_events,
+    list_learner_memories,
     list_coaching_artifacts,
     get_assessment_pack,
     list_error_profile,
@@ -157,9 +159,12 @@ from ..storage import (
     list_sessions,
     latest_active_session,
     save_study_draft,
+    record_audit_event,
     save_idempotency_record,
+    delete_learner_memory,
     telemetry_summary,
     update_agent_run,
+    update_learner_memory,
 )
 from ..study_threads import (
     add_user_message,
@@ -174,6 +179,7 @@ from ..study_threads import (
     thread_media_ids,
 )
 from ..study_context import build_study_context
+from ..tutor_orchestrator import TutorOrchestrator
 from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
     reconcile_session,
@@ -216,6 +222,8 @@ from .models import (
     DiagnosticStart,
     DraftSave,
     ListeningAttemptSubmit,
+    LearnerMemoryCreate,
+    LearnerMemoryUpdate,
     ReadingAnswersSubmit,
     ReadingHintSubmit,
     ProfileUpdate,
@@ -228,6 +236,7 @@ from .models import (
     StudyThreadUpdate,
     TodayMaterialise,
     TodayIntent,
+    TutorContextRequest,
     WritingVersionSubmit,
     WritingAssessmentScore,
 )
@@ -486,6 +495,7 @@ def create_app(
 ) -> FastAPI:
     target = resolve_home(home)
     agent_jobs = AgentJobManager(target)
+    tutor_orchestrator = TutorOrchestrator(target)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -512,6 +522,7 @@ def create_app(
     app.state.control_token = control_token
     app.state.server = None
     app.state.agent_jobs = agent_jobs
+    app.state.tutor_orchestrator = tutor_orchestrator
     app.state.performance = RequestPerformanceMonitor()
     app.add_middleware(
         LoopbackSecurityMiddleware, allowed_origin=allowed_origin, test_mode=test_mode
@@ -1821,6 +1832,96 @@ def create_app(
             target, artifact_type=artifact_type, limit=limit
         )
 
+    @app.get("/api/v1/tutor/domain-tools", dependencies=[Depends(require_session)])
+    def tutor_domain_tools() -> list[dict[str, Any]]:
+        return tutor_orchestrator.registry.descriptors()
+
+    @app.post("/api/v1/tutor/context", dependencies=[Depends(require_session)])
+    def tutor_context(payload: TutorContextRequest) -> dict[str, Any]:
+        return tutor_orchestrator.prepare(payload.text, module=payload.module)
+
+    @app.get("/api/v1/learner-memories", dependencies=[Depends(require_session)])
+    def learner_memories(
+        status: str = Query("active", pattern="^(active|dismissed)$"),
+        memory_type: str | None = None,
+        limit: int = Query(50, ge=1, le=200),
+    ) -> list[dict[str, Any]]:
+        return list_learner_memories(
+            target,
+            status=status,
+            memory_type=memory_type,
+            limit=limit,
+        )
+
+    @app.post("/api/v1/learner-memories", dependencies=[Depends(require_session)])
+    def learner_memory_create(payload: LearnerMemoryCreate) -> dict[str, Any]:
+        memory = create_learner_memory(
+            target,
+            memory_type=payload.memory_type,
+            statement=payload.statement,
+            confidence=payload.confidence,
+            evidence_refs=payload.evidence_refs,
+            scope=payload.scope,
+            source_thread_id=payload.source_thread_id,
+            source_session_id=payload.source_session_id,
+        )
+        record_audit_event(
+            target,
+            category="learner_memory",
+            action="created",
+            outcome="succeeded",
+            subject_type="learner_memory",
+            subject_id=str(memory["memory_id"]),
+            payload={"statement": payload.statement},
+            metadata={"memory_type": payload.memory_type, "scope": payload.scope},
+        )
+        return memory
+
+    @app.patch(
+        "/api/v1/learner-memories/{memory_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def learner_memory_update(
+        memory_id: str,
+        payload: LearnerMemoryUpdate,
+    ) -> dict[str, Any]:
+        memory = update_learner_memory(
+            target,
+            memory_id,
+            statement=payload.statement,
+            confidence=payload.confidence,
+            status=payload.status,
+            scope=payload.scope,
+        )
+        record_audit_event(
+            target,
+            category="learner_memory",
+            action="updated",
+            outcome="succeeded",
+            subject_type="learner_memory",
+            subject_id=memory_id,
+            payload={"statement": payload.statement} if payload.statement else None,
+            metadata={"status": memory["status"], "scope": memory["scope"]},
+        )
+        return memory
+
+    @app.delete(
+        "/api/v1/learner-memories/{memory_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def learner_memory_delete(memory_id: str) -> dict[str, Any]:
+        if not delete_learner_memory(target, memory_id):
+            raise HTTPException(status_code=404, detail="Learner memory not found")
+        record_audit_event(
+            target,
+            category="learner_memory",
+            action="deleted",
+            outcome="succeeded",
+            subject_type="learner_memory",
+            subject_id=memory_id,
+        )
+        return {"memory_id": memory_id, "deleted": True}
+
     @app.get("/api/v1/study-threads", dependencies=[Depends(require_session)])
     def study_threads_endpoint(
         limit: int = Query(30, ge=1, le=100),
@@ -2204,6 +2305,15 @@ def create_app(
             if is_study_help
             else None
         )
+        if thread_context is not None:
+            thread_context["tutor_orchestration"] = tutor_orchestrator.prepare(
+                str(thread_context["user_request"]),
+                module=(
+                    str(thread_context["module"])
+                    if thread_context.get("module") != "mixed"
+                    else None
+                ),
+            )
         capabilities = adapter.probe()
         adapter_identity = adapter.identity()
         selected_model_id = (
@@ -2307,6 +2417,26 @@ def create_app(
                         "content_hash": item.get("content_hash"),
                     }
                     for item in media_refs
+                ],
+                "learner_memory_ids": [
+                    item["memory_id"]
+                    for item in (
+                        thread_context.get("tutor_orchestration", {}).get(
+                            "learner_memories", []
+                        )
+                        if thread_context
+                        else []
+                    )
+                ],
+                "history_refs": [
+                    f"{item['source_type']}:{item['source_id']}"
+                    for item in (
+                        thread_context.get("tutor_orchestration", {}).get(
+                            "history_evidence", []
+                        )
+                        if thread_context
+                        else []
+                    )
                 ],
             },
         )

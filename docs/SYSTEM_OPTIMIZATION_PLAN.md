@@ -40,7 +40,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 ## 3. 当前已完成的性能底座
 
-- Schema v24；
+- Schema v25；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
