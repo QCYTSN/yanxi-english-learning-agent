@@ -57,11 +57,27 @@ export function AgentPanel({ sessionId, contract, action, onPersisted }: {
         source.close()
       }
     })
-    source.addEventListener('status', refresh)
-    source.addEventListener('progress', refresh)
-    source.addEventListener('completed', refresh)
-    source.addEventListener('failed', refresh)
-    source.addEventListener('cancelled', refresh)
+    ;[
+      'job_queued',
+      'context_ready',
+      'skill_compiled',
+      'provider_started',
+      'provider_stream_delta',
+      'provider_progress',
+      'provider_completed',
+      'provider_failed',
+      'fallback_started',
+      'schema_validation_started',
+      'schema_validation_failed',
+      'domain_validation_started',
+      'domain_validation_failed',
+      'awaiting_user',
+      'persistence_started',
+      'persisted',
+      'pipeline_test_passed',
+      'job_failed',
+      'job_cancelled',
+    ].forEach((eventName) => source.addEventListener(eventName, refresh))
     source.onerror = refresh
     return () => source.close()
   }, [activeRunId, activeRunStatus, onPersisted])

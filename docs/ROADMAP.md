@@ -96,6 +96,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   heartbeats and post-result recovery without a duplicate model call
 - schema v23 one-run privacy decision receipts plus revision-and-hash guarded
   Session Markdown/SQLite projections with explicit reconciliation
+- schema v24 canonical Agent lifecycle events, privacy-safe append-only audit
+  facts, expiring launch tokens and session-bound CSRF protection
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite

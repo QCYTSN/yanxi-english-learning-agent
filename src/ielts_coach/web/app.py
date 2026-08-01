@@ -147,6 +147,7 @@ from ..storage import (
     get_study_draft,
     list_agent_run_events,
     list_agent_runs,
+    list_audit_events,
     list_coaching_artifacts,
     get_assessment_pack,
     list_error_profile,
@@ -184,7 +185,13 @@ from ..study_runtime import (
 from ..speaking_handoff import create_speaking_handoff, speaking_questions
 from ..speaking_io import import_speaking_report_data
 from ..story_bank import list_stories, save_story
-from .auth import AuthState, COOKIE_NAME, require_session
+from .auth import (
+    AuthState,
+    COOKIE_NAME,
+    CSRF_COOKIE_NAME,
+    CSRF_HEADER_NAME,
+    require_session,
+)
 from .models import (
     AgentResultImport,
     AgentRunCreate,
@@ -255,6 +262,21 @@ class LoopbackSecurityMiddleware(BaseHTTPMiddleware):
                 response = _error_response(403, "INVALID_ORIGIN", "The request origin is not allowed.")
             elif request.method in {"POST", "PUT", "PATCH", "DELETE"} and not origin and not self.test_mode:
                 response = _error_response(403, "ORIGIN_REQUIRED", "An Origin header is required.")
+            elif (
+                request.url.path.startswith("/api/v1/")
+                and request.method in {"POST", "PUT", "PATCH", "DELETE"}
+                and not self.test_mode
+                and not request.app.state.auth.valid_csrf(
+                    request.cookies.get(COOKIE_NAME),
+                    request.cookies.get(CSRF_COOKIE_NAME),
+                    request.headers.get(CSRF_HEADER_NAME),
+                )
+            ):
+                response = _error_response(
+                    403,
+                    "CSRF_TOKEN_REQUIRED",
+                    "The local UI request is missing its session-bound CSRF token.",
+                )
             else:
                 response = await call_next(request)
         duration_ms = (time.perf_counter() - started) * 1000
@@ -276,6 +298,8 @@ class LoopbackSecurityMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
         return response
 
 
@@ -540,10 +564,19 @@ def create_app(
     @app.post("/api/auth/exchange")
     def exchange(payload: AuthExchange, response: Response, request: Request) -> dict[str, Any]:
         session = request.app.state.auth.exchange(payload.token)
+        csrf_token = request.app.state.auth.csrf_token(session)
         response.set_cookie(
             COOKIE_NAME,
             session,
             httponly=True,
+            samesite="strict",
+            secure=False,
+            path="/",
+        )
+        response.set_cookie(
+            CSRF_COOKIE_NAME,
+            csrf_token,
+            httponly=False,
             samesite="strict",
             secure=False,
             path="/",
@@ -713,6 +746,19 @@ def create_app(
                 "heavy_jobs": "bounded background workers",
             },
         }
+
+    @app.get("/api/v1/system/audit", dependencies=[Depends(require_session)])
+    def system_audit_endpoint(
+        category: str | None = None,
+        run_id: str | None = None,
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_audit_events(
+            target,
+            category=category,
+            run_id=run_id,
+            limit=limit,
+        )
 
     @app.get("/api/v1/agents/diagnostics", dependencies=[Depends(require_session)])
     def agent_diagnostics_endpoint() -> list[dict[str, object]]:
@@ -2376,7 +2422,32 @@ def create_app(
                 "privacy_receipt": privacy_receipt,
             },
         )
-        append_agent_run_event(target, run_id, "status", {"stage": "queued", "label": "Preparing feedback"})
+        append_agent_run_event(
+            target,
+            run_id,
+            "status",
+            {"stage": "queued", "label": "Preparing feedback"},
+        )
+        append_agent_run_event(
+            target,
+            run_id,
+            "context_ready",
+            {
+                "stage": "context_ready",
+                "payload_ref_count": len(request_envelope["payload_refs"]),
+                "media_ref_count": len(media_refs),
+            },
+        )
+        append_agent_run_event(
+            target,
+            run_id,
+            "skill_compiled",
+            {
+                "stage": "skill_compiled",
+                "skill_hash": skill_envelope.source_hash,
+                "contract": payload.output_contract,
+            },
+        )
         save_idempotency_record(
             target,
             scope,

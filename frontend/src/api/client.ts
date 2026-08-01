@@ -524,8 +524,13 @@ export type AssessmentRun = {
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
+  const method = (init.method ?? 'GET').toUpperCase()
   if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
+  }
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !headers.has('X-IELTS-CSRF')) {
+    const csrfToken = readCookie('ielts_ui_csrf')
+    if (csrfToken) headers.set('X-IELTS-CSRF', csrfToken)
   }
   const response = await fetch(path, { ...init, headers, credentials: 'same-origin' })
   const contentType = response.headers.get('content-type') ?? ''
@@ -544,6 +549,13 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const payload = (await response.json()) as T & ApiErrorPayload
   if (!response.ok) throw new ApiError(response.status, payload)
   return payload
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  const prefix = `${encodeURIComponent(name)}=`
+  const item = document.cookie.split(';').map((value) => value.trim()).find((value) => value.startsWith(prefix))
+  return item ? decodeURIComponent(item.slice(prefix.length)) : null
 }
 
 export function jsonBody(value: unknown): string {

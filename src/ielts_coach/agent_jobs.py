@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .agent_contracts import persist_agent_contract, validate_agent_contract
+from .agent_contracts import (
+    persist_agent_contract,
+    validate_agent_contract_domain,
+    validate_agent_contract_schema,
+)
 from .inference import InferenceBroker
 from .session_manager import show_session
 from .storage import (
@@ -385,6 +389,12 @@ class AgentJobManager:
                     timeout_seconds=int(run.get("timeout_seconds") or 120),
                     execution_ref=run_id,
                 )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "provider_completed",
+                    {"stage": "provider_completed"},
+                )
                 identity_reader = getattr(adapter, "execution_identity", None)
                 if callable(identity_reader):
                     runtime_identity = {
@@ -450,12 +460,34 @@ class AgentJobManager:
                 "status",
                 {"stage": "validating", "label": "Validating structured result"},
             )
-            validated = (
-                result
-                if provider_validation.get("validated") is True
+            provider_prevalidated = (
+                provider_validation.get("validated") is True
                 and provider_validation.get("contract") == run["output_contract"]
-                else validate_agent_contract(run["output_contract"], result)
             )
+            if provider_prevalidated:
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "domain_validation_started",
+                    {
+                        "stage": "domain_validating",
+                        "validated_by_provider_route": True,
+                    },
+                )
+                validated = result
+            else:
+                structured = validate_agent_contract_schema(
+                    run["output_contract"], result
+                )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "domain_validation_started",
+                    {"stage": "domain_validating"},
+                )
+                validated = validate_agent_contract_domain(
+                    run["output_contract"], structured
+                )
             run = update_agent_run(
                 self.home,
                 run_id,
@@ -632,6 +664,20 @@ class AgentJobManager:
         current = get_agent_run(self.home, run_id)
         if current and current["status"] == "cancelled":
             return
+        if code == "AGENT_OUTPUT_SCHEMA_INVALID":
+            append_agent_run_event(
+                self.home,
+                run_id,
+                "schema_validation_failed",
+                {"stage": "schema_validation", "code": code, "recoverable": True},
+            )
+        elif code == "AGENT_OUTPUT_DOMAIN_INVALID":
+            append_agent_run_event(
+                self.home,
+                run_id,
+                "domain_validation_failed",
+                {"stage": "domain_validation", "code": code, "recoverable": True},
+            )
         close_open_provider_attempts(
             self.home,
             run_id,

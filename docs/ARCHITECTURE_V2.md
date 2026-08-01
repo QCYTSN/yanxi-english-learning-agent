@@ -218,6 +218,11 @@ Schema v23 adds consumed, non-reusable privacy decision receipts and Session
 projection hashes. Markdown and SQLite are two projections of one Runtime
 commit: normal writes require matching revisions and hashes, same-revision
 forks never overwrite one another silently, and reconciliation is explicit.
+Schema v24 adds canonical, sequenced Agent lifecycle events and a separate
+append-only audit ledger. Audit rows contain identifiers, outcomes, scoped
+metadata and payload hashes, never the learner's essay or conversation text.
+Browser mutations use an HttpOnly UI session together with a session-bound
+double-submit CSRF token; launch tokens expire after a short interval.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -291,6 +296,6 @@ The architecture is accepted when:
 - complete Skills and Schemas are compiled for every model call;
 - external Agents cannot be selected for teaching inference;
 - provider output must pass validation before persistence;
-- schema v23 migrates historical homes with a recoverable snapshot;
+- schema v24 migrates historical homes with a recoverable snapshot;
 - normal learning works without exposing provider configuration;
 - frontend build, lint and tests plus backend regression tests pass.

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -12,7 +13,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 23
+SCHEMA_VERSION = 24
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -548,11 +549,50 @@ CREATE TABLE IF NOT EXISTS agent_run_events (
     run_id TEXT NOT NULL,
     sequence INTEGER NOT NULL,
     event_type TEXT NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'unknown',
+    display_message TEXT NOT NULL DEFAULT '',
+    recoverable INTEGER NOT NULL DEFAULT 0,
+    payload_hash TEXT,
     payload_json TEXT NOT NULL DEFAULT '{}',
     created_at TEXT NOT NULL,
     UNIQUE(run_id,sequence),
     FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_agent_run_events_type
+ON agent_run_events(run_id,event_type,sequence);
+
+CREATE TABLE IF NOT EXISTS audit_events (
+    audit_id TEXT PRIMARY KEY,
+    category TEXT NOT NULL,
+    action TEXT NOT NULL,
+    outcome TEXT NOT NULL,
+    actor_type TEXT NOT NULL DEFAULT 'local_user',
+    subject_type TEXT,
+    subject_id TEXT,
+    session_id TEXT,
+    run_id TEXT,
+    capability_id TEXT,
+    request_id TEXT,
+    payload_hash TEXT,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_events_time
+ON audit_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_events_subject
+ON audit_events(subject_type,subject_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_events_run
+ON audit_events(run_id,created_at);
+CREATE TRIGGER IF NOT EXISTS audit_events_no_update
+BEFORE UPDATE ON audit_events
+BEGIN
+    SELECT RAISE(ABORT, 'audit_events are append-only');
+END;
+CREATE TRIGGER IF NOT EXISTS audit_events_no_delete
+BEFORE DELETE ON audit_events
+BEGIN
+    SELECT RAISE(ABORT, 'audit_events are append-only');
+END;
 
 CREATE TABLE IF NOT EXISTS provider_attempts (
     attempt_id TEXT PRIMARY KEY,
@@ -1003,6 +1043,22 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
             conn.execute(f"ALTER TABLE agent_runs ADD COLUMN {name} {declaration}")
+    event_columns = _columns(conn, "agent_run_events")
+    event_additions = {
+        "stage": "TEXT NOT NULL DEFAULT 'unknown'",
+        "display_message": "TEXT NOT NULL DEFAULT ''",
+        "recoverable": "INTEGER NOT NULL DEFAULT 0",
+        "payload_hash": "TEXT",
+    }
+    for name, declaration in event_additions.items():
+        if name not in event_columns:
+            conn.execute(
+                f"ALTER TABLE agent_run_events ADD COLUMN {name} {declaration}"
+            )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_agent_run_events_type "
+        "ON agent_run_events(run_id,event_type,sequence)"
+    )
     conn.execute(
         """
         UPDATE agent_runs
@@ -2939,11 +2995,117 @@ def list_agent_runs(
     return [_agent_run_row(row) for row in rows]
 
 
+_AGENT_EVENT_NAMES = {
+    "queued": "job_queued",
+    "running": "provider_started",
+    "awaiting_import": "awaiting_user",
+    "validating": "schema_validation_started",
+    "resuming_validation": "schema_validation_started",
+    "domain_validating": "domain_validation_started",
+    "persisting": "persistence_started",
+    "persisted": "persisted",
+    "test_passed": "pipeline_test_passed",
+    "connecting_model": "provider_started",
+    "schema_validation": "schema_validation_started",
+    "domain_validation": "domain_validation_started",
+    "provider_validated": "provider_completed",
+    "provider_failed": "provider_failed",
+    "provider_skipped": "provider_failed",
+    "fallback_started": "fallback_started",
+}
+
+_AGENT_EVENT_MESSAGES = {
+    "job_queued": "任务已进入本地队列",
+    "context_preparing": "正在整理本次学习所需内容",
+    "context_ready": "学习上下文已准备完成",
+    "skill_compiled": "教学规则已加载",
+    "provider_started": "模型正在生成反馈",
+    "provider_stream_delta": "模型正在继续生成",
+    "provider_progress": "模型任务正在处理",
+    "provider_completed": "模型结果已返回",
+    "provider_failed": "当前模型调用失败",
+    "fallback_started": "正在尝试备用模型",
+    "schema_validation_started": "正在检查结果格式",
+    "schema_validation_failed": "结果格式未通过检查",
+    "domain_validation_started": "正在检查 IELTS 教学规则",
+    "domain_validation_failed": "结果未通过教学规则检查",
+    "awaiting_user": "等待用户导入结构化结果",
+    "persistence_started": "正在保存正式学习记录",
+    "persisted": "反馈已验证并保存",
+    "pipeline_test_passed": "本地反馈管线验证通过",
+    "job_cancelled": "任务已取消",
+    "job_failed": "任务未能完成",
+}
+
+
+def _normalise_agent_event(
+    event_type: str,
+    payload: dict[str, Any],
+) -> tuple[str, str, str, bool]:
+    stage = str(payload.get("stage") or event_type or "unknown")
+    if event_type == "status":
+        canonical = _AGENT_EVENT_NAMES.get(stage, "provider_progress")
+    elif event_type == "progress":
+        if stage == "provider_rejected":
+            canonical = (
+                "schema_validation_failed"
+                if payload.get("failure_stage") == "schema"
+                else "domain_validation_failed"
+                if payload.get("failure_stage") == "domain"
+                else "provider_failed"
+            )
+        else:
+            canonical = _AGENT_EVENT_NAMES.get(
+                stage,
+                "provider_stream_delta"
+                if any(key in payload for key in ("delta", "text_delta", "content_delta"))
+                else "provider_progress",
+            )
+    elif event_type == "completed":
+        canonical = "persisted"
+        stage = "persisted"
+    elif event_type == "cancelled":
+        canonical = "job_cancelled"
+        stage = "cancelled"
+    elif event_type == "failed":
+        canonical = "job_failed"
+        stage = "failed"
+    elif event_type == "test_passed":
+        canonical = "pipeline_test_passed"
+        stage = "test_passed"
+    else:
+        canonical = event_type
+    display_message = str(
+        payload.get("display_message")
+        or payload.get("label")
+        or _AGENT_EVENT_MESSAGES.get(canonical, "任务状态已更新")
+    )[:240]
+    recoverable = bool(
+        payload.get("recoverable")
+        if "recoverable" in payload
+        else canonical
+        in {
+            "provider_failed",
+            "schema_validation_failed",
+            "domain_validation_failed",
+            "job_failed",
+            "job_cancelled",
+        }
+    )
+    return canonical, stage[:80], display_message, recoverable
+
+
 def append_agent_run_event(
     home: Path, run_id: str, event_type: str, payload: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     initialise_database(home)
+    event_payload = dict(payload or {})
+    canonical, stage, display_message, recoverable = _normalise_agent_event(
+        event_type, event_payload
+    )
+    payload_hash = json_payload_hash(event_payload)
     with connect(home) as conn:
+        conn.execute("BEGIN IMMEDIATE")
         row = conn.execute(
             "SELECT COALESCE(MAX(sequence),0)+1 AS next_sequence FROM agent_run_events WHERE run_id=?",
             (run_id,),
@@ -2951,14 +3113,83 @@ def append_agent_run_event(
         sequence = int(row["next_sequence"])
         created_at = _now()
         conn.execute(
-            "INSERT INTO agent_run_events(run_id,sequence,event_type,payload_json,created_at) VALUES(?,?,?,?,?)",
-            (run_id, sequence, event_type, json.dumps(payload or {}, ensure_ascii=False), created_at),
+            """
+            INSERT INTO agent_run_events(
+              run_id,sequence,event_type,stage,display_message,recoverable,
+              payload_hash,payload_json,created_at
+            ) VALUES(?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                run_id,
+                sequence,
+                canonical,
+                stage,
+                display_message,
+                int(recoverable),
+                payload_hash,
+                json.dumps(event_payload, ensure_ascii=False),
+                created_at,
+            ),
+        )
+        run = conn.execute(
+            "SELECT study_session_id,capability_id FROM agent_runs WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        audit_metadata = {
+            key: event_payload[key]
+            for key in (
+                "code",
+                "recovery_action",
+                "provider_id",
+                "attempt",
+                "model_called",
+                "model_called_again",
+                "skill_hash",
+                "contract",
+            )
+            if key in event_payload
+        }
+        outcome = (
+            "failed"
+            if canonical.endswith("_failed") or canonical == "job_failed"
+            else "cancelled"
+            if canonical == "job_cancelled"
+            else "succeeded"
+            if canonical in {"persisted", "pipeline_test_passed"}
+            else "recorded"
+        )
+        actor_type = (
+            "local_user"
+            if canonical == "job_queued"
+            else "model_provider"
+            if canonical.startswith("provider_") or canonical == "fallback_started"
+            else "teaching_runtime"
+        )
+        _insert_audit_event(
+            conn,
+            category="agent_job",
+            action=canonical,
+            outcome=outcome,
+            actor_type=actor_type,
+            subject_type="agent_run",
+            subject_id=run_id,
+            session_id=str(run["study_session_id"]) if run and run["study_session_id"] else None,
+            run_id=run_id,
+            capability_id=str(run["capability_id"]) if run and run["capability_id"] else None,
+            request_id=None,
+            payload_hash=payload_hash,
+            metadata={"sequence": sequence, "stage": stage, **audit_metadata},
+            created_at=created_at,
         )
     return {
         "run_id": run_id,
         "sequence": sequence,
-        "type": event_type,
-        "payload": payload or {},
+        "type": canonical,
+        "stage": stage,
+        "display_message": display_message,
+        "recoverable": recoverable,
+        "payload_hash": payload_hash,
+        "payload": event_payload,
         "created_at": created_at,
     }
 
@@ -2975,8 +3206,137 @@ def list_agent_run_events(home: Path, run_id: str, after: int = 0) -> list[dict[
             "run_id": row["run_id"],
             "sequence": int(row["sequence"]),
             "type": row["event_type"],
+            "stage": row["stage"],
+            "display_message": row["display_message"],
+            "recoverable": bool(row["recoverable"]),
+            "payload_hash": row["payload_hash"],
             "payload": json.loads(row["payload_json"]),
             "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
+
+
+def _insert_audit_event(
+    conn: sqlite3.Connection,
+    *,
+    category: str,
+    action: str,
+    outcome: str,
+    actor_type: str,
+    subject_type: str | None,
+    subject_id: str | None,
+    session_id: str | None,
+    run_id: str | None,
+    capability_id: str | None,
+    request_id: str | None,
+    payload_hash: str | None,
+    metadata: dict[str, Any],
+    created_at: str,
+) -> str:
+    audit_id = f"audit_{uuid.uuid4().hex}"
+    conn.execute(
+        """
+        INSERT INTO audit_events(
+          audit_id,category,action,outcome,actor_type,subject_type,subject_id,
+          session_id,run_id,capability_id,request_id,payload_hash,
+          metadata_json,created_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            audit_id,
+            category,
+            action,
+            outcome,
+            actor_type,
+            subject_type,
+            subject_id,
+            session_id,
+            run_id,
+            capability_id,
+            request_id,
+            payload_hash,
+            json.dumps(metadata, ensure_ascii=False, default=str),
+            created_at,
+        ),
+    )
+    return audit_id
+
+
+def record_audit_event(
+    home: Path,
+    *,
+    category: str,
+    action: str,
+    outcome: str = "recorded",
+    actor_type: str = "local_user",
+    subject_type: str | None = None,
+    subject_id: str | None = None,
+    session_id: str | None = None,
+    run_id: str | None = None,
+    capability_id: str | None = None,
+    request_id: str | None = None,
+    payload: dict[str, Any] | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Append a privacy-safe audit fact without storing learner content."""
+    initialise_database(home)
+    payload_hash = json_payload_hash(payload) if payload is not None else None
+    created_at = _now()
+    with connect(home) as conn:
+        audit_id = _insert_audit_event(
+            conn,
+            category=category,
+            action=action,
+            outcome=outcome,
+            actor_type=actor_type,
+            subject_type=subject_type,
+            subject_id=subject_id,
+            session_id=session_id,
+            run_id=run_id,
+            capability_id=capability_id,
+            request_id=request_id,
+            payload_hash=payload_hash,
+            metadata=dict(metadata or {}),
+            created_at=created_at,
+        )
+    return {
+        "audit_id": audit_id,
+        "category": category,
+        "action": action,
+        "outcome": outcome,
+        "payload_hash": payload_hash,
+        "created_at": created_at,
+    }
+
+
+def list_audit_events(
+    home: Path,
+    *,
+    category: str | None = None,
+    run_id: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    clauses: list[str] = []
+    params: list[Any] = []
+    if category:
+        clauses.append("category=?")
+        params.append(category)
+    if run_id:
+        clauses.append("run_id=?")
+        params.append(run_id)
+    sql = "SELECT * FROM audit_events"
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY created_at DESC LIMIT ?"
+    params.append(max(1, min(int(limit), 500)))
+    with connect(home) as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [
+        {
+            **{key: row[key] for key in row.keys() if key != "metadata_json"},
+            "metadata": json.loads(row["metadata_json"]),
         }
         for row in rows
     ]
