@@ -5,10 +5,9 @@ from pathlib import Path
 from typing import Any
 
 from .session_io import load_data_file
-from .session_manager import generate_session_id, show_session
+from .session_manager import generate_session_id, persist_session_atomic, show_session
 from .study_runtime import mutate_session
 from .speaking_evaluation import criterion_rows, local_session_band, normalise_speaking_report
-from .storage import record_session
 from .validation import validate_data
 
 
@@ -71,8 +70,19 @@ def import_speaking_report_data(
         "errors": report.get("errors", []),
     }
     if not existing:
-        record_session(home, fields)
-        return fields
+        session_path = home / "sessions" / "speaking" / f"{session_id}.md"
+        saved = persist_session_atomic(
+            home,
+            session_path,
+            fields,
+            body=(
+                "# Handoff / Questions\n\n"
+                "# Transcript or Summary\n\n"
+                "# Feedback\n"
+            ),
+        )
+        saved.pop("document_body", None)
+        return saved
 
     def apply(data: dict[str, Any]) -> None:
         if data.get("module") != "speaking":

@@ -172,11 +172,24 @@ IELTS_HOME/private/codex-managed
 It does not modify the user's global Codex login. Installation and ChatGPT
 login both require explicit user actions.
 
+Every teaching run records a consumed privacy decision receipt in the same
+transaction as the Agent run. The receipt contains the policy decision,
+provider identifiers and a hash of the approved scope, but not learner content.
+An explicit private-material consent authorises only that run; a later run must
+ask again and cannot reuse the earlier receipt.
+
 ## 6. Data and database decision
 
 SQLite in WAL mode remains the production database for the local single-user
 application. Session Markdown, registered Corpus files and Media assets remain
 first-class local data alongside it.
+
+For Sessions, the authority is the Runtime commit rather than either storage
+medium independently. Markdown is the durable learner-readable projection and
+SQLite is the indexed operational projection. Both carry the same revisioned
+payload hash. A mismatch blocks normal mutation and backup verification;
+`ielts-coach session reconcile` is the explicit recovery path. Equal-revision
+forks require the user to choose the Markdown or SQLite projection.
 
 Docker is not a database choice and is not a runtime dependency. Adding
 Docker/WSL/PostgreSQL now would introduce:
@@ -201,6 +214,10 @@ leases, heartbeats, resume counters and canonical persistence receipts. An
 expired run that already stored a candidate resumes validation and persistence
 without another model call; a run interrupted before any candidate exists
 fails explicitly and can be retried by the learner.
+Schema v23 adds consumed, non-reusable privacy decision receipts and Session
+projection hashes. Markdown and SQLite are two projections of one Runtime
+commit: normal writes require matching revisions and hashes, same-revision
+forks never overwrite one another silently, and reconciliation is explicit.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -274,6 +291,6 @@ The architecture is accepted when:
 - complete Skills and Schemas are compiled for every model call;
 - external Agents cannot be selected for teaching inference;
 - provider output must pass validation before persistence;
-- schema v22 migrates historical homes with a recoverable snapshot;
+- schema v23 migrates historical homes with a recoverable snapshot;
 - normal learning works without exposing provider configuration;
 - frontend build, lint and tests plus backend regression tests pass.

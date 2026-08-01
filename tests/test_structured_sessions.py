@@ -8,6 +8,7 @@ from ielts_coach.profiles import build_learning_profile
 from ielts_coach.session_manager import finish_session, start_session
 from ielts_coach.session_io import load_session_file
 from ielts_coach.storage import connect, record_session
+from ielts_coach.study_runtime import reconcile_session
 
 
 def test_reading_answers_and_writing_versions_are_structured(tmp_path: Path):
@@ -67,6 +68,7 @@ def test_session_start_rejects_empty_finish_then_records_evidence(tmp_path: Path
         "---\n\n# Review\n",
         encoding="utf-8",
     )
+    reconcile_session(home, path.stem, prefer="markdown")
     data = finish_session(home, path)
     assert data["status"] == "completed"
     with connect(home) as conn:

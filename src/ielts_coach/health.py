@@ -8,7 +8,7 @@ from typing import Any
 
 import yaml
 
-from .storage import SCHEMA_VERSION
+from .storage import SCHEMA_VERSION, session_payload_hash
 from .validation import validate_data
 
 
@@ -79,7 +79,7 @@ def audit_data_home(
                 errors.append(
                     f"Database schema is {schema_version}; expected {expected_schema}"
                 )
-            _audit_sessions(home, conn, checks, warnings)
+            _audit_sessions(home, conn, checks, errors, warnings)
             _audit_corpora(home, conn, checks, errors, warnings)
             _audit_media(home, conn, checks, errors)
         finally:
@@ -104,6 +104,7 @@ def _audit_sessions(
     home: Path,
     conn: sqlite3.Connection,
     checks: dict[str, Any],
+    errors: list[str],
     warnings: list[str],
 ) -> None:
     if "sessions" not in {
@@ -111,11 +112,27 @@ def _audit_sessions(
         for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
     }:
         return
-    database_sessions = {
-        str(row["session_id"]): str(row["module"])
-        for row in conn.execute("SELECT session_id,module FROM sessions").fetchall()
+    session_columns = {
+        str(row["name"])
+        for row in conn.execute("PRAGMA table_info(sessions)").fetchall()
     }
-    file_sessions: dict[str, str] = {}
+    strict_projection_guard = "payload_hash" in session_columns
+    payload_hash_expression = (
+        "payload_hash" if "payload_hash" in session_columns else "NULL AS payload_hash"
+    )
+    mirror_status_expression = (
+        "mirror_status"
+        if "mirror_status" in session_columns
+        else "'unknown' AS mirror_status"
+    )
+    database_sessions = {
+        str(row["session_id"]): row
+        for row in conn.execute(
+            "SELECT session_id,module,payload_json,"
+            f"{payload_hash_expression},{mirror_status_expression} FROM sessions"
+        ).fetchall()
+    }
+    file_sessions: dict[str, dict[str, Any]] = {}
     for path in (home / "sessions").glob("*/*.md"):
         try:
             text = path.read_text(encoding="utf-8")
@@ -125,7 +142,7 @@ def _audit_sessions(
             payload = yaml.safe_load(parts[1]) or {}
             session_id = str(payload.get("session_id") or path.stem)
             module = str(payload.get("module") or path.parent.name)
-            file_sessions[session_id] = module
+            file_sessions[session_id] = {"module": module, "payload": payload}
         except Exception as exc:
             warnings.append(f"Unreadable Session Markdown {path.name}: {exc}")
     db_only = sorted(set(database_sessions) - set(file_sessions))
@@ -133,14 +150,41 @@ def _audit_sessions(
     mismatched = sorted(
         session_id
         for session_id in set(database_sessions) & set(file_sessions)
-        if database_sessions[session_id] != file_sessions[session_id]
+        if str(database_sessions[session_id]["module"])
+        != str(file_sessions[session_id]["module"])
     )
+    revision_mismatches: list[str] = []
+    content_mismatches: list[str] = []
+    stored_hash_mismatches: list[str] = []
+    unreadable_database_payloads: list[str] = []
+    for session_id in set(database_sessions) & set(file_sessions):
+        row = database_sessions[session_id]
+        try:
+            db_payload = json.loads(str(row["payload_json"]))
+            db_hash = session_payload_hash(db_payload)
+            file_payload = file_sessions[session_id]["payload"]
+            file_hash = session_payload_hash(file_payload)
+            db_revision = int(db_payload.get("revision", 0))
+            file_revision = int(file_payload.get("revision", 0))
+        except Exception:
+            unreadable_database_payloads.append(session_id)
+            continue
+        if row["payload_hash"] and str(row["payload_hash"]) != db_hash:
+            stored_hash_mismatches.append(session_id)
+        if db_revision != file_revision:
+            revision_mismatches.append(session_id)
+        elif db_hash != file_hash:
+            content_mismatches.append(session_id)
     checks["sessions"] = {
         "database": len(database_sessions),
         "markdown": len(file_sessions),
         "database_only": len(db_only),
         "markdown_only": len(file_only),
         "module_mismatches": len(mismatched),
+        "revision_mismatches": len(revision_mismatches),
+        "content_mismatches": len(content_mismatches),
+        "stored_hash_mismatches": len(stored_hash_mismatches),
+        "unreadable_database_payloads": len(unreadable_database_payloads),
     }
     if db_only:
         warnings.append(
@@ -153,6 +197,28 @@ def _audit_sessions(
     if mismatched:
         warnings.append(
             f"{len(mismatched)} Session module mappings disagree (first: {mismatched[0]})"
+        )
+    if revision_mismatches:
+        target = errors if strict_projection_guard else warnings
+        target.append(
+            f"{len(revision_mismatches)} Session revisions disagree "
+            f"(first: {revision_mismatches[0]})"
+        )
+    if content_mismatches:
+        target = errors if strict_projection_guard else warnings
+        target.append(
+            f"{len(content_mismatches)} same-revision Session payloads diverge "
+            f"(first: {content_mismatches[0]})"
+        )
+    if stored_hash_mismatches:
+        errors.append(
+            f"{len(stored_hash_mismatches)} SQLite Session payload hashes mismatch "
+            f"(first: {stored_hash_mismatches[0]})"
+        )
+    if unreadable_database_payloads:
+        errors.append(
+            f"{len(unreadable_database_payloads)} SQLite Session payloads are unreadable "
+            f"(first: {unreadable_database_payloads[0]})"
         )
 
 

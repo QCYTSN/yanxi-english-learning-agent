@@ -18,10 +18,12 @@ from .storage import (
     get_session,
     record_session,
     save_idempotency_record,
+    session_payload_hash,
+    set_session_mirror_status,
 )
 from .conformance import assess_pack
 from .validation import validate_data
-from .errors import InvalidSessionTransitionError
+from .errors import InvalidSessionTransitionError, SessionMirrorConflictError
 from .locking import runtime_lock
 
 PREFIXES = {"listening": "L", "reading": "R", "writing": "W", "speaking": "S"}
@@ -197,7 +199,7 @@ def _start_session_unlocked(
     frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
     _write_session_document_atomic(path, data, body)
     try:
-        record_session(home, data)
+        record_session(home, data, mirror_status="synced")
     except Exception:
         path.unlink(missing_ok=True)
         raise
@@ -291,9 +293,12 @@ def persist_session_atomic(
     data: dict[str, Any],
     *,
     body: str | None = None,
+    allow_reconcile: bool = False,
 ) -> dict[str, Any]:
-    """Keep the human-readable Session and SQLite mirror consistent on errors."""
+    """Commit one revision to both Session projections or restore the old file."""
     validated = validate_data(data, "session")
+    if not allow_reconcile:
+        assert_session_mirror_consistent(home, path)
     if body is None:
         body = str(validated.get("document_body", ""))
     old_text = path.read_text(encoding="utf-8") if path.exists() else None
@@ -301,7 +306,7 @@ def persist_session_atomic(
     try:
         db_data = dict(validated)
         db_data.pop("document_body", None)
-        record_session(home, db_data)
+        record_session(home, db_data, mirror_status="synced")
     except Exception:
         if old_text is None:
             path.unlink(missing_ok=True)
@@ -309,6 +314,42 @@ def persist_session_atomic(
             _write_text_atomic(path, old_text)
         raise
     return validated
+
+
+def assert_session_mirror_consistent(home: Path, path: Path) -> None:
+    """Block mutations when Markdown and SQLite no longer share one revision."""
+    row = get_session(home, path.stem)
+    if not row or not path.exists():
+        return
+    try:
+        file_data = load_session_file(path)
+        db_data = json.loads(str(row["payload_json"]))
+        file_revision = int(file_data.get("revision", 0))
+        db_revision = int(db_data.get("revision", 0))
+        file_hash = session_payload_hash(file_data)
+        db_hash = session_payload_hash(db_data)
+    except Exception as exc:
+        set_session_mirror_status(home, path.stem, "conflict")
+        raise SessionMirrorConflictError(
+            f"Session projections cannot be compared: {exc}",
+            details={"session_id": path.stem},
+        ) from exc
+    if file_revision == db_revision and file_hash == db_hash:
+        return
+    set_session_mirror_status(home, path.stem, "conflict")
+    raise SessionMirrorConflictError(
+        "Session Markdown and SQLite disagree; reconcile them before writing.",
+        details={
+            "session_id": path.stem,
+            "markdown_revision": file_revision,
+            "sqlite_revision": db_revision,
+            "same_revision_content_conflict": (
+                file_revision == db_revision and file_hash != db_hash
+            ),
+            "markdown_hash": file_hash,
+            "sqlite_hash": db_hash,
+        },
+    )
 
 
 def transition_session(home: Path, path: Path, new_status: str) -> dict[str, Any]:

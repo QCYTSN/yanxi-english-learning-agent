@@ -120,7 +120,7 @@ from ..learning_orchestration import (
 from ..init_home import initialise_home
 from ..onboarding import complete_onboarding, onboarding_status, update_profile
 from ..paths import resolve_home
-from ..privacy import check_processing_permission
+from ..privacy import build_privacy_receipt, check_processing_permission
 from ..performance import RequestPerformanceMonitor, database_performance_status
 from ..profiles import build_learning_profile
 from ..progress_dashboard import (
@@ -175,6 +175,7 @@ from ..study_threads import (
 from ..study_context import build_study_context
 from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
+    reconcile_session,
     record_reading_hint,
     submit_listening_attempt,
     submit_reading_answers,
@@ -1391,6 +1392,14 @@ def create_app(
     def get_session_endpoint(session_id: str) -> dict[str, Any]:
         return _session_or_404(target, session_id)
 
+    @app.post("/api/v1/sessions/{session_id}/reconcile", dependencies=[Depends(require_session)])
+    def reconcile_session_endpoint(
+        session_id: str,
+        prefer: str = Query("auto", pattern="^(auto|markdown|sqlite)$"),
+    ) -> dict[str, Any]:
+        _session_or_404(target, session_id)
+        return reconcile_session(target, session_id, prefer=prefer)
+
     @app.post("/api/v1/sessions/{session_id}/transition", dependencies=[Depends(require_session)])
     def transition_endpoint(session_id: str, payload: SessionTransition) -> dict[str, Any]:
         session = _session_or_404(target, session_id)
@@ -2161,6 +2170,7 @@ def create_app(
             or selected_model_id
             or adapter_identity.model_display_name
         )
+        run_id = f"run_{uuid.uuid4().hex}"
         permission = check_processing_permission(
             target,
             remote_processing=capabilities.remote_processing,
@@ -2233,7 +2243,31 @@ def create_app(
                 ],
                 "aggregation_rule": "Runtime computes (Task 1 + 2 × Task 2) / 3",
             }
-        run_id = f"run_{uuid.uuid4().hex}"
+        provider_ids = [
+            str(item["provider_id"]) for item in prepared.model_route
+        ] or [str(profile.get("backend_id") or adapter_id)]
+        privacy_receipt = build_privacy_receipt(
+            run_id=run_id,
+            decision=permission,
+            provider_ids=provider_ids,
+            scope={
+                "capability_id": capability.capability_id,
+                "output_contract": payload.output_contract,
+                "context_ref": context_identity,
+                "question_id": session.get("question_id") if session else None,
+                "media": [
+                    {
+                        "media_id": item["media_id"],
+                        "content_hash": item.get("content_hash"),
+                    }
+                    for item in media_refs
+                ],
+            },
+        )
+        permission = {
+            **permission,
+            "receipt_id": privacy_receipt["receipt_id"],
+        }
         request_envelope = {
             "request_version": 3,
             "request_id": run_id,
@@ -2339,6 +2373,7 @@ def create_app(
                 "inference_route": [
                     item["provider_id"] for item in prepared.model_route
                 ],
+                "privacy_receipt": privacy_receipt,
             },
         )
         append_agent_run_event(target, run_id, "status", {"stage": "queued", "label": "Preparing feedback"})

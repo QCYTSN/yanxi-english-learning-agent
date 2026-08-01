@@ -178,6 +178,8 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
     assert response.json()["capability_id"] == "writing_review"
     assert response.json()["execution_profile_id"] == "pipeline-test"
     assert response.json()["backend_kind"] == "mock"
+    assert response.json()["privacy_receipt"]["authorization_kind"] == "local_processing"
+    assert response.json()["privacy_receipt"]["reusable"] is False
     run_id = response.json()["run_id"]
     deadline = time.monotonic() + 5
     run = response.json()
@@ -209,7 +211,7 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
 def test_current_schema_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 22
+    assert SCHEMA_VERSION == 23
     create_agent_run(
         home,
         {
@@ -247,7 +249,16 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
         agent_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(agent_runs)")
         }
-    assert version == "22"
+        session_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(sessions)")
+        }
+        tables = {
+            row["name"]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
+    assert version == "23"
     assert {
         "timeout_seconds",
         "attempt_count",
@@ -261,6 +272,10 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
     }.issubset(
         agent_columns
     )
+    assert {"payload_hash", "mirror_status", "mirror_checked_at"}.issubset(
+        session_columns
+    )
+    assert "privacy_receipts" in tables
 
 
 def test_process_adapters_disclose_identity_without_guessing_model():

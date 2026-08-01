@@ -54,7 +54,7 @@ def _client(home: Path) -> TestClient:
 def test_schema21_separates_model_providers_without_replacing_sqlite(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 22
+    assert SCHEMA_VERSION == 23
     with connect(home) as conn:
         tables = {
             row["name"]

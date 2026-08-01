@@ -44,6 +44,7 @@ from .session_manager import finish_session, show_session, start_session, transi
 from .study_runtime import (
     apply_reading_review,
     apply_writing_review,
+    reconcile_session,
     record_reading_hint,
     resume_session,
     submit_reading_answers,
@@ -661,6 +662,28 @@ def session_resume(
         typer.echo("No active Session found.")
         raise typer.Exit(code=1)
     typer.echo(json.dumps(data, ensure_ascii=False, indent=2, default=str))
+
+
+@session_app.command("reconcile")
+def session_reconcile(
+    session_id: str,
+    prefer: str = typer.Option(
+        "auto",
+        help="auto chooses the higher revision; equal-revision forks require markdown or sqlite",
+    ),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    data = reconcile_session(resolve_home(home), session_id, prefer=prefer)
+    typer.echo(
+        json.dumps(
+            {
+                "session_id": data["session_id"],
+                "revision": data.get("revision", 0),
+                "reconciled_from": prefer,
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 @session_app.command("submit-writing")

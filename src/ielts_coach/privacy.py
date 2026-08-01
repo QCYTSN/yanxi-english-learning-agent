@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from .config import load_profile
-from .storage import connect, initialise_database
+from .storage import connect, initialise_database, json_payload_hash
 
 
 PRIVATE_SOURCE_TYPES = {"licensed_private", "seasonal_reported", "personal"}
@@ -60,13 +61,70 @@ def check_processing_permission(
         reason = "explicit_one_time_consent" if allowed else "cloud_upload_disabled"
     elif remote_processing:
         reason = "profile_allows_or_source_is_public"
+    authorization_kind = (
+        "blocked"
+        if not allowed
+        else "local_processing"
+        if not remote_processing
+        else "one_time_consent"
+        if reason == "explicit_one_time_consent"
+        else "profile_policy"
+    )
     return {
         "allowed": allowed,
         "reason": reason,
+        "authorization_kind": authorization_kind,
         "source_type": resolved,
         "private_source": private,
         "remote_processing": remote_processing,
         "consent_persisted": False,
+        "consent_reusable": False,
+        "policy_snapshot": {
+            "allow_cloud_upload": bool(privacy.get("allow_cloud_upload", False)),
+            "allow_private_corpus": bool(privacy.get("allow_private_corpus", True)),
+        },
+    }
+
+
+def build_privacy_receipt(
+    *,
+    run_id: str,
+    decision: dict[str, Any],
+    provider_ids: list[str],
+    scope: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a consumed, non-reusable audit receipt without retaining content."""
+    if not decision.get("allowed"):
+        raise PermissionError("A blocked privacy decision cannot create a receipt")
+    now = datetime.now(timezone.utc).isoformat()
+    clean_provider_ids = [str(item) for item in provider_ids if str(item).strip()]
+    audit_scope = {
+        **scope,
+        "run_id": run_id,
+        "source_type": decision.get("source_type"),
+        "remote_processing": bool(decision.get("remote_processing")),
+        "private_source": bool(decision.get("private_source")),
+        "provider_ids": clean_provider_ids,
+    }
+    return {
+        "receipt_id": f"privacy:{run_id}",
+        "run_id": run_id,
+        "authorization_kind": str(decision["authorization_kind"]),
+        "reason": str(decision["reason"]),
+        "remote_processing": bool(decision.get("remote_processing")),
+        "private_source": bool(decision.get("private_source")),
+        "source_type": decision.get("source_type"),
+        "provider_ids": clean_provider_ids,
+        "scope_hash": json_payload_hash(audit_scope),
+        "policy": {
+            "decision_reason": decision.get("reason"),
+            "authorization_kind": decision.get("authorization_kind"),
+            "profile": decision.get("policy_snapshot") or {},
+            "consent_reusable": False,
+        },
+        "reusable": False,
+        "created_at": now,
+        "consumed_at": now,
     }
 
 

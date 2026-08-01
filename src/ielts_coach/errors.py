@@ -23,6 +23,11 @@ class SessionRevisionConflictError(CoachError):
     recoverable = True
 
 
+class SessionMirrorConflictError(CoachError):
+    code = "SESSION_MIRROR_CONFLICT"
+    recoverable = True
+
+
 class InvalidSessionTransitionError(CoachError):
     code = "INVALID_SESSION_TRANSITION"
     recoverable = True
@@ -67,4 +72,3 @@ class AgentCapabilityMissingError(AgentError):
 
 class AgentRunCancelledError(AgentError):
     code = "AGENT_RUN_CANCELLED"
-

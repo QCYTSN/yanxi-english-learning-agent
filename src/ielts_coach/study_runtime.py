@@ -8,7 +8,11 @@ from typing import Any, Callable
 
 from .rubrics import require_rubric
 from .session_io import load_session_file
-from .session_manager import PREFIXES, persist_session_atomic
+from .session_manager import (
+    PREFIXES,
+    assert_session_mirror_consistent,
+    persist_session_atomic,
+)
 from .storage import (
     connect,
     get_question,
@@ -16,9 +20,15 @@ from .storage import (
     get_session,
     initialise_database,
     record_runtime_event,
+    session_payload_hash,
+    set_session_mirror_status,
 )
 from .validation import validate_data
-from .errors import AnswerRevealLockedError, SessionRevisionConflictError
+from .errors import (
+    AnswerRevealLockedError,
+    SessionMirrorConflictError,
+    SessionRevisionConflictError,
+)
 from .locking import runtime_lock
 from .listening_corpus import listening_item, normalise_listening_answer
 
@@ -44,19 +54,65 @@ def _db_payload(home: Path, session_id: str) -> dict[str, Any] | None:
     return json.loads(row["payload_json"]) if row else None
 
 
-def reconcile_session(home: Path, session_id: str) -> dict[str, Any]:
-    """Repair a stale file/DB mirror by keeping the highest validated revision."""
+def reconcile_session(
+    home: Path,
+    session_id: str,
+    *,
+    prefer: str = "auto",
+) -> dict[str, Any]:
+    """Explicitly reconcile Session projections without silently choosing a fork."""
+    if prefer not in {"auto", "markdown", "sqlite"}:
+        raise ValueError("prefer must be auto, markdown or sqlite")
     with runtime_lock(home, f"session:{session_id}"):
         db_data = _db_payload(home, session_id)
         module = str(db_data["module"]) if db_data else None
         path = session_path(home, session_id, module)
         file_data = load_session_file(path)
+        if not db_data:
+            return persist_session_atomic(
+                home,
+                path,
+                file_data,
+                allow_reconcile=True,
+            )
         file_revision = int(file_data.get("revision", 0))
-        db_revision = int((db_data or {}).get("revision", 0))
-        if not db_data or file_revision >= db_revision:
-            return persist_session_atomic(home, path, file_data)
+        db_revision = int(db_data.get("revision", 0))
+        file_hash = session_payload_hash(file_data)
+        db_hash = session_payload_hash(db_data)
+        if file_revision == db_revision and file_hash == db_hash:
+            set_session_mirror_status(home, session_id, "synced")
+            return file_data
+        if file_revision == db_revision and prefer == "auto":
+            set_session_mirror_status(home, session_id, "conflict")
+            raise SessionMirrorConflictError(
+                "Same-revision Session projections contain different content; "
+                "choose markdown or sqlite explicitly.",
+                details={
+                    "session_id": session_id,
+                    "revision": file_revision,
+                    "markdown_hash": file_hash,
+                    "sqlite_hash": db_hash,
+                },
+            )
+        use_markdown = (
+            prefer == "markdown"
+            or (prefer == "auto" and file_revision > db_revision)
+        )
+        if use_markdown:
+            return persist_session_atomic(
+                home,
+                path,
+                file_data,
+                allow_reconcile=True,
+            )
         body = str(file_data.get("document_body", ""))
-        return persist_session_atomic(home, path, db_data, body=body)
+        return persist_session_atomic(
+            home,
+            path,
+            db_data,
+            body=body,
+            allow_reconcile=True,
+        )
 
 
 def resume_session(home: Path, module: str | None = None) -> dict[str, Any] | None:
@@ -71,9 +127,10 @@ def resume_session(home: Path, module: str | None = None) -> dict[str, Any] | No
         row = conn.execute(sql, params).fetchone()
     if not row:
         return None
-    data = reconcile_session(home, str(row["session_id"]))
-    data.pop("document_body", None)
-    return data
+    session_id = str(row["session_id"])
+    path = session_path(home, session_id)
+    assert_session_mirror_consistent(home, path)
+    return _db_payload(home, session_id)
 
 
 def mutate_session(
@@ -87,6 +144,7 @@ def mutate_session(
 ) -> dict[str, Any]:
     path = session_path(home, session_id)
     with runtime_lock(home, f"session:{session_id}"):
+        assert_session_mirror_consistent(home, path)
         data = load_session_file(path)
         applied = list(data.get("applied_operations") or [])
         if idempotency_key:

@@ -12,7 +12,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 22
+SCHEMA_VERSION = 23
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -44,6 +44,9 @@ CREATE TABLE IF NOT EXISTS sessions (
     hints_used INTEGER NOT NULL DEFAULT 0,
     duration_minutes REAL,
     payload_json TEXT NOT NULL,
+    payload_hash TEXT,
+    mirror_status TEXT NOT NULL DEFAULT 'unknown',
+    mirror_checked_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -575,6 +578,25 @@ CREATE TABLE IF NOT EXISTS provider_attempts (
 CREATE INDEX IF NOT EXISTS idx_provider_attempts_run
 ON provider_attempts(run_id,attempt_index);
 
+CREATE TABLE IF NOT EXISTS privacy_receipts (
+    receipt_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL UNIQUE,
+    authorization_kind TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    remote_processing INTEGER NOT NULL,
+    private_source INTEGER NOT NULL,
+    source_type TEXT,
+    provider_ids_json TEXT NOT NULL DEFAULT '[]',
+    scope_hash TEXT NOT NULL,
+    policy_json TEXT NOT NULL DEFAULT '{}',
+    reusable INTEGER NOT NULL DEFAULT 0 CHECK(reusable=0),
+    created_at TEXT NOT NULL,
+    consumed_at TEXT NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_privacy_receipts_created
+ON privacy_receipts(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS coaching_artifacts (
     artifact_id TEXT PRIMARY KEY,
     artifact_type TEXT NOT NULL,
@@ -873,6 +895,9 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "submitted_at": "TEXT",
         "answer_revealed_at": "TEXT",
         "hints_used": "INTEGER NOT NULL DEFAULT 0",
+        "payload_hash": "TEXT",
+        "mirror_status": "TEXT NOT NULL DEFAULT 'unknown'",
+        "mirror_checked_at": "TEXT",
     }
     for name, declaration in additions.items():
         if name not in session_columns:
@@ -898,6 +923,18 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     )
     conn.execute("UPDATE sessions SET status='completed' WHERE status IS NULL")
     conn.execute("UPDATE sessions SET updated_at=created_at WHERE updated_at IS NULL")
+    for row in conn.execute(
+        "SELECT session_id,payload_json FROM sessions WHERE payload_hash IS NULL"
+    ).fetchall():
+        try:
+            payload = json.loads(str(row["payload_json"]))
+            digest = session_payload_hash(payload)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        conn.execute(
+            "UPDATE sessions SET payload_hash=? WHERE session_id=?",
+            (digest, row["session_id"]),
+        )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_question ON sessions(question_id)")
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_sessions_status_time "
@@ -1112,9 +1149,48 @@ def _as_text(value: Any) -> str | None:
     return str(value)
 
 
-def record_session(home: Path, data: dict[str, Any]) -> None:
+def session_payload_hash(data: dict[str, Any]) -> str:
+    """Hash the revisioned Session payload shared by Markdown and SQLite."""
+    payload = dict(data)
+    payload.pop("document_body", None)
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def set_session_mirror_status(
+    home: Path,
+    session_id: str,
+    status: str,
+) -> None:
+    if status not in {"unknown", "synced", "conflict", "database_only"}:
+        raise ValueError(f"Unsupported Session mirror status: {status}")
+    with connect(home) as conn:
+        conn.execute(
+            """
+            UPDATE sessions
+            SET mirror_status=?,mirror_checked_at=?
+            WHERE session_id=?
+            """,
+            (status, _now(), session_id),
+        )
+
+
+def record_session(
+    home: Path,
+    data: dict[str, Any],
+    *,
+    mirror_status: str = "unknown",
+) -> None:
     initialise_database(home)
     data = validate_data(data, "session")
+    if mirror_status not in {"unknown", "synced", "conflict", "database_only"}:
+        raise ValueError(f"Unsupported Session mirror status: {mirror_status}")
     session_id = str(data["session_id"])
     module = str(data["module"]).lower()
     occurred_at = str(data.get("occurred_at") or _now())
@@ -1124,6 +1200,9 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
     raw_score = data.get("raw_score")
     if raw_score is None and isinstance(score, dict) and score.get("correct") is not None:
         raw_score = score.get("correct")
+    payload_json = json.dumps(data, ensure_ascii=False, default=str)
+    payload_hash = session_payload_hash(data)
+    mirror_checked_at = created_at if mirror_status != "unknown" else None
 
     with connect(home) as conn:
         existing_session = conn.execute(
@@ -1140,8 +1219,9 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
               session_id,module,occurred_at,source_id,question_id,passage_id,assessment_pack_id,mode,practice_mode,conformance_status,status,raw_score,band,
               score_kind,score_confidence,answer_key_source,band_conversion_source,
               rubric_json,time_limit_minutes,started_at,submitted_at,answer_revealed_at,hints_used,
-              duration_minutes,payload_json,created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              duration_minutes,payload_json,payload_hash,mirror_status,mirror_checked_at,
+              created_at,updated_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(session_id) DO UPDATE SET
               module=excluded.module,occurred_at=excluded.occurred_at,
               source_id=excluded.source_id,question_id=excluded.question_id,
@@ -1157,6 +1237,8 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
               submitted_at=excluded.submitted_at,answer_revealed_at=excluded.answer_revealed_at,
               hints_used=excluded.hints_used,
               duration_minutes=excluded.duration_minutes,payload_json=excluded.payload_json,
+              payload_hash=excluded.payload_hash,mirror_status=excluded.mirror_status,
+              mirror_checked_at=excluded.mirror_checked_at,
               updated_at=excluded.updated_at
             """,
             (
@@ -1171,7 +1253,8 @@ def record_session(home: Path, data: dict[str, Any]) -> None:
                 data.get("time_limit_minutes"), data.get("started_at"), data.get("submitted_at"),
                 data.get("answer_revealed_at"), int(data.get("hints_used") or 0),
                 data.get("duration_minutes"),
-                json.dumps(data, ensure_ascii=False, default=str), created_at, created_at,
+                payload_json, payload_hash, mirror_status, mirror_checked_at,
+                created_at, created_at,
             ),
         )
         conn.execute("DELETE FROM errors WHERE session_id=?", (session_id,))
@@ -2560,6 +2643,33 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
                 json.dumps(run.get("persistence") or {}, ensure_ascii=False),
             ),
         )
+        receipt = run.get("privacy_receipt")
+        if receipt:
+            if str(receipt.get("run_id") or run["run_id"]) != str(run["run_id"]):
+                raise ValueError("Privacy receipt run_id does not match Agent run")
+            conn.execute(
+                """
+                INSERT INTO privacy_receipts(
+                  receipt_id,run_id,authorization_kind,reason,remote_processing,
+                  private_source,source_type,provider_ids_json,scope_hash,
+                  policy_json,reusable,created_at,consumed_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,0,?,?)
+                """,
+                (
+                    receipt["receipt_id"],
+                    run["run_id"],
+                    receipt["authorization_kind"],
+                    receipt["reason"],
+                    int(bool(receipt.get("remote_processing"))),
+                    int(bool(receipt.get("private_source"))),
+                    receipt.get("source_type"),
+                    json.dumps(receipt.get("provider_ids") or [], ensure_ascii=False),
+                    receipt["scope_hash"],
+                    json.dumps(receipt.get("policy") or {}, ensure_ascii=False),
+                    receipt.get("created_at") or _now(),
+                    receipt.get("consumed_at") or _now(),
+                ),
+            )
     return get_agent_run(home, run["run_id"]) or run
 
 
@@ -2611,9 +2721,14 @@ def get_agent_run(home: Path, run_id: str) -> dict[str, Any] | None:
     initialise_database(home)
     with connect(home) as conn:
         row = conn.execute("SELECT * FROM agent_runs WHERE run_id=?", (run_id,)).fetchone()
+        receipt = conn.execute(
+            "SELECT * FROM privacy_receipts WHERE run_id=?", (run_id,)
+        ).fetchone()
     if not row:
         return None
-    return _agent_run_row(row)
+    result = _agent_run_row(row)
+    result["privacy_receipt"] = _privacy_receipt_row(receipt) if receipt else None
+    return result
 
 
 def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
@@ -2661,6 +2776,33 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "resume_count": int(row["resume_count"]),
         "persistence": json.loads(row["persistence_json"]),
     }
+
+
+def _privacy_receipt_row(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "receipt_id": row["receipt_id"],
+        "run_id": row["run_id"],
+        "authorization_kind": row["authorization_kind"],
+        "reason": row["reason"],
+        "remote_processing": bool(row["remote_processing"]),
+        "private_source": bool(row["private_source"]),
+        "source_type": row["source_type"],
+        "provider_ids": json.loads(row["provider_ids_json"]),
+        "scope_hash": row["scope_hash"],
+        "policy": json.loads(row["policy_json"]),
+        "reusable": bool(row["reusable"]),
+        "created_at": row["created_at"],
+        "consumed_at": row["consumed_at"],
+    }
+
+
+def get_privacy_receipt(home: Path, run_id: str) -> dict[str, Any] | None:
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM privacy_receipts WHERE run_id=?", (run_id,)
+        ).fetchone()
+    return _privacy_receipt_row(row) if row else None
 
 
 def json_payload_hash(payload: dict[str, Any]) -> str:

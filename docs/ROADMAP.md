@@ -94,6 +94,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   media-capability fallback plus restart-safe audit closure
 - schema v22 durable Agent checkpoints, atomic worker leases, periodic
   heartbeats and post-result recovery without a duplicate model call
+- schema v23 one-run privacy decision receipts plus revision-and-hash guarded
+  Session Markdown/SQLite projections with explicit reconciliation
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
