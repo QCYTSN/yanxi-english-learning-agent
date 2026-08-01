@@ -270,7 +270,21 @@ def add_assistant_message(
     result: dict[str, Any],
     agent_run_id: str,
 ) -> dict[str, Any]:
-    message_id = _id("message")
+    with connect(home) as conn:
+        existing = conn.execute(
+            """
+            SELECT message_id
+            FROM study_messages
+            WHERE agent_run_id=? AND role='assistant'
+            ORDER BY created_at ASC
+            LIMIT 1
+            """,
+            (agent_run_id,),
+        ).fetchone()
+    if existing:
+        return get_study_message(home, str(existing["message_id"])) or {}
+
+    message_id = f"message:agent:{agent_run_id}"
     now = _now()
     content = str(result.get("summary") or result.get("next_action") or "讲解已完成")
     with connect(home) as conn:
@@ -280,6 +294,11 @@ def add_assistant_message(
               message_id,thread_id,role,content,status,context_json,
               agent_run_id,created_at
             ) VALUES(?,?,'assistant',?,'complete',?,?,?)
+            ON CONFLICT(message_id) DO UPDATE SET
+              content=excluded.content,
+              status='complete',
+              context_json=excluded.context_json,
+              agent_run_id=excluded.agent_run_id
             """,
             (
                 message_id,

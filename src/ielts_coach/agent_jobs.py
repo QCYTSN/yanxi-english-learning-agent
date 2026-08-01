@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import queue
 import threading
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -11,9 +12,14 @@ from .inference import InferenceBroker
 from .session_manager import show_session
 from .storage import (
     append_agent_run_event,
+    claim_agent_run,
+    claim_agent_run_recovery,
     close_open_provider_attempts,
     connect,
     get_agent_run,
+    json_payload_hash,
+    release_agent_run_lease,
+    renew_agent_run_lease,
     update_agent_run,
 )
 
@@ -35,24 +41,98 @@ def _now() -> str:
 class AgentJobManager:
     """Durable local Agent job coordinator backed by SQLite state."""
 
-    def __init__(self, home: Path, *, workers: int = 2) -> None:
+    def __init__(
+        self,
+        home: Path,
+        *,
+        workers: int = 2,
+        lease_seconds: int = 30,
+        heartbeat_seconds: int = 5,
+    ) -> None:
         self.home = home
+        self.instance_id = f"job-manager:{uuid.uuid4().hex}"
+        self.lease_seconds = max(10, int(lease_seconds))
+        self.heartbeat_seconds = max(
+            1,
+            min(int(heartbeat_seconds), self.lease_seconds // 2),
+        )
         self._slots = threading.BoundedSemaphore(max(1, workers))
         self._lock = threading.Lock()
         self._scheduled: set[str] = set()
         self._closed = False
+        self._sweeper_stop = threading.Event()
+        self._sweeper: threading.Thread | None = None
         self.broker = InferenceBroker(home)
 
     def recover(self) -> dict[str, int]:
+        result = self._recover_stale_runs()
+        self._start_sweeper()
+        return result
+
+    def _recover_stale_runs(self) -> dict[str, int]:
         with connect(self.home) as conn:
             rows = conn.execute(
-                "SELECT run_id,status FROM agent_runs WHERE status IN ('queued','running','validating','persisting')"
+                """
+                SELECT run_id,status,result_json,checkpoint,lease_owner,
+                       lease_expires_at,resume_count
+                FROM agent_runs
+                WHERE status IN ('queued','running','validating','persisting')
+                """
             ).fetchall()
         recovered = 0
         interrupted = 0
         for row in rows:
             run_id = str(row["run_id"])
-            if row["status"] == "queued":
+            if _lease_is_active(row["lease_expires_at"]):
+                continue
+            claimed = claim_agent_run_recovery(
+                self.home,
+                run_id,
+                expected_status=str(row["status"]),
+                lease_owner=self.instance_id,
+                lease_seconds=self.lease_seconds,
+            )
+            if not claimed:
+                continue
+            if claimed["status"] == "queued":
+                self.enqueue(run_id)
+                recovered += 1
+            elif (
+                isinstance(claimed.get("result"), dict)
+                and "error" not in claimed["result"]
+                and claimed["checkpoint"]
+                in {"candidate_received", "validated", "persisting"}
+            ):
+                close_open_provider_attempts(
+                    self.home,
+                    run_id,
+                    status="interrupted",
+                    failure_stage="recovery",
+                    error_code="LEASE_EXPIRED_AFTER_RESULT",
+                    error_message=(
+                        "The worker lease expired after a candidate result was "
+                        "stored; the Runtime will resume validation/persistence."
+                    ),
+                )
+                updated = update_agent_run(
+                    self.home,
+                    run_id,
+                    status="queued",
+                    error_code=None,
+                    completed_at=None,
+                    recovery_action="resume_checkpoint",
+                    resume_count=int(claimed["resume_count"] or 0) + 1,
+                )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "recovered",
+                    {
+                        "checkpoint": updated["checkpoint"],
+                        "resume_count": updated["resume_count"],
+                        "model_called_again": False,
+                    },
+                )
                 self.enqueue(run_id)
                 recovered += 1
             else:
@@ -74,6 +154,9 @@ class AgentJobManager:
                     error_code="SERVICE_RESTARTED",
                     recovery_action="retry",
                     completed_at=_now(),
+                    checkpoint="failed",
+                    lease_owner=None,
+                    lease_expires_at=None,
                 )
                 append_agent_run_event(
                     self.home,
@@ -87,6 +170,28 @@ class AgentJobManager:
                 )
                 interrupted += 1
         return {"recovered": recovered, "interrupted": interrupted}
+
+    def _start_sweeper(self) -> None:
+        with self._lock:
+            if self._closed or (self._sweeper and self._sweeper.is_alive()):
+                return
+            self._sweeper = threading.Thread(
+                target=self._sweep_loop,
+                name="ielts-agent-lease-sweeper",
+                daemon=True,
+            )
+            self._sweeper.start()
+
+    def _sweep_loop(self) -> None:
+        while not self._sweeper_stop.wait(self.heartbeat_seconds):
+            if self._closed:
+                return
+            try:
+                self._recover_stale_runs()
+            except Exception:
+                # A later sweep or explicit retry can recover from a transient
+                # SQLite/filesystem failure without taking down the app.
+                continue
 
     def enqueue(self, run_id: str) -> None:
         with self._lock:
@@ -132,6 +237,9 @@ class AgentJobManager:
             run_id,
             status="cancelled",
             completed_at=_now(),
+            checkpoint="cancelled",
+            lease_owner=None,
+            lease_expires_at=None,
         )
         append_agent_run_event(
             self.home,
@@ -162,6 +270,10 @@ class AgentJobManager:
             started_at=None,
             cancel_requested=0,
             recovery_action=None,
+            checkpoint="queued",
+            persistence={},
+            lease_owner=None,
+            lease_expires_at=None,
             attempt_count=int(run.get("attempt_count") or 1) + 1,
             timeout_seconds=(
                 max(300, int(run.get("timeout_seconds") or 120))
@@ -194,6 +306,9 @@ class AgentJobManager:
     def shutdown(self) -> None:
         with self._lock:
             self._closed = True
+        self._sweeper_stop.set()
+        if self._sweeper and self._sweeper.is_alive():
+            self._sweeper.join(timeout=1)
         self.broker.shutdown()
 
     def _execute_safely(self, run_id: str) -> None:
@@ -205,59 +320,103 @@ class AgentJobManager:
                     self._scheduled.discard(run_id)
 
     def _execute(self, run_id: str) -> None:
-        run = get_agent_run(self.home, run_id)
-        if not run or run["status"] != "queued" or run["cancel_requested"]:
+        run = claim_agent_run(
+            self.home,
+            run_id,
+            lease_owner=self.instance_id,
+            lease_seconds=self.lease_seconds,
+        )
+        if not run:
             return
-        prepared = self.broker.for_run(run)
-        adapter = prepared.adapter
-        started = _now()
-        update_agent_run(
-            self.home,
-            run_id,
-            status="running",
-            started_at=started,
-            heartbeat_at=started,
-            execution_ref=run_id,
-        )
-        append_agent_run_event(
-            self.home,
-            run_id,
-            "status",
-            {"stage": "running", "label": "Agent task running"},
-        )
+        heartbeat_stop, heartbeat = self._start_lease_heartbeat(run_id)
         try:
-            result = self._run_with_timeout(
-                adapter,
-                run["request"],
-                timeout_seconds=int(run.get("timeout_seconds") or 120),
-                execution_ref=run_id,
+            if run.get("input_hash") and run["input_hash"] != json_payload_hash(
+                run.get("request") or {}
+            ):
+                raise ValueError("Persisted Agent request hash does not match its payload")
+            resume_candidate = (
+                run.get("checkpoint")
+                in {"candidate_received", "validated", "persisting"}
+                and isinstance(run.get("result"), dict)
+                and "error" not in run["result"]
             )
-            identity_reader = getattr(adapter, "execution_identity", None)
-            if callable(identity_reader):
-                runtime_identity = {
-                    key: value
-                    for key, value in identity_reader(run_id).items()
-                    if value is not None
-                }
-                if runtime_identity:
-                    update_agent_run(self.home, run_id, **runtime_identity)
-            current = get_agent_run(self.home, run_id)
-            if not current or current["cancel_requested"] or current["status"] == "cancelled":
-                return
-            usage_reader = getattr(adapter, "execution_usage", None)
-            if callable(usage_reader):
-                runtime_usage = usage_reader(run_id)
-                if runtime_usage:
-                    current = update_agent_run(
-                        self.home,
-                        run_id,
-                        usage=runtime_usage,
-                    )
-            run = current
-            validation_reader = getattr(adapter, "execution_validation", None)
-            provider_validation = (
-                validation_reader(run_id) if callable(validation_reader) else {}
-            )
+            provider_validation: dict[str, Any] = {}
+            if resume_candidate:
+                result = dict(run["result"])
+                run = update_agent_run(
+                    self.home,
+                    run_id,
+                    status="validating",
+                    recovery_action="resume_checkpoint",
+                    heartbeat_at=_now(),
+                )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "status",
+                    {
+                        "stage": "resuming_validation",
+                        "label": "Resuming saved model result",
+                        "model_called_again": False,
+                    },
+                )
+            else:
+                prepared = self.broker.for_run(run)
+                adapter = prepared.adapter
+                started = _now()
+                run = update_agent_run(
+                    self.home,
+                    run_id,
+                    status="running",
+                    checkpoint="invoking",
+                    started_at=run.get("started_at") or started,
+                    heartbeat_at=started,
+                    execution_ref=run_id,
+                )
+                append_agent_run_event(
+                    self.home,
+                    run_id,
+                    "status",
+                    {"stage": "running", "label": "Agent task running"},
+                )
+                result = self._run_with_timeout(
+                    adapter,
+                    run["request"],
+                    timeout_seconds=int(run.get("timeout_seconds") or 120),
+                    execution_ref=run_id,
+                )
+                identity_reader = getattr(adapter, "execution_identity", None)
+                if callable(identity_reader):
+                    runtime_identity = {
+                        key: value
+                        for key, value in identity_reader(run_id).items()
+                        if value is not None
+                    }
+                    if runtime_identity:
+                        update_agent_run(self.home, run_id, **runtime_identity)
+                current = get_agent_run(self.home, run_id)
+                if (
+                    not current
+                    or current["cancel_requested"]
+                    or current["status"] == "cancelled"
+                ):
+                    return
+                usage_reader = getattr(adapter, "execution_usage", None)
+                if callable(usage_reader):
+                    runtime_usage = usage_reader(run_id)
+                    if runtime_usage:
+                        current = update_agent_run(
+                            self.home,
+                            run_id,
+                            usage=runtime_usage,
+                        )
+                run = current
+                validation_reader = getattr(adapter, "execution_validation", None)
+                provider_validation = (
+                    validation_reader(run_id)
+                    if callable(validation_reader)
+                    else {}
+                )
             if run.get("backend_kind") == "manual":
                 update_agent_run(
                     self.home,
@@ -265,6 +424,7 @@ class AgentJobManager:
                     status="awaiting_import",
                     result=result,
                     heartbeat_at=_now(),
+                    checkpoint="awaiting_import",
                 )
                 append_agent_run_event(
                     self.home,
@@ -276,8 +436,13 @@ class AgentJobManager:
                     },
                 )
                 return
-            update_agent_run(
-                self.home, run_id, status="validating", heartbeat_at=_now()
+            run = update_agent_run(
+                self.home,
+                run_id,
+                status="validating",
+                result=result,
+                checkpoint="candidate_received",
+                heartbeat_at=_now(),
             )
             append_agent_run_event(
                 self.home,
@@ -291,6 +456,13 @@ class AgentJobManager:
                 and provider_validation.get("contract") == run["output_contract"]
                 else validate_agent_contract(run["output_contract"], result)
             )
+            run = update_agent_run(
+                self.home,
+                run_id,
+                result=validated,
+                checkpoint="validated",
+                heartbeat_at=_now(),
+            )
             if run.get("backend_kind") == "mock":
                 update_agent_run(
                     self.home,
@@ -300,6 +472,7 @@ class AgentJobManager:
                     completed_at=_now(),
                     heartbeat_at=_now(),
                     recovery_action=None,
+                    checkpoint="test_passed",
                 )
                 append_agent_run_event(
                     self.home,
@@ -313,8 +486,12 @@ class AgentJobManager:
                     },
                 )
                 return
-            update_agent_run(
-                self.home, run_id, status="persisting", heartbeat_at=_now()
+            run = update_agent_run(
+                self.home,
+                run_id,
+                status="persisting",
+                checkpoint="persisting",
+                heartbeat_at=_now(),
             )
             append_agent_run_event(
                 self.home,
@@ -331,6 +508,8 @@ class AgentJobManager:
                 completed_at=_now(),
                 heartbeat_at=_now(),
                 recovery_action=None,
+                checkpoint="persisted",
+                persistence=canonical,
             )
             append_agent_run_event(
                 self.home,
@@ -367,6 +546,38 @@ class AgentJobManager:
                 "MODEL_ROUTE_FAILED": "check_model_route_then_retry",
             }.get(code, "retry")
             self._fail(run_id, code, str(exc), recovery)
+        finally:
+            heartbeat_stop.set()
+            heartbeat.join(timeout=1)
+            release_agent_run_lease(
+                self.home,
+                run_id,
+                lease_owner=self.instance_id,
+            )
+
+    def _start_lease_heartbeat(
+        self,
+        run_id: str,
+    ) -> tuple[threading.Event, threading.Thread]:
+        stop = threading.Event()
+
+        def heartbeat() -> None:
+            while not stop.wait(self.heartbeat_seconds):
+                if not renew_agent_run_lease(
+                    self.home,
+                    run_id,
+                    lease_owner=self.instance_id,
+                    lease_seconds=self.lease_seconds,
+                ):
+                    return
+
+        thread = threading.Thread(
+            target=heartbeat,
+            name=f"ielts-agent-heartbeat-{run_id[-8:]}",
+            daemon=True,
+        )
+        thread.start()
+        return stop, thread
 
     def _run_with_timeout(
         self,
@@ -443,6 +654,7 @@ class AgentJobManager:
             recovery_action=recovery_action,
             completed_at=_now(),
             heartbeat_at=_now(),
+            checkpoint="failed",
         )
         append_agent_run_event(
             self.home,
@@ -454,3 +666,15 @@ class AgentJobManager:
                 "recovery_action": recovery_action,
             },
         )
+
+
+def _lease_is_active(value: Any) -> bool:
+    if not value:
+        return False
+    try:
+        expires_at = datetime.fromisoformat(str(value))
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        return expires_at > datetime.now(timezone.utc)
+    except ValueError:
+        return False

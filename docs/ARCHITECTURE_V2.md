@@ -196,6 +196,11 @@ Schema v19 added provider routes, external-Agent profiles and inference
 provenance. Schema v20 added persistent Study Threads, messages and attachment
 metadata. Schema v21 adds immutable Provider Attempt audit records and closes
 unfinished attempts during cancellation, timeout or service-restart recovery.
+Schema v22 adds per-run input hashes, durable checkpoints, expiring worker
+leases, heartbeats, resume counters and canonical persistence receipts. An
+expired run that already stored a candidate resumes validation and persistence
+without another model call; a run interrupted before any candidate exists
+fails explicitly and can be retried by the learner.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -269,6 +274,6 @@ The architecture is accepted when:
 - complete Skills and Schemas are compiled for every model call;
 - external Agents cannot be selected for teaching inference;
 - provider output must pass validation before persistence;
-- schema v21 migrates historical homes with a recoverable snapshot;
+- schema v22 migrates historical homes with a recoverable snapshot;
 - normal learning works without exposing provider configuration;
 - frontend build, lint and tests plus backend regression tests pass.

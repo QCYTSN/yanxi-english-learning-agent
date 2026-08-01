@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 21
+SCHEMA_VERSION = 22
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -527,6 +528,12 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     execution_ref TEXT,
     skill_hash TEXT,
     inference_route_json TEXT NOT NULL DEFAULT '[]',
+    checkpoint TEXT NOT NULL DEFAULT 'queued',
+    input_hash TEXT,
+    lease_owner TEXT,
+    lease_expires_at TEXT,
+    resume_count INTEGER NOT NULL DEFAULT 0,
+    persistence_json TEXT NOT NULL DEFAULT '{}',
     FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
     FOREIGN KEY(execution_profile_id) REFERENCES execution_profiles(profile_id) ON DELETE SET NULL,
     FOREIGN KEY(model_provider_id) REFERENCES model_providers(provider_id) ON DELETE SET NULL
@@ -949,6 +956,12 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "execution_ref": "TEXT",
         "skill_hash": "TEXT",
         "inference_route_json": "TEXT NOT NULL DEFAULT '[]'",
+        "checkpoint": "TEXT NOT NULL DEFAULT 'queued'",
+        "input_hash": "TEXT",
+        "lease_owner": "TEXT",
+        "lease_expires_at": "TEXT",
+        "resume_count": "INTEGER NOT NULL DEFAULT 0",
+        "persistence_json": "TEXT NOT NULL DEFAULT '{}'",
     }
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
@@ -2511,8 +2524,9 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
               base_revision,status,error_code,request_json,result_json,usage_json,
               created_at,started_at,completed_at,timeout_seconds,attempt_count,
               cancel_requested,heartbeat_at,recovery_action,execution_ref,skill_hash,
-              inference_route_json
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+              inference_route_json,checkpoint,input_hash,lease_owner,
+              lease_expires_at,resume_count,persistence_json
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 run["run_id"], run.get("study_session_id"), run["adapter_id"],
@@ -2538,6 +2552,12 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
                 run.get("execution_ref"),
                 run.get("skill_hash"),
                 json.dumps(run.get("inference_route") or [], ensure_ascii=False),
+                run.get("checkpoint", "queued"),
+                run.get("input_hash") or json_payload_hash(run.get("request") or {}),
+                run.get("lease_owner"),
+                run.get("lease_expires_at"),
+                int(run.get("resume_count") or 0),
+                json.dumps(run.get("persistence") or {}, ensure_ascii=False),
             ),
         )
     return get_agent_run(home, run["run_id"]) or run
@@ -2554,6 +2574,8 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
         "started_at", "completed_at", "timeout_seconds", "attempt_count",
         "cancel_requested", "heartbeat_at", "recovery_action", "execution_ref",
         "base_revision", "skill_hash", "inference_route_json",
+        "checkpoint", "input_hash", "lease_owner", "lease_expires_at",
+        "resume_count", "persistence_json",
     }
     columns: list[str] = []
     values: list[Any] = []
@@ -2568,6 +2590,10 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
         elif key == "inference_route":
             column, value = "inference_route_json", json.dumps(
                 value, ensure_ascii=False
+            )
+        elif key == "persistence":
+            column, value = "persistence_json", json.dumps(
+                value or {}, ensure_ascii=False
             )
         if column not in allowed:
             continue
@@ -2628,7 +2654,128 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "execution_ref": row["execution_ref"],
         "skill_hash": row["skill_hash"],
         "inference_route": json.loads(row["inference_route_json"]),
+        "checkpoint": row["checkpoint"],
+        "input_hash": row["input_hash"],
+        "lease_owner": row["lease_owner"],
+        "lease_expires_at": row["lease_expires_at"],
+        "resume_count": int(row["resume_count"]),
+        "persistence": json.loads(row["persistence_json"]),
     }
+
+
+def json_payload_hash(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def claim_agent_run(
+    home: Path,
+    run_id: str,
+    *,
+    lease_owner: str,
+    lease_seconds: int,
+) -> dict[str, Any] | None:
+    """Atomically claim one queued run for a single local worker instance."""
+    initialise_database(home)
+    now = _now()
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(seconds=max(5, lease_seconds))
+    ).isoformat()
+    with connect(home) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.execute(
+            """
+            UPDATE agent_runs
+            SET lease_owner=?,lease_expires_at=?,heartbeat_at=?
+            WHERE run_id=? AND status='queued' AND cancel_requested=0
+              AND (
+                lease_owner IS NULL OR lease_owner=? OR lease_expires_at IS NULL
+                OR lease_expires_at<=?
+              )
+            """,
+            (lease_owner, expires_at, now, run_id, lease_owner, now),
+        )
+        claimed = cursor.rowcount == 1
+    return get_agent_run(home, run_id) if claimed else None
+
+
+def claim_agent_run_recovery(
+    home: Path,
+    run_id: str,
+    *,
+    expected_status: str,
+    lease_owner: str,
+    lease_seconds: int,
+) -> dict[str, Any] | None:
+    """Atomically reserve one expired, unfinished run for recovery."""
+    if expected_status not in {"queued", "running", "validating", "persisting"}:
+        return None
+    initialise_database(home)
+    now = _now()
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(seconds=max(5, lease_seconds))
+    ).isoformat()
+    with connect(home) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.execute(
+            """
+            UPDATE agent_runs
+            SET lease_owner=?,lease_expires_at=?,heartbeat_at=?
+            WHERE run_id=? AND status=? AND cancel_requested=0
+              AND (lease_expires_at IS NULL OR lease_expires_at<=?)
+            """,
+            (lease_owner, expires_at, now, run_id, expected_status, now),
+        )
+        claimed = cursor.rowcount == 1
+    return get_agent_run(home, run_id) if claimed else None
+
+
+def renew_agent_run_lease(
+    home: Path,
+    run_id: str,
+    *,
+    lease_owner: str,
+    lease_seconds: int,
+) -> bool:
+    now = _now()
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(seconds=max(5, lease_seconds))
+    ).isoformat()
+    with connect(home) as conn:
+        cursor = conn.execute(
+            """
+            UPDATE agent_runs
+            SET lease_expires_at=?,heartbeat_at=?
+            WHERE run_id=? AND lease_owner=?
+              AND status IN ('queued','running','validating','persisting')
+            """,
+            (expires_at, now, run_id, lease_owner),
+        )
+    return cursor.rowcount == 1
+
+
+def release_agent_run_lease(
+    home: Path,
+    run_id: str,
+    *,
+    lease_owner: str,
+) -> bool:
+    with connect(home) as conn:
+        cursor = conn.execute(
+            """
+            UPDATE agent_runs
+            SET lease_owner=NULL,lease_expires_at=NULL
+            WHERE run_id=? AND lease_owner=?
+            """,
+            (run_id, lease_owner),
+        )
+    return cursor.rowcount == 1
 
 
 def list_agent_runs(

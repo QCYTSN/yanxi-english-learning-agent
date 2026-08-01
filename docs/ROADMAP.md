@@ -70,7 +70,7 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - Speaking Part 1-3 external Voice/Live handoff and result binding on one authoritative AssessmentRun/Session
 - one authoritative ScoreResult admission policy across reports, allocation and Progress
 - seven versioned Agent result contracts with schemas, semantic checks and golden/failure fixtures
-- durable Agent lifecycle with queued/running/validating/persisting/persisted states, timeout, cancellation, retry, restart recovery and resumable SSE
+- durable Agent lifecycle with queued/running/validating/persisting/persisted states, expiring worker leases, checkpoints, timeout, cancellation, retry, no-repeat post-result recovery and resumable SSE
 - capability-probed Claude Code and OpenCode local process adapters with explicit consent and no shell execution
 - Runtime-driven Today 70/30 plan with target gaps, content readiness and fallback practice
 - structured four-module Progress dashboard with eligible trends and separately labelled training observations
@@ -92,6 +92,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - schema v20 Capability Registry, Study Threads and versioned inference provenance
 - schema v21 validation-aware Provider Attempts with structured, domain and
   media-capability fallback plus restart-safe audit closure
+- schema v22 durable Agent checkpoints, atomic worker leases, periodic
+  heartbeats and post-result recovery without a duplicate model call
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
