@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mutationHeaders } from './helpers'
 
 test.use({ viewport: { width: 375, height: 812 } })
 
@@ -37,7 +38,7 @@ test('keeps the learning shell usable across phone and landscape widths', async 
   await expect(page.getByRole('heading', { name: /今天/ }).first()).toBeVisible()
   expect(await hasHorizontalOverflow(page)).toBe(false)
   const threadResponse = await page.request.post('/api/v1/study-threads', {
-    headers: { Origin: baseUrl! },
+    headers: await mutationHeaders(page, baseUrl!),
     data: {
       title: 'Sidebar layout check',
       module: 'reading',

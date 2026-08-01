@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { mutationHeaders } from './helpers'
 
 test.use({ viewport: { width: 375, height: 812 } })
 
@@ -17,7 +18,7 @@ test('launches the packaged four-module study desk on a small screen', async ({ 
   expect(await hasHorizontalOverflow(page)).toBe(false)
 
   const threadResponse = await page.request.post('/api/v1/study-threads', {
-    headers: { Origin: baseUrl! },
+    headers: await mutationHeaders(page, baseUrl!),
     data: {
       title: '阅读精读测试',
       module: 'reading',
