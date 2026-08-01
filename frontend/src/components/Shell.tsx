@@ -175,7 +175,14 @@ function RecentStudyThreads({ currentPath }: { currentPath: string }) {
 }
 
 function threadModuleLabel(module: StudyThread['module']) {
-  return ({ reading: '阅读', writing: '写作', mixed: '综合' } as const)[module]
+  const labels: Record<StudyThread['module'], string> = {
+    listening: '听力',
+    reading: '阅读',
+    writing: '写作',
+    speaking: '口语',
+    mixed: '综合',
+  }
+  return labels[module]
 }
 
 function compactThreadTime(value: string) {

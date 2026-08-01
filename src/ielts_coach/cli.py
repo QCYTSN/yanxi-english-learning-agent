@@ -19,6 +19,11 @@ from .calibration import (
     prepare_calibration_run,
     record_calibration,
 )
+from .capability_evaluation import (
+    list_capability_evaluations,
+    provider_reliability_report,
+    run_contract_evaluation,
+)
 from .config import load_profile
 from .conformance import assess_pack, assess_question, standard_profile
 from .content_imports import imports as list_content_imports, process_import
@@ -81,6 +86,7 @@ conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content 
 content_app = typer.Typer(no_args_is_help=True, help="Inspect content readiness and staged local imports")
 backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
 benchmark_app = typer.Typer(no_args_is_help=True, help="Run isolated local performance benchmarks")
+evaluation_app = typer.Typer(no_args_is_help=True, help="Evaluate Agent contracts and provider reliability")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
@@ -99,6 +105,102 @@ app.add_typer(conformance_app, name="conformance")
 app.add_typer(content_app, name="content")
 app.add_typer(backup_app, name="backup")
 app.add_typer(benchmark_app, name="benchmark")
+app.add_typer(evaluation_app, name="evaluation")
+
+
+@evaluation_app.command("contracts")
+def evaluation_contracts_command(
+    cases: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+        help="Directory containing <contract>.valid.json and .invalid.json pairs",
+    ),
+    suite: str = typer.Option("agent-contract-regression"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Run content-free contract regression cases and retain only hashes/outcomes."""
+    result = run_contract_evaluation(
+        resolve_home(home),
+        cases,
+        suite_name=suite,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if result["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
+@evaluation_app.command("reliability")
+def evaluation_reliability_command(
+    days: int = typer.Option(30, min=1, max=365),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Report metadata-only runtime reliability and release-gate status."""
+    typer.echo(
+        json.dumps(
+            provider_reliability_report(resolve_home(home), days=days),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+@evaluation_app.command("history")
+def evaluation_history_command(
+    limit: int = typer.Option(20, min=1, max=100),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """List recent local capability evaluation results."""
+    typer.echo(
+        json.dumps(
+            list_capability_evaluations(resolve_home(home), limit=limit),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+@evaluation_app.command("release")
+def evaluation_release_command(
+    cases: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+        help="Directory containing contract positive/negative cases",
+    ),
+    sessions: int = typer.Option(10_000, min=1, max=100_000),
+    questions: int = typer.Option(100_000, min=1, max=1_000_000),
+    repeats: int = typer.Option(5, min=1, max=20),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Run the deterministic contract and scale gates used before a release."""
+    contract_report = run_contract_evaluation(
+        resolve_home(home),
+        cases,
+        suite_name="release-contract-regression",
+    )
+    scale_report = run_temporary_scale_benchmark(
+        session_count=sessions,
+        question_count=questions,
+        repeats=repeats,
+    )
+    result = {
+        "status": (
+            "passed"
+            if contract_report["status"] == "passed" and scale_report["passed"]
+            else "failed"
+        ),
+        "contract_gate": contract_report,
+        "scale_gate": scale_report,
+        "visual_review": "separate_human_decision_required",
+    }
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if result["status"] != "passed":
+        raise typer.Exit(code=1)
 
 
 @benchmark_app.command("scale")

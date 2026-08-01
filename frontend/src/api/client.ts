@@ -229,7 +229,7 @@ export type StudyAttachment = {
 
 export type StudyHelpResult = {
   contract_version: 1
-  module: 'reading' | 'writing' | 'mixed'
+  module: 'listening' | 'reading' | 'writing' | 'speaking' | 'mixed'
   request_kind: string
   evidence_status: 'sufficient' | 'partial' | 'insufficient' | 'not_required'
   answer_status: 'withheld' | 'unverified' | 'verified' | 'not_applicable'
@@ -255,7 +255,7 @@ export type StudyMessage = {
 export type StudyThread = {
   thread_id: string
   title: string
-  module: 'reading' | 'writing' | 'mixed'
+  module: 'listening' | 'reading' | 'writing' | 'speaking' | 'mixed'
   status: string
   model_provider_id: string | null
   source_context: Record<string, unknown>

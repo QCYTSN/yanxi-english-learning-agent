@@ -24,6 +24,7 @@ def test_scale_fixture_and_lazy_random_draw(tmp_path: Path) -> None:
         repeats=1,
     )
     assert report["passed"] is True
+    assert all(report["query_plan_checks"].values())
     assert report["fixture"]["actual_counts"] == {
         "sessions": 1_000,
         "questions": 10_000,

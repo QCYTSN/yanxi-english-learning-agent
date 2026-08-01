@@ -40,7 +40,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 ## 3. 当前已完成的性能底座
 
-- Schema v25；
+- Schema v26；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
@@ -52,6 +52,20 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - CLI 版本探测 60 秒缓存；
 - 有界内存性能监视器，不记录作文、题目或提示词；
 - Media Asset 与 owner 解耦，同一文件可绑定多个 Session。
+- Agent 契约正反例回归会保存哈希和结果，不保存学习内容；
+- Provider 可靠性报告按 30 天窗口统计成功率、失败阶段、回退与延迟；
+- `ielts-coach evaluation release` 将契约门和 10k/100k 合成性能门组合为可执行发布门。
+
+## 3.1 发布评测边界
+
+发布质量分为三种证据，不能互相替代：
+
+1. **契约正确性**：所有版本化 Agent Contract 的 valid/invalid 样例必须全部符合预期；
+2. **运行可靠性**：真实 Provider 至少积累 20 个终态样本后，才允许把成功率解释为稳定指标；
+3. **本地规模性能**：10k Session / 100k Question 的分页、检索、随机抽题和数据库状态必须在预算内。
+4. **前端资源预算**：单个 JavaScript 产物不超过 450 KiB，总 JavaScript 不超过 2 MiB，总 CSS 不超过 400 KiB。
+
+契约通过但真实样本不足时，状态是“契约就绪，继续观察”，不能宣传为模型连接已经稳定。
 
 ## 4. 当前已完成的学习闭环修正
 

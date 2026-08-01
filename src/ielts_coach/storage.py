@@ -13,7 +13,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 25
+SCHEMA_VERSION = 26
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_module_time ON sessions(module, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_occurred ON sessions(occurred_at DESC);
 
 CREATE TABLE IF NOT EXISTS errors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,6 +143,7 @@ CREATE TABLE IF NOT EXISTS questions (
     FOREIGN KEY(passage_id) REFERENCES question_passages(passage_id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_questions_filters ON questions(module,task,question_type,source_type);
+CREATE INDEX IF NOT EXISTS idx_questions_module_type_id ON questions(module,question_type,question_id);
 CREATE INDEX IF NOT EXISTS idx_questions_hash ON questions(content_hash);
 CREATE INDEX IF NOT EXISTS idx_questions_passage ON questions(passage_id);
 
@@ -731,6 +733,22 @@ CREATE TABLE IF NOT EXISTS learner_memories (
 CREATE INDEX IF NOT EXISTS idx_learner_memories_active
 ON learner_memories(status,memory_type,updated_at DESC);
 
+CREATE TABLE IF NOT EXISTS capability_evaluation_runs (
+    evaluation_id TEXT PRIMARY KEY,
+    suite_name TEXT NOT NULL,
+    source_label TEXT NOT NULL,
+    case_count INTEGER NOT NULL,
+    passed_count INTEGER NOT NULL,
+    failed_count INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('passed','failed')),
+    report_hash TEXT NOT NULL,
+    report_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    completed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_capability_evaluations_time
+ON capability_evaluation_runs(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS ui_settings (
     key TEXT PRIMARY KEY,
     value_json TEXT NOT NULL,
@@ -1007,8 +1025,16 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_question ON sessions(question_id)")
     conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sessions_occurred "
+        "ON sessions(occurred_at DESC)"
+    )
+    conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_sessions_status_time "
         "ON sessions(status,occurred_at DESC)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_questions_module_type_id "
+        "ON questions(module,question_type,question_id)"
     )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_errors_status_tag ON errors(status,tag)"

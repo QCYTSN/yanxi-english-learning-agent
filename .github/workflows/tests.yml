@@ -29,6 +29,11 @@ jobs:
       - run: ielts-coach init
       - run: ielts-coach sync-skills
       - run: ielts-coach doctor
+      - name: Agent contract regression gate
+        run: >-
+          ielts-coach evaluation contracts
+          --cases tests/fixtures/agent_contracts
+          --home .evaluation-home
 
   python-regression:
     runs-on: ubuntu-latest
@@ -69,6 +74,8 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+      - name: Frontend production resource budget
+        run: python scripts/check_frontend_budget.py
       - run: python frontend/e2e/prepare_home.py
       - name: Start packaged local service
         shell: bash

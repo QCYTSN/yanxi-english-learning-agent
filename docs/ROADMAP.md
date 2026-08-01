@@ -100,6 +100,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   facts, expiring launch tokens and session-bound CSRF protection
 - schema v25 allowlisted Tutor domain queries, learner-managed soft memories,
   bounded long-thread summaries and local learning-history retrieval
+- schema v26 privacy-safe capability evaluation history, Provider reliability
+  reporting and a combined contract plus 10k/100k release gate
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
@@ -138,8 +140,9 @@ The remaining sequence is:
 
 1. import and human-review enough user-owned or redistributable four-module
    material to reach the minimum inventory in `CONTENT_ACQUISITION_PLAN.md`;
-2. run the final visual system, accessibility and complete interaction audit
-   after the content workflows are exercised with real material.
+2. confirm the visual direction in `VISUAL_SYSTEM_DECISION_BRIEF.md`, then run
+   the final visual system and complete interaction audit after the content
+   workflows are exercised with real material.
 
 ## Deferred product decisions
 

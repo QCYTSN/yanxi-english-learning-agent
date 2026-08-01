@@ -22,6 +22,10 @@ from ..agent_contracts import persist_agent_contract
 from ..agent_gateway import adapter_descriptors, adapter_diagnostics
 from ..agent_jobs import AgentJobManager
 from ..capabilities import capability_descriptors, capability_for_contract
+from ..capability_evaluation import (
+    list_capability_evaluations,
+    provider_reliability_report,
+)
 from ..assessment_builder import assemble_assessment_pack
 from ..assessment_runtime import (
     create_speaking_handoff as create_assessment_speaking_handoff,
@@ -757,6 +761,18 @@ def create_app(
                 "heavy_jobs": "bounded background workers",
             },
         }
+
+    @app.get("/api/v1/system/reliability", dependencies=[Depends(require_session)])
+    def system_reliability_endpoint(
+        days: int = Query(default=30, ge=1, le=365),
+    ) -> dict[str, Any]:
+        return provider_reliability_report(target, days=days)
+
+    @app.get("/api/v1/system/evaluations", dependencies=[Depends(require_session)])
+    def system_evaluations_endpoint(
+        limit: int = Query(default=20, ge=1, le=100),
+    ) -> list[dict[str, Any]]:
+        return list_capability_evaluations(target, limit=limit)
 
     @app.get("/api/v1/system/audit", dependencies=[Depends(require_session)])
     def system_audit_endpoint(

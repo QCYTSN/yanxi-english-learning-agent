@@ -224,6 +224,16 @@ def benchmark_scale_fixture(
                 "ORDER BY question_id LIMIT 50",
             ),
         }
+    query_plan_checks = {
+        "sessions_order_uses_index": (
+            any("idx_sessions_occurred" in item for item in query_plans["sessions_first_page"])
+            and not any("TEMP B-TREE" in item for item in query_plans["sessions_first_page"])
+        ),
+        "question_filter_uses_composite_index": any(
+            "idx_questions_module_type_id" in item
+            for item in query_plans["questions_filtered_page"]
+        ),
+    }
 
     checks = {
         name: {
@@ -245,10 +255,12 @@ def benchmark_scale_fixture(
         "measurements": checks,
         "question_random_draw_peak_kib": round(peak_bytes / 1024, 1),
         "query_plans": query_plans,
+        "query_plan_checks": query_plan_checks,
         "passed": (
             actual_counts
             == {"sessions": int(session_count), "questions": int(question_count)}
             and all(item["passed"] for item in checks.values())
+            and all(query_plan_checks.values())
         ),
     }
 

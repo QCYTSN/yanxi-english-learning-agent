@@ -310,7 +310,7 @@ Runner 交付物：
 
 ## 7. V1.0：AI 学习闭环与发布
 
-实施状态：已完成 V1.4 本地工程实现并升级到 Schema v25。统一 ScoreResult 准入、
+实施状态：已完成 V1.4 本地工程实现并升级到 Schema v26。统一 ScoreResult 准入、
 九类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
 Writing 双任务复评、Task 1 受控图片附件、Listening 播放租约、Speaking 同运行复评、
 Runtime 驱动的 Today、`PracticeUnit / AssessmentRun / ReviewTask`、统一待复习队列、
@@ -447,6 +447,8 @@ V1.0 发布前必须通过：
 - 数据库损坏、磁盘写满、Agent 超时和服务中断测试；
 - wheel 安装、静态文件、Windows 快捷方式和卸载说明；
 - `init`、`sync-skills`、`doctor` 全通过。
+- 全部 Agent Contract 正反例通过，并保存不含学习正文的评测记录；
+- 10k Session / 100k Question 合成规模门通过。
 
 全量 Python 回归已设置独立超时并输出慢测试排行；下一步根据 CI 数据继续拆分
 unit、integration 和 UI API，不再让兼容矩阵重复承担完整回归成本。

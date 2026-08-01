@@ -11,6 +11,10 @@
 
 - [ ] Frontend typecheck, lint, unit tests and production build pass.
 - [ ] Python fast, migration and full regression suites pass.
+- [ ] All Agent contract positive/negative cases pass.
+- [ ] The 10k Session / 100k Question scale gate passes.
+- [ ] Runtime reliability is labelled `insufficient` until at least 20 terminal
+      real-provider samples exist; no sample-free stability claim is made.
 - [ ] Wheel and source distribution build successfully.
 - [ ] Wheel contains no `starter-corpus` or `original-mocks` files.
 - [ ] Windows installer is built from a clean Git checkout.
@@ -32,3 +36,9 @@
 - [ ] Python wheel and source distribution for technical users.
 - [ ] `SHA256SUMS.txt`.
 - [ ] Release notes and known limitations.
+
+Run the deterministic release gates locally with:
+
+```powershell
+ielts-coach evaluation release --cases tests/fixtures/agent_contracts
+```

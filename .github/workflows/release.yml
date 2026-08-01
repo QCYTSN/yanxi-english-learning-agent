@@ -15,7 +15,24 @@ permissions:
   contents: write
 
 jobs:
+  release-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[ui,dev]"
+      - name: Contract and 10k/100k scale release gates
+        run: >-
+          ielts-coach evaluation release
+          --cases tests/fixtures/agent_contracts
+          --home .evaluation-home
+
   windows-installer:
+    needs: release-quality
     runs-on: windows-latest
     timeout-minutes: 45
     steps:

@@ -130,6 +130,7 @@ Before publishing:
 
 ```powershell
 python scripts/verify_release.py --source-only
+ielts-coach evaluation release --cases tests/fixtures/agent_contracts
 ```
 
 Windows release builds are produced with:
