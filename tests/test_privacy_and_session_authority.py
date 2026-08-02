@@ -144,3 +144,26 @@ def test_higher_session_revision_requires_explicit_reconciliation(tmp_path: Path
         ).fetchone()
     assert len(row["payload_hash"]) == 64
     assert row["mirror_status"] == "synced"
+
+
+def test_reconcile_refreshes_stale_database_payload_hash(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    path = start_session(home, "reading")
+    session_id = path.stem
+    with connect(home) as conn:
+        conn.execute(
+            "UPDATE sessions SET payload_hash=? WHERE session_id=?",
+            ("0" * 64, session_id),
+        )
+        conn.commit()
+
+    before = audit_data_home(home)
+    assert before["status"] == "failed"
+    assert before["checks"]["sessions"]["stored_hash_mismatches"] == 1
+
+    reconcile_session(home, session_id)
+
+    after = audit_data_home(home)
+    assert after["status"] == "ok"
+    assert after["checks"]["sessions"]["stored_hash_mismatches"] == 0

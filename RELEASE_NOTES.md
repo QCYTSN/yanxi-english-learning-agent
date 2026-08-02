@@ -10,6 +10,9 @@
 - four-skill practice workspaces, content preparation and progress decisions
 - original Windows application icon, native launcher and installer pipeline
 - clean-machine installation and release verification documentation
+- compact passage/section result summaries for full Reading and Listening mocks
+- responsive content-review deep links, actionable feedback empty states and
+  rendering containment for long conversations and large local libraries
 
 ### Release and privacy changes
 
@@ -20,12 +23,18 @@
 - Windows installer includes Python and UI dependencies; normal users do not
   need Python, Node.js, Git, Docker, WSL or a CLI Agent
 - upgrades and uninstall preserve the user-owned data home
+- packaged application shutdown is coordinated before uninstall, preventing
+  running local-service processes from leaving application files behind
+- Session reconciliation refreshes stale database hashes when the canonical
+  Markdown and SQLite payloads already agree
 
 ### Known limitations
 
 - learners must import legally obtained content before formal question practice
 - OCR and ChatGPT managed-runtime components are optional and increase disk use
 - AI scores remain evidence-labelled estimates rather than official scores
+- the Windows setup wizard currently uses English; the installed learning UI
+  remains Chinese
 
 ---
 

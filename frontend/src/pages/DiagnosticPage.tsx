@@ -40,13 +40,13 @@ export function DiagnosticPage() {
   const run = diagnostic.data
   const completedSessions = sessions.data?.filter((item) => item.status === 'completed' && !run.session_ids?.includes(item.session_id)) ?? []
   return <div className="page page-narrow">
-    <PageHeader eyebrow="Diagnostic" title="四科摸底" description="摸底只整合真实 Session 证据。覆盖某一科不等于获得官方 Band；证据不足会明确保留为未知。" />
+    <PageHeader title="四科摸底" description="用真实练习建立当前基线；证据不足的科目会明确保留为未知，不用一次完成。" />
     {error && <ErrorState error={error} />}
     {run.status === 'not_started' || run.status === 'cancelled' ? <section className="settings-section">
       <h2>选择摸底强度</h2>
       <div className="diagnostic-mode-grid">
-        <button className={mode === 'quick' ? 'active' : ''} onClick={() => setMode('quick')}><strong>Quick</strong><span>一篇阅读、Task 2、三部分口语，以及一份可靠听力结果</span></button>
-        <button className={mode === 'full' ? 'active' : ''} onClick={() => setMode('full')}><strong>Full</strong><span>四科正式长度证据，包括 Writing Task 1 + Task 2</span></button>
+        <button className={mode === 'quick' ? 'active' : ''} aria-pressed={mode === 'quick'} onClick={() => setMode('quick')}><strong>快速摸底</strong><span>一篇阅读、Task 2、三部分口语和一份可靠听力结果</span></button>
+        <button className={mode === 'full' ? 'active' : ''} aria-pressed={mode === 'full'} onClick={() => setMode('full')}><strong>完整摸底</strong><span>四科正式长度证据，包括 Writing Task 1 与 Task 2</span></button>
       </div>
       <button className="button primary" disabled={start.isPending} onClick={() => start.mutate()}>建立摸底记录</button>
     </section> : null}

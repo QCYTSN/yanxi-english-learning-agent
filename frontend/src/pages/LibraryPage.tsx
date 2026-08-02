@@ -246,11 +246,20 @@ export function LibraryPage() {
 }
 
 export function ContentStudioPage() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const promotedImportId = searchParams.get('import')
-  const [view, setView] = useState<View>(
-    promotedImportId ? 'imports' : 'readiness',
-  )
+  const requestedView = searchParams.get('view')
+  const view: View = promotedImportId
+    ? 'imports'
+    : requestedView === 'reviews' || requestedView === 'assembly' || requestedView === 'imports'
+      ? requestedView
+      : 'readiness'
+  function setView(nextView: View) {
+    const next = new URLSearchParams(searchParams)
+    next.set('view', nextView)
+    if (nextView !== 'imports') next.delete('import')
+    setSearchParams(next)
+  }
   const readiness = useQuery({ queryKey: ['content-readiness'], queryFn: () => api<Readiness>('/api/v1/content/readiness') })
   const imports = useQuery({
     queryKey: ['content-imports'],

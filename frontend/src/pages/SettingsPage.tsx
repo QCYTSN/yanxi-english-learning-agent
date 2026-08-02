@@ -170,6 +170,7 @@ function ProfileSection({ bootstrap }: { bootstrap: Bootstrap }) {
 
 function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
   const queryClient = useQueryClient()
+  const [showAllBackups, setShowAllBackups] = useState(false)
   const backups = useQuery({ queryKey: ['backups'], queryFn: () => api<BackupSummary[]>('/api/v1/backups') })
   const create = useMutation({
     mutationFn: () => api<BackupSummary>('/api/v1/backups', { method: 'POST' }),
@@ -205,8 +206,8 @@ function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
           <button className="button primary" onClick={() => create.mutate()} disabled={create.isPending}><Archive size={16} />创建备份</button>
         </div>
         {backups.isPending && <LoadingState label="正在读取备份" />}
-        <div className="simple-list">
-          {backups.data?.map((backup) => (
+        <div className="simple-list backup-list">
+          {backups.data?.slice(0, showAllBackups ? undefined : 6).map((backup) => (
             <article key={backup.backup_id}>
               <div><strong>{backup.backup_id}</strong><p>{backup.kind} · {formatBytes(backup.size_bytes)} · {backup.file_count} 个文件</p></div>
               <div className="row-actions">
@@ -220,6 +221,7 @@ function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
           ))}
           {backups.data?.length === 0 && <p className="muted">还没有本地备份。</p>}
         </div>
+        {(backups.data?.length ?? 0) > 6 && <button className="button ghost backup-list-toggle" type="button" onClick={() => setShowAllBackups((value) => !value)}>{showAllBackups ? '收起旧备份' : `查看全部 ${backups.data?.length ?? 0} 个备份`}</button>}
       </section>
       {(create.error || verify.error || restore.error || backups.error) && <ErrorState error={create.error ?? verify.error ?? restore.error ?? backups.error} />}
     </div>

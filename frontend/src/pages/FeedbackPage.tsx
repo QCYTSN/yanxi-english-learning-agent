@@ -51,7 +51,7 @@ function WritingFeedback({ session, mockOnly }: { session: SessionSummary; mockO
   const review = session.writing_review as WritingReview | undefined
   const versions = (session.versions as Array<{ label: string; content: string }> | undefined) ?? []
   const scored = versions.find((item) => item.label === session.scored_version) ?? versions.at(-1)
-  if (!review || !scored) return <div className="empty-state"><h2>反馈尚未准备好</h2><p>返回工作区提交作文并生成反馈。</p></div>
+  if (!review || !scored) return <div className="empty-state feedback-empty"><h2>反馈尚未准备好</h2><p>这条 Session 已保留。返回写作工作区提交作文并生成经过验证的反馈。</p><Link className="button primary" to={`/practice/writing/${session.session_id}`}>返回写作工作区</Link></div>
   if (mockOnly) return <section className="empty-state"><h2>这里没有有效雅思评分</h2><p>这是旧版 Mock 管线产生的占位结果，没有调用 Agent。6.0–6.5 等占位数字已被界面撤销，不会进入正式进度。</p><Link className="button primary" to="/practice">新建练习并选择真实 Agent</Link></section>
   const primaryAnchor = review.priority_issues.find((item) => item.anchor)?.anchor
   return (
@@ -77,7 +77,7 @@ function WritingFeedback({ session, mockOnly }: { session: SessionSummary; mockO
 function ReadingFeedback({ session, mockOnly }: { session: SessionSummary; mockOnly: boolean }) {
   const review = session.reading_review as ReadingReview | undefined
   if (mockOnly) return <section className="empty-state"><h2>这里没有有效阅读讲解</h2><p>这是旧版 Mock 管线结果，没有调用 Agent，也不属于学习证据。</p><Link className="button primary" to="/practice">返回练习</Link></section>
-  if (!review) return <div className="empty-state"><h2>复盘尚未准备好</h2><p>提交答案并生成结构化复盘后再查看。</p></div>
+  if (!review) return <div className="empty-state feedback-empty"><h2>复盘尚未准备好</h2><p>答题记录已经保存；返回阅读工作区生成基于原文证据的结构化复盘。</p><Link className="button primary" to={`/practice/reading/${session.session_id}`}>返回阅读工作区</Link></div>
   return <div className="reading-review-list">{review.items.map((item, index) => <article key={`${item.question_number}-${index}`}><div className="review-number">{item.question_number ?? index + 1}</div><div><div className="answer-line"><span>你的答案 <strong>{String(item.user_answer ?? '—')}</strong></span><span>正确答案 <strong>{String(item.correct_answer ?? '—')}</strong></span></div><p className="evidence-location">{item.evidence_location}</p><p>{item.evidence}</p><p>{item.reasoning}</p><div className="next-rule"><Target size={17} /><span>{item.next_rule}</span></div></div></article>)}</div>
 }
 

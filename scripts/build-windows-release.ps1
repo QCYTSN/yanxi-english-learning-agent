@@ -57,9 +57,12 @@ Remove-ReleaseBuildPath (Join-Path $repoRoot "release-artifacts")
     (Join-Path $repoRoot "packaging\windows\ielts-study-desk.spec")
 
 $isccCandidates = @(
-    (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
-    (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
-) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }
+    @(
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
+    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }
+)
 
 if (-not $isccCandidates) {
     throw "Inno Setup 6 was not found. Install it, then rerun this script."

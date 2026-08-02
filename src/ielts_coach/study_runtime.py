@@ -19,6 +19,7 @@ from .storage import (
     get_question_for_grading,
     get_session,
     initialise_database,
+    record_session,
     record_runtime_event,
     session_payload_hash,
     set_session_mirror_status,
@@ -80,7 +81,11 @@ def reconcile_session(
         file_hash = session_payload_hash(file_data)
         db_hash = session_payload_hash(db_data)
         if file_revision == db_revision and file_hash == db_hash:
-            set_session_mirror_status(home, session_id, "synced")
+            # Re-recording an explicitly reconciled projection also refreshes
+            # payload_hash. Older runtimes could update payload_json without
+            # maintaining that guard, leaving two identical projections that
+            # still failed the cross-store health audit.
+            record_session(home, db_data, mirror_status="synced")
             return file_data
         if file_revision == db_revision and prefer == "auto":
             set_session_mirror_status(home, session_id, "conflict")

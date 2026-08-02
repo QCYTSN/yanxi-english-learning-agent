@@ -2672,6 +2672,8 @@ tbody tr:hover {
 
 .study-message {
   max-width: 980px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
 }
 
 .study-message.user {
@@ -3038,6 +3040,15 @@ tbody tr:hover {
   align-items: center;
   border-bottom: 1px solid var(--border);
   transition: background-color 140ms ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+
+.library-item,
+.review-draft-segment,
+.result-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
 }
 
 .conversation-history-row:hover {

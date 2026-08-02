@@ -255,8 +255,64 @@ function AudioPanel({ run, mediaId }: { run: AssessmentRun; mediaId: string }) {
 }
 
 function ObjectiveResult({ run }: { run: AssessmentRun }) {
-  const results = Array.isArray(run.score_result.question_results) ? run.score_result.question_results as Array<Record<string, unknown>> : []
-  return <section className="assessment-result"><div className="result-hero"><CheckCircle2 /><div><p className="eyebrow">Submitted</p><h2>{String(run.score_result.raw_score ?? 0)} / {String(run.score_result.total ?? results.length)}</h2><p>{run.score_result.band ? `IELTS training estimate ${String(run.score_result.band)}` : '已保存原始分；套题没有经审核的换算表，因此不生成 Band。'}</p></div></div><div className="result-list">{results.map((item) => <article key={String(item.question_id)} className={item.is_correct ? 'correct' : 'incorrect'}><strong>{String(item.question_number ?? item.question_id)}</strong><div><p>你的答案：{String(item.user_answer ?? '未作答')}</p><p>正确答案：{String(item.correct_answer ?? '')}</p><small>{String(item.evidence_location ?? item.transcript_timestamp ?? item.explanation ?? '')}</small></div></article>)}</div><Link className="button primary" to={`/feedback/${run.session_id}`}>查看正式 Session</Link></section>
+  const results = Array.isArray(run.score_result.question_results)
+    ? run.score_result.question_results as Array<Record<string, unknown>>
+    : []
+  const questionById = new Map(run.pack_snapshot.questions.map((question) => [question.question_id, question]))
+  const grouped = new Map<string, Array<Record<string, unknown>>>()
+  for (const section of run.sections) grouped.set(section.section_key, [])
+  for (const item of results) {
+    const question = questionById.get(String(item.question_id))
+    const key = question ? questionSection(run.module, question) : 'results'
+    const group = grouped.get(key) ?? []
+    group.push(item)
+    grouped.set(key, group)
+  }
+  const groups = [...grouped.entries()].filter(([, items]) => items.length > 0)
+  const correct = results.filter((item) => item.is_correct === true).length
+  const unanswered = results.filter((item) => !displayAnswer(item.user_answer)).length
+  return <section className="assessment-result">
+    <div className="result-hero">
+      <CheckCircle2 />
+      <div>
+        <h2>{String(run.score_result.raw_score ?? correct)} / {String(run.score_result.total ?? results.length)}</h2>
+        <p>{run.score_result.band ? `IELTS 训练估分 ${String(run.score_result.band)}` : '已保存原始分；套题没有经审核的换算表，因此不生成 Band。'}</p>
+      </div>
+      <dl className="result-breakdown" aria-label="答题结果概览">
+        <div><dt>正确</dt><dd>{correct}</dd></div>
+        <div><dt>错误</dt><dd>{Math.max(0, results.length - correct - unanswered)}</dd></div>
+        <div><dt>未答</dt><dd>{unanswered}</dd></div>
+      </dl>
+    </div>
+    <div className="result-groups">
+      {groups.map(([key, items]) => {
+        const groupCorrect = items.filter((item) => item.is_correct === true).length
+        return <details className="result-group" key={key}>
+          <summary>
+            <span>{key === 'results' ? '答题明细' : sectionLabel(run.module, key)}</span>
+            <small>{groupCorrect}/{items.length} 正确</small>
+          </summary>
+          <div className="result-rows">
+            {items.map((item) => {
+              const userAnswer = displayAnswer(item.user_answer)
+              const correctAnswer = displayAnswer(item.correct_answer)
+              const isCorrect = item.is_correct === true
+              const status = isCorrect ? 'correct' : userAnswer ? 'incorrect' : 'unanswered'
+              return <article key={String(item.question_id)} className={`result-row ${status}`}>
+                <strong className="result-question-number">{String(item.question_number ?? item.question_id)}</strong>
+                <div className="result-answer-pair">
+                  <span><small>你的答案</small>{userAnswer || '未作答'}</span>
+                  {!isCorrect && <span><small>正确答案</small>{correctAnswer || '—'}</span>}
+                </div>
+                <small className="result-evidence">{String(item.evidence_location ?? item.transcript_timestamp ?? item.explanation ?? '')}</small>
+              </article>
+            })}
+          </div>
+        </details>
+      })}
+    </div>
+    <div className="result-actions"><Link className="button primary" to={`/feedback/${run.session_id}`}>查看复盘与正式记录</Link></div>
+  </section>
 }
 
 function WritingScorePanel({ run }: { run: AssessmentRun }) {
@@ -360,3 +416,8 @@ function readingParagraphs(value: string): Array<{ label?: string; text: string 
 }
 function normaliseOptions(question: Question) { const truth = question.question_type === 'true_false_not_given' ? ['TRUE', 'FALSE', 'NOT GIVEN'] : question.question_type === 'yes_no_not_given' ? ['YES', 'NO', 'NOT GIVEN'] : null; if (truth) return truth.map((key) => ({ key, text: key })); if (Array.isArray(question.options)) return question.options; return Object.entries(question.options ?? {}).map(([key, text]) => ({ key, text: String(text) })) }
 function wordCount(value: string) { return value.trim() ? value.trim().split(/\s+/).length : 0 }
+function displayAnswer(value: unknown): string {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean).join(', ')
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
