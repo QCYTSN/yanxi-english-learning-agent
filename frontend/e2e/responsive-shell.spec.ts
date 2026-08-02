@@ -13,7 +13,7 @@ test('keeps the learning shell usable across phone and landscape widths', async 
   expect(await hasHorizontalOverflow(page)).toBe(false)
 
   await page.goto('/practice?module=reading')
-  await expect(page.getByRole('heading', { name: '按科目进入正式学习流程' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '选择一科，开始练习' })).toBeVisible()
   await expect(page.getByText(/\d+ 篇可见内容/)).toBeVisible()
   expect(await hasHorizontalOverflow(page)).toBe(false)
 
