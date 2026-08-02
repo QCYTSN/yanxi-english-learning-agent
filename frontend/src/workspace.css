@@ -2851,16 +2851,46 @@ tbody tr:hover {
 }
 
 .thread-run-progress {
-  display: flex;
+  width: min(720px, 100%);
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 2px 0;
+  gap: 10px;
+  padding: 8px 0;
   color: var(--muted);
-  font-size: 0.72rem;
+}
+
+.thread-run-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf3f0;
+  color: #587169;
+}
+
+.thread-run-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.thread-run-copy strong {
+  color: #3f4e49;
+  font-size: 0.76rem;
+  font-weight: 680;
+  letter-spacing: 0.01em;
 }
 
 .thread-run-progress small {
   color: #929a96;
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.thread-run-model {
+  white-space: nowrap;
 }
 
 .tutor-proposal-card {

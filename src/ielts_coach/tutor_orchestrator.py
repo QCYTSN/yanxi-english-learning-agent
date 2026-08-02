@@ -517,11 +517,18 @@ class TutorOrchestrator:
             has_material=has_material,
             conversation_length=conversation_length,
         )
+        latency = _latency_profile(
+            user_request,
+            route=route,
+            module=inferred_module,
+            has_material=has_material,
+        )
         return {
             "orchestrator_version": 2,
             "route": route,
             "intent": _infer_intent(user_request),
             "module": inferred_module,
+            **latency,
             "answer_policy": _answer_policy(user_request, source_context or {}, state["state"]),
             "thread_state": state,
             "tools": self.registry.descriptors(),
@@ -591,6 +598,10 @@ class TutorOrchestrator:
                     break
 
         final_request = dict(request)
+        final_request["runtime_hints"] = {
+            "latency_profile": initial.get("latency_profile", "deliberate"),
+            "reasoning_effort": initial.get("reasoning_effort"),
+        }
         final_canonical = dict(canonical)
         final_canonical["tutor_agent"] = {
             "route": route,
@@ -602,7 +613,14 @@ class TutorOrchestrator:
                 len(tools_used) >= MAX_TOOL_CALLS
                 or (rounds >= MAX_TOOL_ROUNDS and last_plan_status == "needs_tools")
             ),
-            "instruction": "Use observations as evidence only. Command proposals are not yet confirmed or executed.",
+            "instruction": (
+                "Use observations as evidence only. Command proposals are not yet confirmed or executed. "
+                + (
+                    "For a casual direct turn, respond naturally and briefly; do not manufacture a lesson plan."
+                    if initial.get("latency_profile") == "instant"
+                    else ""
+                )
+            ),
         }
         final_request["canonical_session"] = final_canonical
         emit("tutor_answering", {"stage": "tutor_answering", "label": "Composing the IELTS teaching response"})
@@ -617,6 +635,8 @@ class TutorOrchestrator:
                 "tools_used": tools_used,
                 "teaching_goal": teaching_goal,
                 "answer_policy": answer_policy,
+                "latency_profile": initial.get("latency_profile", "deliberate"),
+                "effective_reasoning_effort": initial.get("reasoning_effort"),
                 "base_state_revision": (initial.get("thread_state") or {}).get("revision", 0),
                 "proposals": proposals,
             },
@@ -672,6 +692,10 @@ def _planner_request(
         "output_contract": "tutor-turn-plan@1",
         "skill_envelope": skill,
         "canonical_session": canonical,
+        "runtime_hints": {
+            "latency_profile": "planner",
+            "reasoning_effort": "low",
+        },
         # Planning needs material metadata, not duplicate image/audio payloads.
         "media_refs": [],
     }
@@ -778,6 +802,22 @@ def _route_turn(text: str, *, has_material: bool, conversation_length: int) -> s
     if conversation_length > 4 and any(word in lowered for word in ("继续", "刚才", "那个", "它", "this", "that")):
         return "bounded_tool_loop"
     return "direct_response"
+
+
+def _latency_profile(
+    text: str,
+    *,
+    route: str,
+    module: str | None,
+    has_material: bool,
+) -> dict[str, str | None]:
+    """Choose per-turn effort without mutating the user's model settings."""
+    if route == "bounded_tool_loop" or has_material:
+        return {"latency_profile": "deliberate", "reasoning_effort": None}
+    clean = " ".join(text.split())
+    if module is None and len(clean) <= 80 and _infer_intent(clean) == "general":
+        return {"latency_profile": "instant", "reasoning_effort": "low"}
+    return {"latency_profile": "focused", "reasoning_effort": "medium"}
 
 
 def _answer_policy(text: str, source: dict[str, Any], state: dict[str, Any]) -> str:

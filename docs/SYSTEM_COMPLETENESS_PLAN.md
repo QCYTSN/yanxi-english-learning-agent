@@ -9,7 +9,7 @@
 
 ## 1. 当前产品定位
 
-V0.7 是可使用的本地优先 IELTS Academic 陪伴式学习系统，已经具备：
+V1.4 是可发布候选的本地优先 IELTS Academic 学习系统，已经具备：
 
 - 四科入口和结构化 Session；
 - SQLite、Session Markdown、Corpus 和 Media 等本地数据真源；
@@ -19,8 +19,9 @@ V0.7 是可使用的本地优先 IELTS Academic 陪伴式学习系统，已经�
 - IELTS 内容契约、Assessment Pack、Mock/Manual Adapter；
 - revision、幂等、Schema 验证、隐私门和原子保存。
 
-但 V0.7 仍以分项练习为主。Assessment Pack 可以被登记和验证，不代表用户已经能
-在 UI 中完整完成一套 Reading、Listening 或 Writing 考试。
+Assessment Pack、完整 Reading/Listening/Writing 运行器、持久化 Tutor 对话和
+四科复习闭环均已进入 UI。当前主要缺口是可再分发或用户自有内容、正式安装包发布
+验收，以及持续的真实材料可用性和无障碍验证。
 
 本计划的完成目标是：
 
@@ -310,7 +311,7 @@ Runner 交付物：
 
 ## 7. V1.0：AI 学习闭环与发布
 
-实施状态：已完成 V1.4 本地工程实现并升级到 Schema v26。统一 ScoreResult 准入、
+实施状态：已完成 V1.4 本地工程实现并升级到 Schema v27。统一 ScoreResult 准入、
 九类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
 Writing 双任务复评、Task 1 受控图片附件、Listening 播放租约、Speaking 同运行复评、
 Runtime 驱动的 Today、`PracticeUnit / AssessmentRun / ReviewTask`、统一待复习队列、

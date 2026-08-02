@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import threading
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,6 +15,10 @@ from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
 SCHEMA_VERSION = 27
+
+_CACHE_LOCK = threading.RLock()
+_DB_FILENAME_CACHE: dict[Path, tuple[tuple[int, int] | None, str]] = {}
+_DATABASE_READY_CACHE: dict[Path, tuple[int, int]] = {}
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -972,13 +977,27 @@ CREATE TABLE IF NOT EXISTS schema_meta (
 
 
 def db_path(home: Path) -> Path:
+    resolved_home = home.resolve()
+    settings_path = resolved_home / "config" / "settings.yaml"
     try:
-        filename = str(load_settings(home).get("database_filename", "ielts.db"))
+        stat = settings_path.stat()
+        fingerprint: tuple[int, int] | None = (stat.st_mtime_ns, stat.st_size)
     except FileNotFoundError:
-        filename = "ielts.db"
+        fingerprint = None
+    with _CACHE_LOCK:
+        cached = _DB_FILENAME_CACHE.get(resolved_home)
+    if cached and cached[0] == fingerprint:
+        filename = cached[1]
+    else:
+        try:
+            filename = str(load_settings(resolved_home).get("database_filename", "ielts.db"))
+        except FileNotFoundError:
+            filename = "ielts.db"
+        with _CACHE_LOCK:
+            _DB_FILENAME_CACHE[resolved_home] = (fingerprint, filename)
     if Path(filename).name != filename:
         raise ValueError("database_filename must be a file name, not a path")
-    return home / "database" / filename
+    return resolved_home / "database" / filename
 
 
 class ManagedConnection(sqlite3.Connection):
@@ -1254,13 +1273,19 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
 
 def initialise_database(home: Path) -> Path:
     path = db_path(home)
+    identity = _database_identity(path)
+    with _CACHE_LOCK:
+        if identity is not None and _DATABASE_READY_CACHE.get(path) == identity:
+            return path
     if _existing_schema_version(path) == str(SCHEMA_VERSION):
+        _mark_database_ready(path)
         return path
     lock_path = home / "runtime" / "locks" / "database-migration.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with FileLock(str(lock_path), timeout=30):
         existing_version = _existing_schema_version(path)
         if existing_version == str(SCHEMA_VERSION):
+            _mark_database_ready(path)
             return path
         if path.is_file() and existing_version != str(SCHEMA_VERSION):
             from .backups import create_backup
@@ -1273,7 +1298,24 @@ def initialise_database(home: Path) -> Path:
             conn.executescript(SCHEMA)
             conn.execute("PRAGMA journal_mode = WAL")
             _migrate(conn, existing_version)
+    _mark_database_ready(path)
     return path
+
+
+def _database_identity(path: Path) -> tuple[int, int] | None:
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    return (int(stat.st_dev), int(stat.st_ino))
+
+
+def _mark_database_ready(path: Path) -> None:
+    identity = _database_identity(path)
+    if identity is None:
+        return
+    with _CACHE_LOCK:
+        _DATABASE_READY_CACHE[path] = identity
 
 
 def _existing_schema_version(path: Path) -> str | None:

@@ -130,12 +130,17 @@ def _reading_actual(questions: list[dict[str, Any]], passages: list[dict[str, An
     rows = [item for item in questions if item["module"] == "reading"]
     verified = [item for item in rows if _verified(item)]
     passage_by_id = {str(item.get("passage_id")): item for item in passages if item.get("passage_id")}
+    questions_by_passage: dict[str, list[dict[str, Any]]] = {}
+    for item in rows:
+        passage_id = str(item["payload"].get("passage_id") or "")
+        if passage_id:
+            questions_by_passage.setdefault(passage_id, []).append(item["payload"])
     verified_passage_ids = {
         passage_id
         for passage_id, passage in passage_by_id.items()
         if assess_reading_set(
             passage,
-            [item["payload"] for item in rows if str(item["payload"].get("passage_id")) == passage_id],
+            questions_by_passage.get(passage_id, []),
         )["status"] == "verified"
     }
     return {

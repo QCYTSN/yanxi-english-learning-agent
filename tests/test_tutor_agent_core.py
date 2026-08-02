@@ -140,6 +140,36 @@ def test_complex_tutor_turn_uses_bounded_tools_and_creates_only_a_proposal(
     assert "tool_started" in events
 
 
+def test_tutor_turn_effort_is_light_for_chat_and_preserved_for_complex_work(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Effort routing", module="mixed")
+    orchestrator = TutorOrchestrator(home)
+
+    greeting = orchestrator.initial_context(
+        "hallo",
+        thread_id=thread["thread_id"],
+    )
+    focused = orchestrator.initial_context(
+        "请解释一下 IELTS Writing Task 2 的主题句应该怎样写。",
+        thread_id=thread["thread_id"],
+    )
+    material = orchestrator.initial_context(
+        "请根据这份材料讲解。",
+        thread_id=thread["thread_id"],
+        has_material=True,
+    )
+
+    assert greeting["latency_profile"] == "instant"
+    assert greeting["reasoning_effort"] == "low"
+    assert focused["latency_profile"] == "focused"
+    assert focused["reasoning_effort"] == "medium"
+    assert material["latency_profile"] == "deliberate"
+    assert material["reasoning_effort"] is None
+
+
 def test_tutor_state_and_review_proposal_are_idempotent_and_confirmed_by_user(
     tmp_path: Path,
 ) -> None:

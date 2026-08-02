@@ -12,6 +12,7 @@ from ielts_coach.inference import InferenceBroker
 from ielts_coach.init_home import initialise_home
 from ielts_coach.model_providers import (
     ModelProviderChainAdapter,
+    _effective_codex_profile,
     active_model_route,
     create_model_provider,
     list_model_providers,
@@ -124,6 +125,26 @@ def test_provider_schema_compiler_adds_strict_types_and_required_fields():
     evidence_item = schema["properties"]["evidence"]["items"]
     assert evidence_item["required"] == ["claim", "source", "quote"]
     assert evidence_item["additionalProperties"] is False
+
+
+def test_runtime_effort_override_does_not_mutate_provider_configuration():
+    provider = {
+        "provider_id": "openai-codex-oauth",
+        "display_name": "OpenAI login",
+        "transport": "app_server",
+        "auth_mode": "oauth",
+        "model_id": "gpt-test",
+        "reasoning_effort": "high",
+        "config": {},
+    }
+
+    effective = _effective_codex_profile(
+        provider,
+        {"runtime_hints": {"reasoning_effort": "low"}},
+    )
+
+    assert effective["reasoning_effort"] == "low"
+    assert provider["reasoning_effort"] == "high"
 
 
 def test_provider_and_learning_intent_endpoints_are_product_facing(

@@ -102,6 +102,8 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   bounded long-thread summaries and local learning-history retrieval
 - schema v26 privacy-safe capability evaluation history, Provider reliability
   reporting and a combined contract plus 10k/100k release gate
+- schema v27 versioned Tutor thread state, confirmation-gated proposals and
+  idempotent Tutor turn commits
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite

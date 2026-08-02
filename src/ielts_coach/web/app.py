@@ -676,7 +676,7 @@ def create_app(
         context = build_study_context(target)
         context["review_queue"] = {
             "counts": sync_review_tasks(target),
-            "items": list_review_tasks(target, limit=3),
+            "items": list_review_tasks(target, limit=3, synchronize=False),
         }
         context["practice_units"] = list_practice_units(
             target, scheduled_for=datetime.now().date().isoformat(), limit=10

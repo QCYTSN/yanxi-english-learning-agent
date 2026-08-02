@@ -234,6 +234,10 @@ stores only case hashes, expected/actual outcomes and validation failure stages;
 it never stores the evaluated prompt or response. Provider reliability is
 derived from existing Agent Run and Provider Attempt metadata, and explicitly
 separates a passed contract gate from insufficient real runtime samples.
+Schema v27 adds versioned Tutor thread state, confirmation-gated Tutor
+proposals and idempotent Tutor turn commits. These records preserve teaching
+continuity without allowing conversation state to become formal Session,
+answer-key or score authority.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -311,7 +315,7 @@ The architecture is accepted when:
   formal state without a learner-confirmed Runtime command;
 - learner soft memories are visible, editable and deletable and never affect
   formal scores or answer authority;
-- schema v26 migrates historical homes with a recoverable snapshot;
+- schema v27 migrates historical homes with a recoverable snapshot;
 - every teaching contract has both an accepted and a rejected regression case;
 - release reports keep contract correctness, runtime reliability and scale as
   separate gates rather than collapsing them into one score;

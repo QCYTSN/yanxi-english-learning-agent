@@ -653,7 +653,7 @@ class ModelProviderChainAdapter:
                     self._active_adapter[execution_ref] = adapter
                     provider_request = {
                         **request,
-                        "execution_profile": _codex_profile(provider),
+                        "execution_profile": _effective_codex_profile(provider, request),
                     }
                     start_with_events = getattr(adapter, "start_with_events", None)
                     candidate = (
@@ -1064,6 +1064,16 @@ def _codex_profile(provider: dict[str, Any]) -> dict[str, Any]:
         "reasoning_effort": provider.get("reasoning_effort"),
         "config": provider.get("config") or {},
     }
+
+
+def _effective_codex_profile(
+    provider: dict[str, Any], request: dict[str, Any]
+) -> dict[str, Any]:
+    profile = _codex_profile(provider)
+    requested = (request.get("runtime_hints") or {}).get("reasoning_effort")
+    if requested in {"minimal", "low", "medium", "high", "xhigh"}:
+        profile["reasoning_effort"] = requested
+    return profile
 
 
 def _provider_name(provider: dict[str, Any]) -> str:

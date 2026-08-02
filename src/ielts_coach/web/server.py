@@ -17,9 +17,6 @@ from typing import Any
 
 from filelock import FileLock, Timeout
 
-from ..init_home import initialise_home
-from .auth import AuthState
-from .app import create_app
 
 
 INSTANCE_NAME = "ui-instance.json"
@@ -96,6 +93,10 @@ def serve_ui(
         raise RuntimeError(
             'The UI requires optional dependencies. Install with: pip install -e ".[ui]"'
         ) from exc
+    # Keep the shortcut process light. Importing the FastAPI application pulls
+    # in the whole teaching Runtime, so only do that in the long-lived child.
+    from .app import create_app
+    from .auth import AuthState
 
     home = home.resolve()
     lock = FileLock(str(_runtime_dir(home) / LOCK_NAME))
@@ -164,10 +165,6 @@ def open_ui(home: Path, *, port: int = 0, open_browser: bool = True) -> str:
             return launch_url
     if current:
         _clear_instance(home)
-
-    # The shortcut must be sufficient after upgrades: migrate the local schema
-    # and install idempotent bundled resources before starting a new service.
-    initialise_home(home)
 
     if getattr(sys, "frozen", False):
         command = [

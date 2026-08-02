@@ -212,6 +212,18 @@ export type AgentRun = {
   } | null
 }
 
+export type AgentRunEvent = {
+  run_id: string
+  sequence: number
+  type: string
+  stage: string
+  display_message: string
+  recoverable: boolean
+  payload_hash: string | null
+  payload: Record<string, unknown>
+  created_at: string
+}
+
 export type StudyAttachment = {
   attachment_id: string
   thread_id: string

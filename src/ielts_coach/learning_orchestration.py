@@ -252,8 +252,10 @@ def list_review_tasks(
     module: str | None = None,
     limit: int = 100,
     offset: int = 0,
+    synchronize: bool = True,
 ) -> list[dict[str, Any]]:
-    sync_review_tasks(home)
+    if synchronize:
+        sync_review_tasks(home)
     clauses = ["status=?"]
     params: list[Any] = [status]
     if module:

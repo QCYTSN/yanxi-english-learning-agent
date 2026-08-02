@@ -1,5 +1,10 @@
 # IELTS Study Desk
 
+[![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
+[![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
+[![Release: 1.4.0](https://img.shields.io/badge/release-1.4.0-334155.svg)](RELEASE_NOTES.md)
+
 Local-first, agent-native IELTS Academic learning software.
 
 IELTS Study Desk combines a browser learning workspace, a local Python Teaching
@@ -55,9 +60,11 @@ See [Architecture V2](docs/ARCHITECTURE_V2.md) and the
 
 ## Install on Windows
 
-Download the Windows x64 Setup executable from the GitHub Releases page and
+For a tagged release, download the Windows x64 Setup executable from the
+[GitHub Releases page](https://github.com/QCYTSN/ielts-ai-coach/releases) and
 double-click it. The installer includes its own Python runtime. A normal user
-does not need to install Python, Node.js, Git, Docker, WSL or a CLI Agent.
+does not need to install Python, Node.js, Git, Docker, WSL or a CLI Agent. If no
+installer release is listed yet, use the source installation below.
 
 On first launch the application creates its private data home under:
 
@@ -137,6 +144,16 @@ Windows release builds are produced with:
 ```
 
 See [Release checklist](docs/RELEASE_CHECKLIST.md).
+
+## Documentation
+
+- [Product boundary](PRODUCT.md)
+- [Architecture V2](docs/ARCHITECTURE_V2.md)
+- [Tutor Agent architecture](docs/TUTOR_AGENT_ARCHITECTURE.md)
+- [Installation](docs/INSTALLATION.md)
+- [Privacy and copyright](docs/PRIVACY_AND_COPYRIGHT.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## Data, privacy and licensing
 
