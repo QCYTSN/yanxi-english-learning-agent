@@ -80,7 +80,7 @@ export function SpeakingWorkspace() {
   const packageData = active?.speaking_handoff
 
   return (
-    <div className="page">
+    <div className="page speaking-workspace-page">
       <PageHeader
         eyebrow="Speaking · external handoff"
         title="把口语流程交给 Voice / Live 主持"

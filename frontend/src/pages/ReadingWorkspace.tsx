@@ -144,7 +144,7 @@ export function ReadingWorkspace() {
   const hintTarget = questions.find((item) => item.question_id === hintQuestionId)
     ?? questions.find((item) => !answers[item.question_id])
   return (
-    <div className="workspace-page">
+    <div className="workspace-page reading-workspace-page">
       <PageHeader
         eyebrow={sessionId}
         title="Reading 工作区"

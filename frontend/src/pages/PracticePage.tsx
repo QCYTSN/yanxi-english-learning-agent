@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpen, Headphones, Mic2, PenLine, ShieldCheck } from 'lucide-react'
+import { ArrowRight, BookOpen, Headphones, Mic2, PenLine } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type AssessmentPack, type AssessmentRun, type Question, type SessionSummary } from '../api/client'
 import { ConformanceBadge, EmptyState, ErrorState, LoadingState, PageHeader } from '../components/Common'
 import {
@@ -97,10 +97,9 @@ export function PracticePage() {
   return (
     <div className="page page-practice">
       <PageHeader
-        eyebrow="Practice · 练习中心"
-        title="按科目进入正式学习流程"
-        description="系统直接打开对应学习模块；只有解释、反馈和评价等任务才会交给当前 AI。"
-        action={<Link className="button secondary" to="/library"><ShieldCheck size={17} />查看内容合规状态</Link>}
+        eyebrow="练习中心"
+        title="选择一科，开始练习"
+        description="作答和进度由本地系统保存；需要解释、反馈或评价时，再交给当前 AI。"
       />
       <section className="practice-console">
         <aside className="practice-module-index">

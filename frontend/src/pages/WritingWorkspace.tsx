@@ -78,7 +78,7 @@ export function WritingWorkspace() {
   const words = wordCount(content)
   const minutes = isTask1 ? 20 : 40
   return (
-    <div className="workspace-page">
+    <div className="workspace-page writing-workspace-page">
       <PageHeader eyebrow={sessionId} title="Writing 工作区" description="先完成自己的版本，再查看证据化反馈。Task 2 在完整考试中按双倍权重计分。" action={<div className="header-badges"><ConformanceBadge status={question.data?.conformance_status ?? String(session.data.conformance_status ?? '')} mode={question.data?.practice_mode ?? String(session.data.practice_mode ?? '')} /><SaveState state={saveState} /></div>} />
       <PhaseRail active={status === 'awaiting_revision' ? '修改' : status === 'awaiting_feedback' ? '反馈' : '写作'} phases={['审题', '写作', '反馈', '修改', '完成']} />
       <div className="writing-grid">

@@ -68,9 +68,9 @@ export function HistoryPage() {
   })
 
   return (
-    <div className="page">
+    <div className="page page-progress">
       <PageHeader
-        eyebrow="Progress · 学习档案"
+        eyebrow="学习档案"
         title="从学习证据决定下一步"
         description="只用符合证据规则的成绩判断趋势；训练观察保留可见，但不会冒充正式进步。"
       />

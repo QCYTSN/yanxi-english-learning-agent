@@ -77,7 +77,7 @@ export function ModelSwitcher({ bootstrapProviders }: {
     return (
       <Link className="global-model-empty" to="/settings/models">
         <span className="model-orb"><Bot size={15} /></span>
-        <span><small>当前 AI</small><strong>连接一个主模型</strong></span>
+        <strong>连接模型</strong>
         <ChevronDown size={14} aria-hidden="true" />
       </Link>
     )
@@ -104,10 +104,7 @@ export function ModelSwitcher({ bootstrapProviders }: {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="model-orb"><Bot size={15} /></span>
-        <span className="model-trigger-copy">
-          <small>{primary.display_name}</small>
-          <strong>{currentLabel || '正在读取模型'}</strong>
-        </span>
+        <strong className="model-current-name">{currentLabel || '正在读取模型'}</strong>
         {busy
           ? <LoaderCircle className="spin" size={15} aria-hidden="true" />
           : <ChevronDown className="model-chevron" size={15} aria-hidden="true" />}

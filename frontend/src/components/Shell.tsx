@@ -53,6 +53,8 @@ const settingsSectionLabels: Record<string, string> = {
 export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: Bootstrap }>) {
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
+  const showRecentThreads = /^\/(today|study|conversations)(\/|$)/.test(location.pathname)
+  const isStudyThread = location.pathname.startsWith('/study/')
   const routeLabel = routeLabels.find(([prefix]) => location.pathname.startsWith(prefix))?.[1] ?? '学习'
   const settingsSection = location.pathname.match(/^\/settings\/([^/]+)\/?$/)?.[1]
   const settingsSectionLabel = settingsSection ? settingsSectionLabels[settingsSection] : null
@@ -67,7 +69,7 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
   }, [location.pathname])
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isStudyThread ? ' app-shell-thread' : ''}`}>
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
         <Link className="brand" to="/today" aria-label="IELTS Study Desk 首页">
@@ -88,7 +90,9 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
           ))}
         </nav>
 
-        {bootstrap && <RecentStudyThreads currentPath={location.pathname} />}
+        {bootstrap && showRecentThreads && (
+          <RecentStudyThreads currentPath={location.pathname} />
+        )}
 
         <NavLink
           to="/settings"

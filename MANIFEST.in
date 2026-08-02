@@ -6,7 +6,6 @@ recursive-include skills-source *.md *.json
 recursive-include src/ielts_coach/resources/assets *
 recursive-include src/ielts_coach/resources/schemas *.json
 recursive-include src/ielts_coach/web/static *
-prune starter-corpus
 prune src/ielts_coach/resources/starter-corpus
 prune src/ielts_coach/resources/original-mocks
 global-exclude *.db *.sqlite *.sqlite3 *.pdf *.mp3 *.m4a *.wav

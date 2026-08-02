@@ -1,11 +1,11 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, ClipboardCheck, FileArchive, FolderCog, FolderInput, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardCheck, FileArchive, FolderCog, FolderInput, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, type Question } from '../api/client'
-import { ConformanceBadge, ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
+import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
-type View = 'readiness' | 'reviews' | 'imports'
+type View = 'readiness' | 'reviews' | 'assembly' | 'imports'
 type AssessmentPack = {
   pack_id: string
   title: string
@@ -209,19 +209,19 @@ export function LibraryPage() {
   const questions = useInfiniteQuery({
     queryKey: ['library', module, query],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api<Question[]>(`/api/v1/questions?review_mode=true&limit=${pageSize}&offset=${pageParam}${module ? `&module=${module}` : ''}${query ? `&query=${encodeURIComponent(query)}` : ''}`),
+    queryFn: ({ pageParam }) => api<Question[]>(`/api/v1/questions?limit=${pageSize}&offset=${pageParam}${module ? `&module=${module}` : ''}${query ? `&query=${encodeURIComponent(query)}` : ''}`),
     getNextPageParam: (lastPage, pages) => lastPage.length === pageSize ? pages.length * pageSize : undefined,
   })
   const packs = useInfiniteQuery({
     queryKey: ['assessment-packs', module],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api<AssessmentPack[]>(`/api/v1/assessment-packs?review_mode=true&limit=${pageSize}&offset=${pageParam}${module ? `&module=${module}` : ''}`),
+    queryFn: ({ pageParam }) => api<AssessmentPack[]>(`/api/v1/assessment-packs?limit=${pageSize}&offset=${pageParam}${module ? `&module=${module}` : ''}`),
     getNextPageParam: (lastPage, pages) => lastPage.length === pageSize ? pages.length * pageSize : undefined,
   })
   return (
-    <div className="page">
+    <div className="page page-library">
       <PageHeader
-        eyebrow="Library · 学习资料库"
+        eyebrow="学习资料库"
         title="选择材料，直接开始练习"
         description="这里只展示学习者需要的题目与套题；导入、结构化和审核集中到独立内容工作台。"
         action={<Link className="button secondary" to="/content-studio"><FolderCog size={17} />管理本地材料</Link>}
@@ -261,9 +261,9 @@ export function ContentStudioPage() {
     },
   })
   return (
-    <div className="page">
+    <div className="page page-content-studio">
       <PageHeader
-        eyebrow="Content Studio · 本地内容工作台"
+        eyebrow="本地内容工作台"
         title="把原始材料整理成可审核的练习内容"
         description="来源登记、PDF 页级整理、人工审核和正式导入都在这里完成；原始文件不会直接进入学习题库。"
         action={<Link className="button secondary" to="/library">返回学习资料库</Link>}
@@ -271,10 +271,12 @@ export function ContentStudioPage() {
       <div className="segmented content-tabs" role="tablist" aria-label="内容管理视图">
         <Tab active={view === 'readiness'} onClick={() => setView('readiness')}>准备度</Tab>
         <Tab active={view === 'reviews'} onClick={() => setView('reviews')}>人工审核</Tab>
+        <Tab active={view === 'assembly'} onClick={() => setView('assembly')}>套题组装</Tab>
         <Tab active={view === 'imports'} onClick={() => setView('imports')}>材料处理</Tab>
       </div>
       {view === 'readiness' && <ReadinessView data={readiness.data} pending={readiness.isPending} error={readiness.error} />}
       {view === 'reviews' && <ReviewWorkbench />}
+      {view === 'assembly' && <PackAssemblyView />}
       {view === 'imports' && <ImportsView jobs={imports.data ?? []} pending={imports.isPending} error={imports.error} initialSelectedImportId={promotedImportId} />}
     </div>
   )
@@ -319,9 +321,29 @@ function LibraryView({ module, query, setModule, setQuery, questions, packs, pen
   loadMoreQuestions: () => void
   loadMorePacks: () => void
 }) {
+  return <>
+    <div className="filter-bar">
+      <label>科目<select value={module} onChange={(event) => setModule(event.target.value)}><option value="">全部</option><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></label>
+      <label>搜索<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="主题或题目内容" /></label>
+    </div>
+    {pending && <LoadingState />}{error && <ErrorState error={error} />}
+    {packs?.length ? <section className="library-packs"><div className="section-heading"><div><h2>完整套题与分项包</h2></div></div><div className="library-grid">{packs.map((pack) => <article className="library-item" key={pack.pack_id}><div className="library-item-copy"><div className="question-meta"><StatusBadge>{pack.source_type ?? '本地材料'}</StatusBadge><span>{pack.module}</span></div><h2>{pack.title}</h2><p>{pack.practice_mode === 'full_mock' ? '完整考试流程' : '分项练习'} · 内容已通过本地审核</p></div><Link className="library-open-action" to={`/practice?module=${pack.module}`} aria-label={`练习 ${pack.title}`}>去练习 <ArrowRight size={16} /></Link></article>)}</div>{hasMorePacks && <button className="button secondary load-more" disabled={loadingMore} onClick={loadMorePacks}>加载更多套题</button>}</section> : null}
+    <div className="section-heading library-question-heading"><div><h2>单题与练习材料</h2></div></div>
+    <div className="library-grid">{questions?.map((question) => <article className="library-item" key={question.question_id}><div className="library-item-copy"><div className="question-meta"><StatusBadge>{question.source_type ?? '本地材料'}</StatusBadge><span>{question.task ?? question.question_type ?? question.module}</span></div><h2>{question.content}</h2><p>{question.module} · {question.task ?? question.question_type ?? 'practice'} · 内容已通过本地审核</p></div><Link className="library-open-action" to={`/practice?module=${question.module}`} aria-label={`练习 ${question.content}`}>去练习 <ArrowRight size={16} /></Link></article>)}</div>
+    {hasMoreQuestions && <button className="button secondary load-more" disabled={loadingMore} onClick={loadMoreQuestions}>加载更多题目</button>}
+  </>
+}
+
+function PackAssemblyView() {
   const queryClient = useQueryClient()
+  const [module, setModule] = useState('reading')
+  const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [packTitle, setPackTitle] = useState('')
+  const questions = useQuery({
+    queryKey: ['pack-assembly-questions', module, query],
+    queryFn: () => api<Question[]>(`/api/v1/questions?review_mode=true&limit=500&module=${module}${query ? `&query=${encodeURIComponent(query)}` : ''}`),
+  })
   const assemble = useMutation({
     mutationFn: () => api<AssessmentPack>('/api/v1/assessment-packs', {
       method: 'POST',
@@ -335,19 +357,24 @@ function LibraryView({ module, query, setModule, setQuery, questions, packs, pen
       void queryClient.invalidateQueries({ queryKey: ['content-review-queue'] })
     },
   })
-  return <>
+  return <section className="pack-assembly-view">
+    <div className="section-heading">
+      <div><h2>把已索引题目组成一套练习</h2><p>组装后仍需在“人工审核”中逐项批准，再批准整套题。</p></div>
+      <strong>{selected.length} 道已选</strong>
+    </div>
     <div className="filter-bar">
-      <label>科目<select value={module} onChange={(event) => { setModule(event.target.value); setSelected([]) }}><option value="">全部</option><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></label>
+      <label>科目<select value={module} onChange={(event) => { setModule(event.target.value); setSelected([]) }}><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></label>
       <label>搜索<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="主题或题目内容" /></label>
     </div>
-    {module && <section className="pack-builder"><div><p className="eyebrow">Pack builder</p><h2>从已索引题目组装 {module} 套题</h2><p>Runtime 计算结构；组装完成后仍要在“人工审核”中逐项批准，再批准整套题。</p></div><label>套题名称<input value={packTitle} onChange={(event) => setPackTitle(event.target.value)} placeholder="例如：Private Reading Test 01" /></label><div><strong>{selected.length}</strong><span> 道已选</span></div><button className="button primary" disabled={!packTitle.trim() || !selected.length || assemble.isPending} onClick={() => assemble.mutate()}>组装并检查</button></section>}
-    {assemble.isError && <ErrorState error={assemble.error} />}
-    {pending && <LoadingState />}{error && <ErrorState error={error} />}
-    {packs?.length ? <section className="library-packs"><div className="section-heading"><div><p className="eyebrow">Assessment packs</p><h2>已登记套题与分项包</h2></div></div><div className="library-grid">{packs.map((pack) => <article className="library-item" key={pack.pack_id}><div className="question-meta"><StatusBadge>{pack.source_type ?? 'unknown'}</StatusBadge><span>{pack.pack_id}</span></div><h2>{pack.title}</h2><ConformanceBadge status={pack.conformance_status} mode={pack.practice_mode} /><p>{pack.module} · 本地审核：{reviewLabel(pack.local_review_status)}</p></article>)}</div>{hasMorePacks && <button className="button secondary load-more" disabled={loadingMore} onClick={loadMorePacks}>加载更多套题</button>}</section> : null}
-    <div className="section-heading library-question-heading"><div><p className="eyebrow">Items</p><h2>单题与练习材料</h2></div></div>
-    <div className="library-grid">{questions?.map((question) => <article className={`library-item ${selected.includes(question.question_id) ? 'selected' : ''}`} key={question.question_id}>{module && <label className="pack-select"><input type="checkbox" checked={selected.includes(question.question_id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, question.question_id] : current.filter((value) => value !== question.question_id))} />加入套题</label>}<div className="question-meta"><StatusBadge>{question.source_type ?? 'unknown'}</StatusBadge><span>{question.question_id}</span></div><h2>{question.content}</h2><ConformanceBadge status={question.conformance_status} mode={question.practice_mode} /><p>{question.module} · {question.task ?? question.question_type ?? 'practice'} · 本地审核：{reviewLabel(String(question.local_review_status ?? 'unreviewed'))}</p></article>)}</div>
-    {hasMoreQuestions && <button className="button secondary load-more" disabled={loadingMore} onClick={loadMoreQuestions}>加载更多题目</button>}
-  </>
+    <div className="pack-assembly-bar">
+      <label>套题名称<input value={packTitle} onChange={(event) => setPackTitle(event.target.value)} placeholder="例如：Private Reading Test 01" /></label>
+      <button className="button primary" disabled={!packTitle.trim() || !selected.length || assemble.isPending} onClick={() => assemble.mutate()}>组装并检查</button>
+    </div>
+    {questions.isPending && <LoadingState />}
+    {questions.error && <ErrorState error={questions.error} />}
+    {assemble.error && <ErrorState error={assemble.error} />}
+    <div className="assembly-question-list">{questions.data?.map((question) => <label className={selected.includes(question.question_id) ? 'selected' : ''} key={question.question_id}><input type="checkbox" checked={selected.includes(question.question_id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, question.question_id] : current.filter((value) => value !== question.question_id))} /><span><strong>{question.content}</strong><small>{question.question_id} · {question.task ?? question.question_type ?? question.module}</small></span></label>)}</div>
+  </section>
 }
 
 function ReviewWorkbench() {

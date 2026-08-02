@@ -35,7 +35,8 @@ export function StudyThreadPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const endRef = useRef<HTMLDivElement>(null)
+  const messageStreamRef = useRef<HTMLDivElement>(null)
+  const shouldFollowRef = useRef(true)
   const [activeRunId, setActiveRunId] = useState(searchParams.get('run') ?? '')
   const thread = useQuery({
     queryKey: ['study-thread', threadId],
@@ -95,7 +96,12 @@ export function StudyThreadPage() {
   }, [queryClient, run.data, threadId])
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    const stream = messageStreamRef.current
+    if (!stream || !shouldFollowRef.current) return
+    const frame = window.requestAnimationFrame(() => {
+      stream.scrollTop = stream.scrollHeight
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [thread.data?.messages.length, run.data?.status])
 
   if (thread.isPending) return <LoadingState label="正在打开学习对话" />
@@ -132,7 +138,16 @@ export function StudyThreadPage() {
 
       <div className="study-thread-layout">
         <main className="study-dialogue" aria-label="IELTS 学习对话">
-          <div className="study-message-stream">
+          <div
+            className="study-message-stream"
+            ref={messageStreamRef}
+            onScroll={(event) => {
+              const element = event.currentTarget
+              shouldFollowRef.current = (
+                element.scrollHeight - element.scrollTop - element.clientHeight < 120
+              )
+            }}
+          >
             {thread.data.messages.map((message) => (
               <article
                 className={`study-message ${message.role}`}
@@ -156,9 +171,9 @@ export function StudyThreadPage() {
               <ThreadRunState run={activeRun} running={running} />
             )}
             {(send.error || run.error || promote.error) && (
-              <ErrorState error={send.error ?? run.error ?? promote.error} />
+              <StudyErrorNotice error={send.error ?? run.error ?? promote.error} />
             )}
-            <div className="thread-scroll-anchor" ref={endRef} />
+            <div className="thread-scroll-anchor" aria-hidden="true" />
           </div>
 
           <div className="thread-composer-wrap">
@@ -167,6 +182,7 @@ export function StudyThreadPage() {
                 if (!primary) return false
                 const explicitConsent = requestRemoteProcessingConsent(primary)
                 if (explicitConsent === null) return false
+                shouldFollowRef.current = true
                 await send.mutateAsync({ content, files, explicitConsent })
               }}
               pending={send.isPending || running}
@@ -178,6 +194,19 @@ export function StudyThreadPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+function StudyErrorNotice({ error }: { error: unknown }) {
+  const technicalMessage = error instanceof Error ? error.message : String(error)
+  return (
+    <details className="thread-run-failure study-error-notice">
+      <summary>
+        <span>这次没有收到老师的回答，你的消息和材料仍保存在本机。</span>
+        <small>查看技术信息</small>
+      </summary>
+      <p>{technicalMessage}</p>
+    </details>
   )
 }
 

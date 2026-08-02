@@ -10,8 +10,10 @@ export function PageHeader({ eyebrow, title, description, action }: {
   return (
     <header className="page-header">
       <div className="page-title-group">
-        {eyebrow && <p className="eyebrow"><span aria-hidden="true" />{eyebrow}</p>}
-        <h1>{title}</h1>
+        <div className="page-title-row">
+          <h1>{title}</h1>
+          {eyebrow && <span className="page-context">{eyebrow}</span>}
+        </div>
         {description && <p className="page-description">{description}</p>}
       </div>
       {action && <div className="page-action">{action}</div>}

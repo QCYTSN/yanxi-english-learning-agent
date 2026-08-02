@@ -140,9 +140,9 @@ The remaining sequence is:
 
 1. import and human-review enough user-owned or redistributable four-module
    material to reach the minimum inventory in `CONTENT_ACQUISITION_PLAN.md`;
-2. confirm the visual direction in `VISUAL_SYSTEM_DECISION_BRIEF.md`, then run
-   the final visual system and complete interaction audit after the content
-   workflows are exercised with real material.
+2. exercise the implemented visual system and complete learning workflows with
+   real material, then resolve the resulting accessibility, performance and
+   interaction findings. `DESIGN.md` is the current visual authority.
 
 ## Deferred product decisions
 
