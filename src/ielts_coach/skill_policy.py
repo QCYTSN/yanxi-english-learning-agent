@@ -93,13 +93,23 @@ def build_provider_prompt(request: dict[str, Any]) -> tuple[str, str]:
         f"## Reference: {item.get('path')}\n{item.get('content')}"
         for item in skill.get("references") or []
     )
+    planning = context_policy.get("response_mode") == "tool_plan"
+    worker_boundary = (
+        "Select only from the supplied IELTS tool descriptors. Return a tool "
+        "plan as JSON; do not execute tools yourself and do not invent tool "
+        "observations. The Runtime will execute accepted calls and return results. "
+        if planning
+        else
+        "Return one JSON object matching the supplied output schema. Never call "
+        "tools, inspect files, alter learning records, reveal hidden answers during "
+        "guided practice, or invent evidence. "
+    )
     system = (
         "You are the constrained IELTS teaching worker inside IELTS Study Desk. "
         "The Teaching Runtime owns workflow state, persistence, answer integrity "
         "and final validation. Follow the compiled Skill policy below exactly. "
-        "Return one JSON object matching the supplied output schema. Never call "
-        "tools, inspect files, alter learning records, reveal hidden answers during "
-        "guided practice, or invent evidence. AI scores are training estimates, "
+        + worker_boundary
+        + "AI scores are training estimates, "
         "not official examiner results.\n\n"
         f"# Compiled Skill: {skill.get('skill')}\n"
         f"{skill.get('instructions') or ''}\n\n"
@@ -113,8 +123,14 @@ def build_provider_prompt(request: dict[str, Any]) -> tuple[str, str]:
         if key not in {"skill_envelope", "execution_profile"}
     }
     user = (
-        "Complete this one IELTS capability. Use only the canonical evidence in "
-        "the request. Return JSON only.\n\n"
+        (
+            "Plan the next bounded tutor step. Use only the allowlisted descriptors "
+            "and canonical context. Return JSON only.\n\n"
+            if planning
+            else
+            "Complete this one IELTS capability. Use only the canonical evidence in "
+            "the request. Return JSON only.\n\n"
+        )
         + json.dumps(payload, ensure_ascii=False)
     )
     return system, user

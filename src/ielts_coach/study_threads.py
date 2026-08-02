@@ -21,6 +21,7 @@ from .storage import (
     save_thread_summary,
 )
 from .text_anchor import create_text_anchor
+from .tutor_state import get_thread_learning_state, list_tutor_proposals
 
 
 ALLOWED_ATTACHMENT_SUFFIXES = {
@@ -157,6 +158,10 @@ def get_study_thread(home: Path, thread_id: str) -> dict[str, Any]:
     return {
         **_thread_row(row, messages=messages, attachments=attachments),
         "conversation_summary": get_thread_summary(home, thread_id),
+        "learning_state": get_thread_learning_state(home, thread_id),
+        "proposals": list_tutor_proposals(
+            home, thread_id=thread_id, status="pending", limit=20
+        ),
     }
 
 
@@ -387,6 +392,8 @@ def study_thread_agent_context(
         ),
         "attachment_text": extracted,
         "material_evidence_sufficient": bool(extracted or thread["attachments"]),
+        "learning_state": thread.get("learning_state"),
+        "pending_proposals": thread.get("proposals") or [],
     }
 
 

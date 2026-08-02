@@ -252,6 +252,44 @@ export type StudyMessage = {
   attachments: StudyAttachment[]
 }
 
+export type ThreadLearningState = {
+  thread_id: string
+  revision: number
+  state: {
+    state_version: number
+    module: 'listening' | 'reading' | 'writing' | 'speaking' | 'mixed'
+    current_material_ids: string[]
+    current_question: Record<string, unknown> | null
+    learner_answer: string | null
+    learner_reasoning: string | null
+    teaching_goal: string | null
+    hint_level: number
+    answer_stage: 'not_applicable' | 'not_attempted' | 'solving' | 'attempted' | 'reviewed'
+    evidence_refs: Array<Record<string, unknown>>
+    unresolved_issue: string | null
+    correction_status: 'not_applicable' | 'in_progress' | 'resolved'
+  }
+  last_message_id: string | null
+  last_agent_run_id: string | null
+  updated_at: string | null
+}
+
+export type TutorProposal = {
+  proposal_id: string
+  thread_id: string
+  source_message_id: string | null
+  agent_run_id: string | null
+  proposal_type: 'practice_session' | 'review_item' | 'learner_memory' | 'material_promotion'
+  title: string
+  rationale: string
+  status: 'pending' | 'confirmed' | 'dismissed' | 'executed' | 'failed'
+  payload: Record<string, unknown>
+  result: { route?: string; [key: string]: unknown }
+  created_at: string
+  updated_at: string
+  resolved_at: string | null
+}
+
 export type StudyThread = {
   thread_id: string
   title: string
@@ -266,6 +304,8 @@ export type StudyThread = {
   message_count: number
   attachment_count: number
   last_message_preview: string
+  learning_state: ThreadLearningState
+  proposals: TutorProposal[]
 }
 
 export type TodayPlanTask = {

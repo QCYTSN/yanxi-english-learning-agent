@@ -116,6 +116,10 @@ class TutorContextRequest(BaseModel):
     module: Literal["listening", "reading", "writing", "speaking"] | None = None
 
 
+class TutorProposalDecision(BaseModel):
+    decision: Literal["confirm", "dismiss"]
+
+
 class DiagnosticAttach(BaseModel):
     session_id: str = Field(min_length=1, max_length=120)
 

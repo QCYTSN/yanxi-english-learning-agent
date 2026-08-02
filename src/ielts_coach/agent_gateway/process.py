@@ -16,7 +16,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from .. import __version__
-from ..agent_contracts import CONTRACT_SCHEMAS
+from ..agent_contracts import contract_schema_name
 from ..media import resolve_media_file
 from ..validation import load_schema
 from .base import AgentCapabilities, AgentIdentity
@@ -238,7 +238,7 @@ class LocalProcessAdapter:
 
     def _prompt(self, request: dict[str, Any]) -> str:
         contract = request["output_contract"]
-        schema = load_schema(CONTRACT_SCHEMAS[contract])
+        schema = load_schema(contract_schema_name(contract))
         envelope = json.dumps(request, ensure_ascii=False)
         return (
             "You are an IELTS Academic evaluation worker. Return only one JSON "
@@ -327,7 +327,7 @@ class ClaudeProcessAdapter(LocalProcessAdapter):
     def _command(
         self, executable: str, prompt: str, output_contract: str
     ) -> list[str]:
-        schema_data = dict(load_schema(CONTRACT_SCHEMAS[output_contract]))
+        schema_data = dict(load_schema(contract_schema_name(output_contract)))
         schema_data.pop("$schema", None)
         schema = json.dumps(schema_data)
         return self._wrap_powershell(

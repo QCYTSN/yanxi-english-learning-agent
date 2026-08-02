@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from .. import __version__
-from ..agent_contracts import CONTRACT_SCHEMAS
+from ..agent_contracts import contract_schema_name
 from ..managed_codex import (
     find_managed_codex_executable,
     install_managed_codex_runtime,
@@ -543,7 +543,7 @@ class CodexAppServerAdapter:
                 elif media.get("media_type") == "audio":
                     turn_input.append({"type": "localAudio", "path": str(path)})
             schema = provider_output_schema(
-                dict(load_schema(CONTRACT_SCHEMAS[request["output_contract"]]))
+                dict(load_schema(contract_schema_name(request["output_contract"])))
             )
             turn_params: dict[str, Any] = {
                 "threadId": thread_id,

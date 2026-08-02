@@ -1,0 +1,220 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from ielts_coach.init_home import initialise_home
+from ielts_coach.storage import create_agent_run
+from ielts_coach.study_threads import add_user_message, create_study_thread
+from ielts_coach.tutor_orchestrator import TutorOrchestrator
+from ielts_coach.tutor_state import (
+    get_thread_learning_state,
+    list_tutor_proposals,
+    persist_tutor_turn_effects,
+    resolve_tutor_proposal,
+)
+
+
+def _arguments(**updates: Any) -> dict[str, Any]:
+    result = {
+        "thread_id": None,
+        "attachment_id": None,
+        "query": None,
+        "module": None,
+        "limit": None,
+        "session_id": None,
+        "passage_id": None,
+        "question_id": None,
+        "answer_stage": None,
+        "title": None,
+        "action": None,
+        "statement": None,
+    }
+    result.update(updates)
+    return result
+
+
+class PlanningAdapter:
+    def __init__(self) -> None:
+        self.plans = 0
+
+    def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
+        del home
+        if request["output_contract"] == "tutor-turn-plan@1":
+            self.plans += 1
+            if self.plans == 1:
+                return {
+                    "contract_version": 1,
+                    "status": "needs_tools",
+                    "module": "reading",
+                    "teaching_goal": "Locate the learner's passage evidence before explaining.",
+                    "answer_policy": "progressive_hint",
+                    "tool_calls": [
+                        {
+                            "call_id": "material-1",
+                            "name": "inspect_thread_material",
+                            "arguments": _arguments(query="solar heat"),
+                        },
+                        {
+                            "call_id": "review-1",
+                            "name": "propose_review_item",
+                            "arguments": _arguments(
+                                module="reading",
+                                title="复习这道阅读题",
+                                action="重新定位原文证据。",
+                            ),
+                        },
+                    ],
+                    "missing_context": [],
+                }
+            return {
+                "contract_version": 1,
+                "status": "ready",
+                "module": "reading",
+                "teaching_goal": "Give a passage-grounded progressive hint.",
+                "answer_policy": "progressive_hint",
+                "tool_calls": [],
+                "missing_context": [],
+            }
+        assert request["canonical_session"]["tutor_agent"]["tool_observations"]
+        return {
+            "contract_version": 1,
+            "module": "reading",
+            "request_kind": "guided_hint",
+            "evidence_status": "partial",
+            "answer_status": "withheld",
+            "summary": "先定位提到 solar heat 的句子，再判断题干是否改写了因果关系。",
+            "sections": [],
+            "evidence": [],
+            "limitations": ["当前材料只提供了局部文字。"],
+            "next_action": "标出题干中的限定词。",
+        }
+
+
+def test_complex_tutor_turn_uses_bounded_tools_and_creates_only_a_proposal(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Reading help", module="reading")
+    message = add_user_message(
+        home,
+        thread["thread_id"],
+        content="请根据这段材料提示我怎么做，不要直接说答案。",
+        files=[("passage.txt", b"Plants convert solar heat into stored energy.", "text/plain")],
+    )
+    context = TutorOrchestrator(home).initial_context(
+        message["content"],
+        thread_id=thread["thread_id"],
+        module="reading",
+        has_material=True,
+    )
+    request = {
+        "request_id": "run_tutor_loop",
+        "output_contract": "study-help@1",
+        "skill_envelope": {
+            "skill": "ielts-study-help",
+            "instructions": "Preserve Reading answer integrity.",
+            "references": [],
+            "context_policy": {},
+            "output_schema": {},
+        },
+        "canonical_session": {
+            "thread_id": thread["thread_id"],
+            "module": "reading",
+            "user_request": message["content"],
+            "source_context": {},
+            "tutor_orchestration": context,
+        },
+    }
+    events: list[str] = []
+    outcome = TutorOrchestrator(home).execute(
+        PlanningAdapter(),
+        request,
+        lambda event_type, payload: events.append(event_type),
+    )
+    assert outcome.result["answer_status"] == "withheld"
+    assert outcome.orchestration["rounds"] == 2
+    assert outcome.orchestration["tool_calls"] == 2
+    assert outcome.orchestration["proposals"][0]["requires_confirmation"] is True
+    assert "tool_started" in events
+
+
+def test_tutor_state_and_review_proposal_are_idempotent_and_confirmed_by_user(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Reading state", module="reading")
+    message = add_user_message(
+        home,
+        thread["thread_id"],
+        content="给我一个提示。",
+        files=[],
+        context={"learner_answer": "B", "learner_reasoning": "第二段提到了原因。"},
+    )
+    request = {
+        "study_thread_id": thread["thread_id"],
+        "user_message_id": message["message_id"],
+        "canonical_session": {
+            "thread_id": thread["thread_id"],
+            "module": "reading",
+            "source_context": message["context"],
+        },
+    }
+    run = create_agent_run(
+        home,
+        {
+            "run_id": "run_state_commit",
+            "study_session_id": None,
+            "adapter_id": "mock",
+            "capability_id": "study_material_help",
+            "backend_kind": "mock",
+            "action": "teacher_dialogue",
+            "output_contract": "study-help@1",
+            "status": "persisted",
+            "request": request,
+        },
+    )
+    result = {
+        "contract_version": 1,
+        "module": "reading",
+        "request_kind": "guided_hint",
+        "evidence_status": "partial",
+        "answer_status": "withheld",
+        "summary": "先核对题干限定词。",
+        "sections": [],
+        "evidence": [],
+        "limitations": ["尚未核对答案键。"],
+        "next_action": "重新定位第二段。",
+    }
+    orchestration = {
+        "teaching_goal": "帮助学习者定位证据",
+        "answer_policy": "progressive_hint",
+        "proposals": [
+            {
+                "proposal_type": "review_item",
+                "title": "复习这道阅读题",
+                "rationale": "重新定位第二段证据。",
+                "payload": {"module": "reading"},
+            }
+        ],
+    }
+    first = persist_tutor_turn_effects(
+        home, run=run, result=result, orchestration=orchestration
+    )
+    second = persist_tutor_turn_effects(
+        home, run=run, result=result, orchestration=orchestration
+    )
+    assert first["learning_state"]["revision"] == 1
+    assert second["learning_state"]["revision"] == 1
+    state = get_thread_learning_state(home, thread["thread_id"])
+    assert state["state"]["learner_answer"] == "B"
+    assert state["state"]["hint_level"] == 1
+    proposals = list_tutor_proposals(home, thread_id=thread["thread_id"])
+    assert len(proposals) == 1
+    confirmed = resolve_tutor_proposal(
+        home, proposals[0]["proposal_id"], decision="confirm"
+    )
+    assert confirmed["status"] == "executed", confirmed["result"]
+    assert confirmed["result"]["review_task_id"].startswith("RT-tutor-")

@@ -14,6 +14,8 @@ from .agent_contracts import (
 )
 from .inference import InferenceBroker
 from .session_manager import show_session
+from .tutor_orchestrator import TutorOrchestrator, validate_tutor_result_against_policy
+from .tutor_state import persist_tutor_turn_effects
 from .storage import (
     append_agent_run_event,
     claim_agent_run,
@@ -67,6 +69,7 @@ class AgentJobManager:
         self._sweeper_stop = threading.Event()
         self._sweeper: threading.Thread | None = None
         self.broker = InferenceBroker(home)
+        self.tutor = TutorOrchestrator(home)
 
     def recover(self) -> dict[str, int]:
         result = self._recover_stale_runs()
@@ -345,6 +348,7 @@ class AgentJobManager:
                 and "error" not in run["result"]
             )
             provider_validation: dict[str, Any] = {}
+            orchestration: dict[str, Any] = dict(run.get("orchestration") or {})
             if resume_candidate:
                 result = dict(run["result"])
                 run = update_agent_run(
@@ -383,12 +387,22 @@ class AgentJobManager:
                     "status",
                     {"stage": "running", "label": "Agent task running"},
                 )
-                result = self._run_with_timeout(
-                    adapter,
-                    run["request"],
-                    timeout_seconds=int(run.get("timeout_seconds") or 120),
-                    execution_ref=run_id,
-                )
+                if run.get("output_contract") == "study-help@1":
+                    outcome = self._run_tutor_with_timeout(
+                        adapter,
+                        run["request"],
+                        timeout_seconds=int(run.get("timeout_seconds") or 120),
+                        execution_ref=run_id,
+                    )
+                    result = outcome.result
+                    orchestration = outcome.orchestration
+                else:
+                    result = self._run_with_timeout(
+                        adapter,
+                        run["request"],
+                        timeout_seconds=int(run.get("timeout_seconds") or 120),
+                        execution_ref=run_id,
+                    )
                 append_agent_run_event(
                     self.home,
                     run_id,
@@ -451,6 +465,7 @@ class AgentJobManager:
                 run_id,
                 status="validating",
                 result=result,
+                orchestration=orchestration,
                 checkpoint="candidate_received",
                 heartbeat_at=_now(),
             )
@@ -487,6 +502,10 @@ class AgentJobManager:
                 )
                 validated = validate_agent_contract_domain(
                     run["output_contract"], structured
+                )
+            if run.get("output_contract") == "study-help@1":
+                validated = validate_tutor_result_against_policy(
+                    validated, orchestration
                 )
             run = update_agent_run(
                 self.home,
@@ -532,6 +551,14 @@ class AgentJobManager:
                 {"stage": "persisting", "label": "Saving authoritative result"},
             )
             canonical = persist_agent_contract(self.home, run, validated)
+            if run.get("output_contract") == "study-help@1":
+                tutor_effects = persist_tutor_turn_effects(
+                    self.home,
+                    run=run,
+                    result=validated,
+                    orchestration=orchestration,
+                )
+                canonical = {**canonical, "tutor": tutor_effects}
             update_agent_run(
                 self.home,
                 run_id,
@@ -652,6 +679,49 @@ class AgentJobManager:
             finally:
                 raise TimeoutError(
                     f"Agent task exceeded the {timeout_seconds}s timeout"
+                )
+        ok, value = output.get_nowait()
+        if not ok:
+            raise value
+        return value
+
+    def _run_tutor_with_timeout(
+        self,
+        adapter: Any,
+        request: dict[str, Any],
+        *,
+        timeout_seconds: int,
+        execution_ref: str,
+    ) -> Any:
+        output: queue.Queue[tuple[bool, Any]] = queue.Queue(maxsize=1)
+
+        def emit(event_type: str, payload: dict[str, Any]) -> None:
+            append_agent_run_event(
+                self.home,
+                execution_ref,
+                event_type,
+                payload,
+            )
+
+        def invoke() -> None:
+            try:
+                output.put((True, self.tutor.execute(adapter, request, emit)))
+            except BaseException as exc:
+                output.put((False, exc))
+
+        thread = threading.Thread(
+            target=invoke,
+            name=f"ielts-tutor-loop-{execution_ref}",
+            daemon=True,
+        )
+        thread.start()
+        thread.join(max(0.01, timeout_seconds))
+        if thread.is_alive():
+            try:
+                adapter.cancel(self.home, execution_ref)
+            finally:
+                raise TimeoutError(
+                    f"Tutor turn exceeded the {timeout_seconds}s timeout"
                 )
         ok, value = output.get_nowait()
         if not ok:

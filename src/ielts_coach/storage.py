@@ -13,7 +13,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 26
+SCHEMA_VERSION = 27
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -540,6 +540,7 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     lease_expires_at TEXT,
     resume_count INTEGER NOT NULL DEFAULT 0,
     persistence_json TEXT NOT NULL DEFAULT '{}',
+    orchestration_json TEXT NOT NULL DEFAULT '{}',
     FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
     FOREIGN KEY(execution_profile_id) REFERENCES execution_profiles(profile_id) ON DELETE SET NULL,
     FOREIGN KEY(model_provider_id) REFERENCES model_providers(provider_id) ON DELETE SET NULL
@@ -666,6 +667,53 @@ CREATE TABLE IF NOT EXISTS study_threads (
 );
 CREATE INDEX IF NOT EXISTS idx_study_threads_updated
 ON study_threads(status,updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS tutor_thread_states (
+    thread_id TEXT PRIMARY KEY,
+    revision INTEGER NOT NULL DEFAULT 0,
+    state_json TEXT NOT NULL DEFAULT '{}',
+    last_message_id TEXT,
+    last_agent_run_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
+    FOREIGN KEY(last_message_id) REFERENCES study_messages(message_id) ON DELETE SET NULL,
+    FOREIGN KEY(last_agent_run_id) REFERENCES agent_runs(run_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS tutor_proposals (
+    proposal_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    source_message_id TEXT,
+    agent_run_id TEXT,
+    proposal_type TEXT NOT NULL CHECK(
+      proposal_type IN ('practice_session','review_item','learner_memory','material_promotion')
+    ),
+    title TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(
+      status IN ('pending','confirmed','dismissed','executed','failed')
+    ),
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    result_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    resolved_at TEXT,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
+    FOREIGN KEY(source_message_id) REFERENCES study_messages(message_id) ON DELETE SET NULL,
+    FOREIGN KEY(agent_run_id) REFERENCES agent_runs(run_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tutor_proposals_thread
+ON tutor_proposals(thread_id,status,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS tutor_turn_commits (
+    run_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    state_revision INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(run_id) REFERENCES agent_runs(run_id) ON DELETE CASCADE,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS study_messages (
     message_id TEXT PRIMARY KEY,
@@ -1095,6 +1143,7 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "lease_expires_at": "TEXT",
         "resume_count": "INTEGER NOT NULL DEFAULT 0",
         "persistence_json": "TEXT NOT NULL DEFAULT '{}'",
+        "orchestration_json": "TEXT NOT NULL DEFAULT '{}'",
     }
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
@@ -2797,7 +2846,7 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
         "cancel_requested", "heartbeat_at", "recovery_action", "execution_ref",
         "base_revision", "skill_hash", "inference_route_json",
         "checkpoint", "input_hash", "lease_owner", "lease_expires_at",
-        "resume_count", "persistence_json",
+        "resume_count", "persistence_json", "orchestration_json",
     }
     columns: list[str] = []
     values: list[Any] = []
@@ -2815,6 +2864,10 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
             )
         elif key == "persistence":
             column, value = "persistence_json", json.dumps(
+                value or {}, ensure_ascii=False
+            )
+        elif key == "orchestration":
+            column, value = "orchestration_json", json.dumps(
                 value or {}, ensure_ascii=False
             )
         if column not in allowed:
@@ -2887,6 +2940,7 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "lease_expires_at": row["lease_expires_at"],
         "resume_count": int(row["resume_count"]),
         "persistence": json.loads(row["persistence_json"]),
+        "orchestration": json.loads(row["orchestration_json"]),
     }
 
 

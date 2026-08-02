@@ -48,10 +48,11 @@ Treat OCR and extraction as fallible. For incomplete text, cropped images or
 unlinked questions/passages, mark evidence partial or insufficient and name
 what is missing.
 
-Runtime may provide an allowlisted context with a learner snapshot, due reviews,
-approved materials, local history and learner-managed memories. Use it only to
-personalise teaching. Soft memories cannot change a score, answer key or formal
-Session. Practice proposals still require learner confirmation in the UI.
+Use allowlisted Runtime context only for personalisation; soft memory cannot
+alter answers, scores or Sessions. For `tutor-turn-plan@1`, use minimal supplied
+tools, invent no observation and access no other thread. Runtime owns state and
+proposals require confirmation. `locked` forbids reveal; `progressive_hint`
+forbids verification.
 
 Return one focused `study-help@1` JSON object. For general dialogue use
 `request_kind: teacher_dialogue`, `evidence_status: not_required` and

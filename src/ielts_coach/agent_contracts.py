@@ -22,11 +22,13 @@ CONTRACT_SCHEMAS = {
     contract: contract.partition("@")[0]
     for contract in CAPABILITIES_BY_CONTRACT
 }
+INTERNAL_CONTRACT_SCHEMAS = {"tutor-turn-plan@1": "tutor-turn-plan"}
 
 CONTRACT_SKILLS = {
     contract: capability.skill
     for contract, capability in CAPABILITIES_BY_CONTRACT.items()
 }
+INTERNAL_CONTRACT_SKILLS = {"tutor-turn-plan@1": "ielts-study-help"}
 
 
 class AgentContractValidationError(ValueError):
@@ -39,10 +41,11 @@ class AgentContractValidationError(ValueError):
 
 
 def _contract_schema(contract: str) -> str:
-    schema = CONTRACT_SCHEMAS.get(contract)
+    schemas = {**CONTRACT_SCHEMAS, **INTERNAL_CONTRACT_SCHEMAS}
+    schema = schemas.get(contract)
     if not schema:
         name, _, version = contract.partition("@")
-        if name in {item.partition("@")[0] for item in CONTRACT_SCHEMAS}:
+        if name in {item.partition("@")[0] for item in schemas}:
             raise AgentContractValidationError(
                 f"Unsupported {name} contract version {version or 'missing'}",
                 stage="contract",
@@ -54,6 +57,11 @@ def _contract_schema(contract: str) -> str:
             code="AGENT_OUTPUT_CONTRACT_UNKNOWN",
         )
     return schema
+
+
+def contract_schema_name(contract: str) -> str:
+    """Return the schema for a public capability or internal worker contract."""
+    return _contract_schema(contract)
 
 
 def validate_agent_contract_schema(

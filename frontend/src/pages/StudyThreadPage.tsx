@@ -7,15 +7,18 @@ import {
   Image as ImageIcon,
   LoaderCircle,
   Paperclip,
+  Sparkles,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   api,
+  jsonBody,
   type AgentRun,
   type ModelProvider,
   type StudyHelpResult,
   type StudyThread,
+  type TutorProposal,
 } from '../api/client'
 import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
 import { MaterialComposer } from '../components/MaterialComposer'
@@ -85,6 +88,19 @@ export function StudyThreadPage() {
       { method: 'POST' },
     ),
     onSuccess: (job) => navigate(`/content-studio?import=${job.import_id}`),
+  })
+  const resolveProposal = useMutation({
+    mutationFn: ({ proposalId, decision }: { proposalId: string; decision: 'confirm' | 'dismiss' }) => (
+      api<TutorProposal>(`/api/v1/tutor/proposals/${proposalId}/resolve`, {
+        method: 'POST',
+        body: jsonBody({ decision }),
+      })
+    ),
+    onSuccess: async (proposal) => {
+      await thread.refetch()
+      const route = proposal.result?.route
+      if (proposal.status === 'executed' && typeof route === 'string') navigate(route)
+    },
   })
 
   useEffect(() => {
@@ -170,6 +186,17 @@ export function StudyThreadPage() {
             {activeRun && !['persisted', 'test_passed'].includes(activeRun.status) && (
               <ThreadRunState run={activeRun} running={running} />
             )}
+            {thread.data.proposals.map((proposal) => (
+              <TutorProposalCard
+                key={proposal.proposal_id}
+                proposal={proposal}
+                pending={resolveProposal.isPending}
+                onResolve={(decision) => resolveProposal.mutate({
+                  proposalId: proposal.proposal_id,
+                  decision,
+                })}
+              />
+            ))}
             {(send.error || run.error || promote.error) && (
               <StudyErrorNotice error={send.error ?? run.error ?? promote.error} />
             )}
@@ -194,6 +221,30 @@ export function StudyThreadPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+function TutorProposalCard({
+  proposal,
+  pending,
+  onResolve,
+}: {
+  proposal: TutorProposal
+  pending: boolean
+  onResolve: (decision: 'confirm' | 'dismiss') => void
+}) {
+  return (
+    <aside className="tutor-proposal-card" aria-label="老师建议的下一步">
+      <span className="tutor-proposal-icon"><Sparkles size={16} /></span>
+      <span className="tutor-proposal-copy">
+        <strong>{proposal.title}</strong>
+        <small>{proposal.rationale}</small>
+      </span>
+      <span className="tutor-proposal-actions">
+        <button type="button" disabled={pending} onClick={() => onResolve('dismiss')}>暂不</button>
+        <button className="primary" type="button" disabled={pending} onClick={() => onResolve('confirm')}>确认</button>
+      </span>
+    </aside>
   )
 }
 

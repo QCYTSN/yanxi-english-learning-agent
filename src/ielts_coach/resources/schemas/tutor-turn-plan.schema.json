@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "status",
+    "module",
+    "teaching_goal",
+    "answer_policy",
+    "tool_calls",
+    "missing_context"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "status": {"enum": ["ready", "needs_tools", "needs_clarification"]},
+    "module": {"enum": ["listening", "reading", "writing", "speaking", "mixed"]},
+    "teaching_goal": {"type": "string", "minLength": 1, "maxLength": 500},
+    "answer_policy": {
+      "enum": ["not_applicable", "progressive_hint", "review_allowed", "explicit_reveal", "locked"]
+    },
+    "tool_calls": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["call_id", "name", "arguments"],
+        "properties": {
+          "call_id": {"type": "string", "minLength": 1, "maxLength": 80},
+          "name": {
+            "enum": [
+              "inspect_thread_material",
+              "locate_passage_evidence",
+              "get_question_context",
+              "get_learner_snapshot",
+              "get_due_reviews",
+              "find_approved_materials",
+              "get_session_status",
+              "search_learning_history",
+              "get_learner_memories",
+              "get_teaching_policy",
+              "compare_writing_versions",
+              "propose_practice_session",
+              "propose_review_item",
+              "propose_learner_memory",
+              "propose_material_promotion"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "required": [
+              "thread_id",
+              "attachment_id",
+              "query",
+              "module",
+              "limit",
+              "session_id",
+              "passage_id",
+              "question_id",
+              "answer_stage",
+              "title",
+              "action",
+              "statement"
+            ],
+            "properties": {
+              "thread_id": {"type": ["string", "null"], "maxLength": 120},
+              "attachment_id": {"type": ["string", "null"], "maxLength": 120},
+              "query": {"type": ["string", "null"], "maxLength": 1000},
+              "module": {"type": ["string", "null"], "maxLength": 40},
+              "limit": {"type": ["integer", "null"], "minimum": 1, "maximum": 10},
+              "session_id": {"type": ["string", "null"], "maxLength": 120},
+              "passage_id": {"type": ["string", "null"], "maxLength": 200},
+              "question_id": {"type": ["string", "null"], "maxLength": 200},
+              "answer_stage": {"type": ["string", "null"], "maxLength": 40},
+              "title": {"type": ["string", "null"], "maxLength": 200},
+              "action": {"type": ["string", "null"], "maxLength": 1000},
+              "statement": {"type": ["string", "null"], "maxLength": 1000}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "missing_context": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {"type": "string", "minLength": 1, "maxLength": 300}
+    }
+  },
+  "additionalProperties": false
+}

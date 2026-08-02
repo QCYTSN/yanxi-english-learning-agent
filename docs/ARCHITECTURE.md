@@ -9,6 +9,17 @@ Terminal Agent -> Skill -> ielts-coach CLI ------┐
 Browser UI -> Capability -> Inference Broker ----┘
 ```
 
+The primary learning experience now has two coordinated engines:
+
+```text
+Conversation Runtime -> bounded Tutor Agent -> allowlisted IELTS tools
+Formal Teaching Runtime -> deterministic Practice / Assessment / Review
+```
+
+The conversation engine owns Study Threads, soft cross-turn teaching state and
+confirmation-gated proposals. It cannot mutate formal Session state. See
+[`TUTOR_AGENT_ARCHITECTURE.md`](TUTOR_AGENT_ARCHITECTURE.md).
+
 Provider/runtime details and the Codex managed-runtime boundary are defined in
 [`ARCHITECTURE_V2.md`](ARCHITECTURE_V2.md).
 
@@ -57,6 +68,7 @@ question_passages, questions, question_options, question_attempts
 reading_answers, writing_versions, criterion_scores, speaking_reports
 allocation_history, calibration_results, schema_meta
 rubric_registry, runtime_events, runtime_telemetry
+tutor_thread_states, tutor_proposals, tutor_turn_commits
 ```
 
 Markdown/YAML remains the human-readable interchange format. The revisioned

@@ -36,15 +36,11 @@ ensures those fixtures do not enter the wheel or Windows installer.
 ```text
 Browser learning UI
         ↓
-IELTS Teaching Runtime
-        ↓
-Capability policy + complete Skill Envelope
-        ↓
-Primary Model Provider + optional fallback
-        ↓
-Schema and semantic validation
-        ↓
-SQLite / Session / Corpus / Media
+Conversation Runtime ──> bounded Tutor Agent ──> allowlisted IELTS tools
+        │
+        └──────────────> Formal Teaching Runtime ──> Practice / Assessment
+                                      ↓
+                         SQLite / Session / Corpus / Media
 ```
 
 Model providers and external Agents are separate concepts:
@@ -54,7 +50,8 @@ Model providers and external Agents are separate concepts:
   developer workflows;
 - **Teaching Runtime** owns IELTS rules, privacy, validation and persistence.
 
-See [Architecture V2](docs/ARCHITECTURE_V2.md).
+See [Architecture V2](docs/ARCHITECTURE_V2.md) and the
+[Tutor Agent architecture](docs/TUTOR_AGENT_ARCHITECTURE.md).
 
 ## Install on Windows
 

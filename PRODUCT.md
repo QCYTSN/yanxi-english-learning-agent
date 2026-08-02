@@ -19,9 +19,10 @@ learning functionality and a coherent interface on all three platforms.
 
 ## Product Purpose
 
-IELTS Study Desk is a local-first learning product for planning, practising,
-reviewing and tracking IELTS Academic Listening, Reading, Writing and Speaking.
-It combines deterministic study workflows with constrained model assistance,
+IELTS Study Desk is a local-first, Tutor-led learning product for discussing,
+planning, practising, reviewing and tracking IELTS Academic Listening,
+Reading, Writing and Speaking. It combines a bounded, tool-using IELTS Tutor
+Agent with deterministic study workflows,
 so learners can use their own materials and model connection without making a
 model conversation the authority for scores, answers or learning history.
 
@@ -32,7 +33,8 @@ without operating an Agent or terminal during normal study.
 
 ## Positioning
 
-The product is an IELTS Teaching Runtime rather than a generic chat wrapper.
+The product is a bounded IELTS Tutor Agent on top of an authoritative Teaching
+Runtime rather than a generic chat wrapper or a general autonomous Agent.
 Versioned Capabilities, complete Skills, IELTS integrity rules and output
 contracts constrain every assisted teaching action. Candidate model output
 must pass Schema and semantic validation before the Runtime may persist it.
@@ -71,6 +73,14 @@ model.
 - The Teaching Runtime owns privacy, revision checks, idempotency, validation
   and persistence. Models and external Agents cannot write authoritative
   learning records directly.
+- Simple Tutor turns use one constrained model call. Material-, history- and
+  planning-dependent turns may use at most three planning rounds and six
+  allowlisted Runtime tool calls. Shell, arbitrary filesystem and direct SQL
+  access are never exposed.
+- Study Threads and versioned soft teaching state save locally and
+  automatically. Errors, review tasks, learner memories, material promotion
+  and formal Practice actions require an explicit learner confirmation before
+  the Runtime applies them.
 - One primary Model Provider and optional fallbacks support ChatGPT login,
   OpenAI-compatible APIs and local compatible HTTP services. External CLI
   Agents are optional advanced tools, not teaching providers.

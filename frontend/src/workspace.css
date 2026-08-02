@@ -2863,6 +2863,67 @@ tbody tr:hover {
   color: #929a96;
 }
 
+.tutor-proposal-card {
+  width: min(720px, 100%);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid #ccd9d4;
+  border-radius: 14px;
+  background: #f3f7f5;
+}
+
+.tutor-proposal-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e1eeea;
+  color: var(--accent);
+}
+
+.tutor-proposal-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.tutor-proposal-copy strong {
+  font-size: 0.82rem;
+}
+
+.tutor-proposal-copy small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.tutor-proposal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tutor-proposal-actions button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid #c9d2ce;
+  border-radius: 9px;
+  background: #fff;
+  color: #51605a;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 720;
+}
+
+.tutor-proposal-actions button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
 .thread-run-failure {
   padding: 2px 0;
   color: var(--danger);

@@ -68,6 +68,8 @@ def validate_data_semantics(data: dict[str, Any], schema_name: str) -> dict[str,
         _validate_speaking_evaluation_semantics(normalised)
     elif schema_name == "study-help":
         _validate_study_help_semantics(normalised)
+    elif schema_name == "tutor-turn-plan":
+        _validate_tutor_turn_plan_semantics(normalised)
     elif schema_name == "study-plan":
         allocation = normalised["allocation"]
         if abs(sum(float(value) for value in allocation.values()) - 1.0) > 0.001:
@@ -169,6 +171,17 @@ def _validate_study_help_semantics(data: dict[str, Any]) -> None:
         raise ValueError(
             "A verified answer requires sufficient, explicit evidence"
         )
+
+
+def _validate_tutor_turn_plan_semantics(data: dict[str, Any]) -> None:
+    calls = data.get("tool_calls") or []
+    if data["status"] == "needs_tools" and not calls:
+        raise ValueError("A needs_tools tutor plan must request at least one tool")
+    if data["status"] != "needs_tools" and calls:
+        raise ValueError("Only needs_tools tutor plans may request tools")
+    call_ids = [str(item["call_id"]) for item in calls]
+    if len(call_ids) != len(set(call_ids)):
+        raise ValueError("Tutor tool call IDs must be unique within a planning round")
 
 
 def _validate_rubric_manifest_semantics(data: dict[str, Any]) -> None:

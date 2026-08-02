@@ -39,6 +39,16 @@ class MockAdapter:
 
     def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
         contract = request["output_contract"]
+        if contract == "tutor-turn-plan@1":
+            return {
+                "contract_version": 1,
+                "status": "ready",
+                "module": "mixed",
+                "teaching_goal": "Verify the bounded tutor pipeline without model inference.",
+                "answer_policy": "not_applicable",
+                "tool_calls": [],
+                "missing_context": [],
+            }
         if contract == "study-help@1":
             if request.get("material_evidence_sufficient"):
                 return {

@@ -184,6 +184,11 @@ from ..study_threads import (
 )
 from ..study_context import build_study_context
 from ..tutor_orchestrator import TutorOrchestrator
+from ..tutor_state import (
+    get_thread_learning_state,
+    list_tutor_proposals,
+    resolve_tutor_proposal,
+)
 from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
     reconcile_session,
@@ -241,6 +246,7 @@ from .models import (
     TodayMaterialise,
     TodayIntent,
     TutorContextRequest,
+    TutorProposalDecision,
     WritingVersionSubmit,
     WritingAssessmentScore,
 )
@@ -1963,6 +1969,51 @@ def create_app(
     def study_thread_endpoint(thread_id: str) -> dict[str, Any]:
         return get_study_thread(target, thread_id)
 
+    @app.get(
+        "/api/v1/study-threads/{thread_id}/learning-state",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_learning_state_endpoint(thread_id: str) -> dict[str, Any]:
+        return get_thread_learning_state(target, thread_id)
+
+    @app.get(
+        "/api/v1/study-threads/{thread_id}/proposals",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_proposals_endpoint(
+        thread_id: str,
+        status: str | None = Query("pending"),
+    ) -> list[dict[str, Any]]:
+        return list_tutor_proposals(
+            target, thread_id=thread_id, status=status, limit=100
+        )
+
+    @app.post(
+        "/api/v1/tutor/proposals/{proposal_id}/resolve",
+        dependencies=[Depends(require_session)],
+    )
+    def tutor_proposal_resolve_endpoint(
+        proposal_id: str,
+        payload: TutorProposalDecision,
+    ) -> dict[str, Any]:
+        proposal = resolve_tutor_proposal(
+            target, proposal_id, decision=payload.decision
+        )
+        record_audit_event(
+            target,
+            category="tutor_proposal",
+            action=payload.decision,
+            outcome=str(proposal["status"]),
+            subject_type="tutor_proposal",
+            subject_id=proposal_id,
+            run_id=proposal.get("agent_run_id"),
+            metadata={
+                "proposal_type": proposal["proposal_type"],
+                "thread_id": proposal["thread_id"],
+            },
+        )
+        return proposal
+
     @app.patch(
         "/api/v1/study-threads/{thread_id}",
         dependencies=[Depends(require_session)],
@@ -2322,13 +2373,17 @@ def create_app(
             else None
         )
         if thread_context is not None:
-            thread_context["tutor_orchestration"] = tutor_orchestrator.prepare(
+            thread_context["tutor_orchestration"] = tutor_orchestrator.initial_context(
                 str(thread_context["user_request"]),
+                thread_id=str(thread_context["thread_id"]),
                 module=(
                     str(thread_context["module"])
                     if thread_context.get("module") != "mixed"
                     else None
                 ),
+                source_context=thread_context.get("source_context") or {},
+                has_material=bool(thread_context.get("material_evidence_sufficient")),
+                conversation_length=len(thread_context.get("conversation") or []),
             )
         capabilities = adapter.probe()
         adapter_identity = adapter.identity()
@@ -2434,26 +2489,8 @@ def create_app(
                     }
                     for item in media_refs
                 ],
-                "learner_memory_ids": [
-                    item["memory_id"]
-                    for item in (
-                        thread_context.get("tutor_orchestration", {}).get(
-                            "learner_memories", []
-                        )
-                        if thread_context
-                        else []
-                    )
-                ],
-                "history_refs": [
-                    f"{item['source_type']}:{item['source_id']}"
-                    for item in (
-                        thread_context.get("tutor_orchestration", {}).get(
-                            "history_evidence", []
-                        )
-                        if thread_context
-                        else []
-                    )
-                ],
+                "learner_memory_ids": [],
+                "history_refs": [],
             },
         )
         permission = {
