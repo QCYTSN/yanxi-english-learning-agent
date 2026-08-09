@@ -27,6 +27,7 @@ import {
   type TutorProposal,
 } from '../api/client'
 import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
+import { LearningCycleStrip } from '../components/LearningCycleStrip'
 import { MaterialComposer } from '../components/MaterialComposer'
 import { ThreadActions } from '../components/ThreadActions'
 import { addStudyMessage, requestRemoteProcessingConsent, startStudyHelpRun } from '../studyThreads'
@@ -119,7 +120,11 @@ export function StudyThreadPage() {
       })
     ),
     onSuccess: async (proposal) => {
-      await thread.refetch()
+      await Promise.all([
+        thread.refetch(),
+        queryClient.invalidateQueries({ queryKey: ['learner-memories'] }),
+        queryClient.invalidateQueries({ queryKey: ['learning-model'] }),
+      ])
       const route = proposal.result?.route
       if (proposal.status === 'executed' && typeof route === 'string') navigate(route)
     },
@@ -221,6 +226,10 @@ export function StudyThreadPage() {
           />
         </div>
       </header>
+
+      {thread.data.learning_state?.teaching_cycle && (
+        <LearningCycleStrip cycle={thread.data.learning_state.teaching_cycle} compact />
+      )}
 
       <div className="study-thread-layout">
         <main className="study-dialogue" aria-label="IELTS 学习对话">
@@ -326,6 +335,7 @@ function TutorProposalCard({
     <aside className="tutor-proposal-card" aria-label="老师建议的下一步">
       <span className="tutor-proposal-icon"><Sparkles size={16} /></span>
       <span className="tutor-proposal-copy">
+        <small className="tutor-proposal-kind">{proposalKindLabel(proposal.proposal_type)}</small>
         <strong>{proposal.title}</strong>
         <small>{proposal.rationale}</small>
       </span>
@@ -335,6 +345,15 @@ function TutorProposalCard({
       </span>
     </aside>
   )
+}
+
+function proposalKindLabel(type: TutorProposal['proposal_type']) {
+  return ({
+    practice_session: '练习建议',
+    review_item: '复习建议',
+    learner_memory: '是否让老师记住',
+    material_promotion: '材料整理建议',
+  } as Record<TutorProposal['proposal_type'], string>)[type]
 }
 
 function StudyErrorNotice({ error }: { error: unknown }) {

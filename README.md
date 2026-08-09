@@ -32,6 +32,8 @@ curriculum and policies.
   background OCR/content jobs;
 - versioned learner memory with expiry and explicit contradiction resolution;
 - Runtime-owned teaching cycles and privacy-safe teaching-policy regression;
+- learner-facing teaching paths, editable study goals, skill-evidence views and
+  learner-controlled teacher memory;
 - optional external CLI Agents for advanced material workflows;
 - Windows desktop installer and Python package for technical users.
 

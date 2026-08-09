@@ -13,11 +13,15 @@ import {
   api,
   jsonBody,
   type Bootstrap,
+  type LearningModelSnapshot,
   type PracticeUnit,
   type StudyContext,
+  type TeachingCycle,
 } from '../api/client'
 import { ErrorState } from '../components/Common'
+import { LearningCycleStrip } from '../components/LearningCycleStrip'
 import { MaterialComposer } from '../components/MaterialComposer'
+import { dimensionLabel, objectiveStatusLabel } from '../learningPresentation'
 import { createStudyThreadWithMessage, requestRemoteProcessingConsent } from '../studyThreads'
 
 const subjects = [
@@ -37,6 +41,16 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
   const context = useQuery({
     queryKey: ['today-context'],
     queryFn: () => api<StudyContext>('/api/v1/today'),
+  })
+  const learningModel = useQuery({
+    queryKey: ['learning-model'],
+    queryFn: () => api<LearningModelSnapshot>('/api/v1/learning-model'),
+    staleTime: 30_000,
+  })
+  const teachingCycles = useQuery({
+    queryKey: ['teaching-cycles', 'active'],
+    queryFn: () => api<TeachingCycle[]>('/api/v1/teaching-cycles?status=active&limit=10'),
+    staleTime: 15_000,
   })
   const ask = useMutation({
     mutationFn: ({ content, files, explicitConsent }: { content: string; files: File[]; explicitConsent: boolean }) => {
@@ -62,6 +76,9 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
   })
 
   const recommendation = context.data?.today_plan.primary
+  const currentCycle = teachingCycles.data?.[0]
+  const currentObjective = learningModel.data?.objectives.find((item) => item.status === 'active')
+    ?? learningModel.data?.objectives.find((item) => item.status === 'planned')
   const actionError = ask.error ?? materialise.error ?? context.error
 
   return (
@@ -122,6 +139,28 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
             <span className="resume-time"><Clock3 size={15} />约 {recommendation.estimated_minutes} 分钟</span>
             <span className="resume-action">开始 <ArrowRight size={16} /></span>
           </button>
+        ) : null}
+
+        {currentCycle ? (
+          <div className="today-learning-direction">
+            <div className="today-learning-direction-heading">
+              <span>当前学习方向</span>
+              <Link to="/settings/learning">管理目标与记忆</Link>
+            </div>
+            <LearningCycleStrip cycle={currentCycle} />
+          </div>
+        ) : currentObjective ? (
+          <div className="today-learning-direction objective-only">
+            <div className="today-learning-direction-heading">
+              <span>当前学习目标</span>
+              <Link to="/settings/learning">管理</Link>
+            </div>
+            <div className="today-objective-line">
+              <span>{dimensionLabel(currentObjective.dimension_id)}</span>
+              <strong>{currentObjective.title}</strong>
+              <small>{objectiveStatusLabel(currentObjective.status)}</small>
+            </div>
+          </div>
         ) : null}
 
         <div className="today-guidance">

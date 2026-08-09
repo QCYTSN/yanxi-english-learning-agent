@@ -92,6 +92,9 @@ model.
   review schedules are stored by the generic learning kernel. Its estimates
   are derived from admitted evidence and never replace official-score
   provenance or IELTS-specific rules.
+- Learners see this state as a plain-language teaching path, editable goals,
+  skill evidence and teacher memory controls. Internal phase names, database
+  keys and model reasoning remain outside the learning interface.
 - Release evidence includes deterministic positive and negative teaching-policy
   controls in addition to output Schema checks and runtime reliability samples;
   evaluation history never retains the raw learner content used by a case.

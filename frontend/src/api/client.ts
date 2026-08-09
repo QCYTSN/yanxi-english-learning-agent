@@ -119,6 +119,104 @@ export type LearningTrackDescriptor = {
   capabilities: CapabilityDescriptor[]
 }
 
+export type SkillMastery = {
+  estimate: number
+  confidence: number
+  evidence_count: number
+  status: string
+  last_evidence_at: string | null
+  next_review_at: string | null
+  calculation: Record<string, unknown>
+}
+
+export type LearningSkill = {
+  track_id: string
+  skill_id: string
+  dimension_id: 'listening' | 'reading' | 'writing' | 'speaking'
+  parent_skill_id: string | null
+  title: string
+  description: string
+  order: number
+  metadata: Record<string, unknown>
+  mastery: SkillMastery | null
+}
+
+export type LearningObjective = {
+  objective_id: string
+  track_id: string
+  dimension_id: 'listening' | 'reading' | 'writing' | 'speaking'
+  skill_id: string | null
+  title: string
+  description: string | null
+  status: 'planned' | 'active' | 'achieved' | 'paused' | 'archived'
+  priority: number
+  target_value: number | null
+  target_label: string | null
+  due_at: string | null
+  source_type: string
+  source_id: string | null
+  metadata: Record<string, unknown>
+  revision: number
+  created_at: string
+  updated_at: string
+  achieved_at: string | null
+}
+
+export type LearningActivity = {
+  activity_id: string
+  track_id: string
+  dimension_id: LearningObjective['dimension_id'] | null
+  activity_type: string
+  title: string
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled'
+  objective_id: string | null
+  source_type: string
+  source_id: string | null
+  session_id: string | null
+  thread_id: string | null
+  payload: Record<string, unknown>
+  revision: number
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type LearningReview = {
+  review_id: string
+  stable_key: string
+  track_id: string
+  skill_id: string
+  skill_title: string | null
+  dimension_id: LearningObjective['dimension_id'] | null
+  objective_id: string | null
+  status: 'pending' | 'in_progress' | 'completed' | 'dismissed'
+  due_at: string
+  interval_days: number
+  repetition_count: number
+  priority: number
+  source_evidence_id: string
+  last_reviewed_at: string | null
+  payload: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export type LearningModelSnapshot = {
+  model_version: number
+  track: Omit<LearningTrackDescriptor, 'capabilities'> & { capabilities?: CapabilityDescriptor[] }
+  dimension_id: LearningObjective['dimension_id'] | null
+  objectives: LearningObjective[]
+  skills: LearningSkill[]
+  due_reviews: LearningReview[]
+  summary: {
+    skill_count: number
+    observed_skill_count: number
+    active_objective_count: number
+    due_review_count: number
+  }
+}
+
 export type ExecutionProfile = {
   profile_id: string
   display_name: string
@@ -340,6 +438,36 @@ export type LearnerMemory = {
   access_count: number
   created_at: string
   updated_at: string
+}
+
+export type LearnerMemoryRevision = {
+  memory_id: string
+  revision: number
+  statement: string
+  confidence: number
+  evidence_refs: string[]
+  status: LearnerMemory['status']
+  validity_status: LearnerMemory['validity_status']
+  scope: string
+  memory_key: string
+  expires_at: string | null
+  change_reason: string
+  changed_at: string
+  [key: string]: unknown
+}
+
+export type LearnerMemoryConflict = {
+  conflict_id: string
+  conflict_group_id: string
+  left_memory_id: string
+  right_memory_id: string
+  status: 'open' | 'resolved'
+  resolution: 'keep_left' | 'keep_right' | 'keep_both' | 'dismiss_both' | null
+  rationale: string | null
+  created_at: string
+  resolved_at: string | null
+  left_memory: LearnerMemory | null
+  right_memory: LearnerMemory | null
 }
 
 export type TeachingCycleRecommendation = {

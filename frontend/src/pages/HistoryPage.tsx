@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, CheckCircle2, Play, TrendingDown, TrendingUp } from 'lucide-react'
+import { ArrowRight, CalendarDays, CheckCircle2, ListChecks, Play, TrendingDown, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   api,
+  type LearningModelSnapshot,
   type PracticeUnit,
   type ProgressAction,
   type ProgressDashboard,
@@ -13,6 +14,7 @@ import {
   type WeeklyReport,
 } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
+import { dimensionLabel, LEARNING_DIMENSIONS, masteryPresentation, skillPresentation } from '../learningPresentation'
 import { buildTrendGeometry } from './progressPresentation'
 
 const MODULE_LABELS: Record<string, string> = {
@@ -208,6 +210,8 @@ export function HistoryPage() {
         </>
       )}
 
+      <LearningSkillMapSection />
+
       <section className="settings-section">
         <div className="section-heading">
           <div><p className="eyebrow">Review Queue</p><h2>待复习任务</h2></div>
@@ -303,6 +307,72 @@ function TrendChart({ samples, target, label }: { samples: ProgressTrendSample[]
       </svg>
       {!samples.length && <span className="trend-empty">还没有可绘制的成绩</span>}
     </div>
+  )
+}
+
+function LearningSkillMapSection() {
+  const [dimension, setDimension] = useState<(typeof LEARNING_DIMENSIONS)[number]['id']>('reading')
+  const learningModel = useQuery({
+    queryKey: ['learning-model'],
+    queryFn: () => api<LearningModelSnapshot>('/api/v1/learning-model'),
+    staleTime: 30_000,
+  })
+  const skills = learningModel.data?.skills.filter((item) => item.dimension_id === dimension) ?? []
+  const evidenceCount = skills.reduce((total, item) => total + (item.mastery?.evidence_count ?? 0), 0)
+
+  return (
+    <section className="learning-skill-section" aria-labelledby="learning-skill-title">
+      <div className="learning-skill-heading">
+        <div>
+          <p className="eyebrow">Skill Evidence</p>
+          <h2 id="learning-skill-title">能力形成到哪一步</h2>
+          <p>掌握度来自多次学习证据，不等同于 IELTS 官方分数；证据不足时不会强行判断。</p>
+        </div>
+        <ListChecks size={21} aria-hidden="true" />
+      </div>
+      <div className="learning-dimension-tabs" aria-label="选择能力模块">
+        {LEARNING_DIMENSIONS.map((item) => (
+          <button
+            className={dimension === item.id ? 'active' : ''}
+            key={item.id}
+            type="button"
+            aria-pressed={dimension === item.id}
+            onClick={() => setDimension(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {learningModel.isPending && <LoadingState label="正在整理能力证据" />}
+      {learningModel.isError && <ErrorState error={learningModel.error} />}
+      {learningModel.data && (
+        <div className="learning-skill-body">
+          <div className="learning-skill-summary">
+            <strong>{dimensionLabel(dimension)}</strong>
+            <span>{evidenceCount > 0 ? `${evidenceCount} 条有效学习证据` : '等待第一次有效练习'}</span>
+          </div>
+          <div className="learning-skill-list">
+            {skills.map((skill) => {
+              const mastery = masteryPresentation(skill)
+              const copy = skillPresentation(skill)
+              return (
+                <article className={`learning-skill-row ${mastery.tone}`} key={skill.skill_id}>
+                  <div className="learning-skill-copy">
+                    <strong>{copy.title}</strong>
+                    <small>{copy.description}</small>
+                  </div>
+                  <div className="learning-skill-measure">
+                    <span><strong>{mastery.label}</strong>{mastery.percent > 0 ? ` · ${mastery.percent}%` : ''}</span>
+                    <div aria-hidden="true"><i style={{ width: `${mastery.percent}%` }} /></div>
+                    <small>{mastery.detail}</small>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </section>
   )
 }
 

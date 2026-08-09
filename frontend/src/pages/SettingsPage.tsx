@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BookOpenCheck,
   Bot,
+  BrainCircuit,
   CheckCircle2,
   ChevronRight,
   Database,
@@ -30,6 +31,7 @@ import {
 } from '../api/client'
 import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
 import { ModelProvidersSection } from '../components/ModelProvidersSection'
+import { LearningMemorySection } from './LearningMemorySection'
 import { normalisePerformance, type PerformanceResponse } from './settingsPerformance'
 
 type BackupSummary = {
@@ -66,6 +68,7 @@ type Rubric = {
 
 const settingsSections = [
   { id: 'profile', title: '学习档案', description: '考试目标、当前基线与隐私偏好', icon: UserRound },
+  { id: 'learning', title: '学习与记忆', description: '重点目标、教学偏好与老师记住的内容', icon: BrainCircuit },
   { id: 'models', title: '模型服务', description: '主模型、备用模型与自定义 API', icon: Bot },
   { id: 'data', title: '本地数据', description: 'SQLite、备份、恢复与数据位置', icon: Database },
   { id: 'trust', title: '教学标准', description: '评分标准来源与教学边界', icon: BookOpenCheck },
@@ -95,6 +98,7 @@ export function SettingsPage({ bootstrap }: { bootstrap: Bootstrap }) {
       </header>
       {!active && <SettingsOverview bootstrap={bootstrap} />}
       {section === 'profile' && <ProfileSection bootstrap={bootstrap} />}
+      {section === 'learning' && <LearningMemorySection />}
       {section === 'models' && <ModelProvidersSection />}
       {section === 'data' && <DataSection bootstrap={bootstrap} />}
       {section === 'trust' && <TrustSection />}

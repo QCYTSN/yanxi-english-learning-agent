@@ -43,6 +43,7 @@ const routeLabels = [
 
 const settingsSectionLabels: Record<string, string> = {
   profile: '学习档案',
+  learning: '学习与记忆',
   models: '模型服务',
   data: '本地数据',
   trust: '教学标准',
