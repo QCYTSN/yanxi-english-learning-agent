@@ -42,7 +42,7 @@ SQLite / Session / Corpus   OAuth / API / Local HTTP
 
 ## 3. 当前已完成的性能底座
 
-- Schema v30 与带校验和的版本化迁移日志；
+- Schema v32 与带校验和的版本化迁移日志；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
@@ -56,7 +56,7 @@ SQLite / Session / Corpus   OAuth / API / Local HTTP
 - Media Asset 与 owner 解耦，同一文件可绑定多个 Session。
 - Agent 契约正反例回归会保存哈希和结果，不保存学习内容；
 - Provider 可靠性报告按 30 天窗口统计成功率、失败阶段、回退与延迟；
-- `ielts-coach evaluation release` 将契约门和 10k/100k 合成性能门组合为可执行发布门。
+- `ielts-coach evaluation release` 将契约门、教学策略门和 10k/100k 合成性能门组合为可执行发布门。
 - 上传文件按 1 MiB 分块落入暂存区，经过大小、后缀、哈希和配额检查后原子登记；
 - OCR、内容准备和审核草稿使用 SQLite 持久化队列与隔离子进程，重任务不再占用 Web 请求进程；
 - Agent 推理也在可终止的隔离子进程中运行，崩溃、超时、取消和服务重启都有明确终态；
@@ -65,15 +65,25 @@ SQLite / Session / Corpus   OAuth / API / Local HTTP
 - Provider 支持限流/网络错误重试、`Retry-After`、健康状态、熔断和可选流式响应；
 - 本地资料默认有 25 GiB 管理配额和 512 MiB 磁盘安全余量；
 - 支持生成不含对话正文、作文、题目、凭据和私有路径的诊断包。
+- 已加入通用 Learning Agent Kernel：以 IELTS Academic Domain Pack 提供能力节点、
+  目标、活动、掌握证据和复习计划；现有 Session 经过 Runtime 验证后幂等投影，
+  不改变 IELTS 评分与答案权威。
+- Learner Memory 已改为带语义键、内容哈希、revision、有效期、访问记录和冲突决议的
+  显式生命周期；Tutor 只读取有效且无冲突的有界记忆。
+- Teaching Cycle 由 Runtime 维护显式教学阶段和追加式事件，模型只能建议，不能直接
+  改变教学阶段；Session 投影和 Tutor 观察均保持幂等与来源引用。
+- 教学质量评测使用正反例覆盖教学动作、答案完整性、证据、主动学习顺序、记忆连续性、
+  状态机权限和恢复策略，仅保存哈希、规则结果与分数。
 
 ## 3.1 发布评测边界
 
 发布质量分为三种证据，不能互相替代：
 
 1. **契约正确性**：所有版本化 Agent Contract 的 valid/invalid 样例必须全部符合预期；
-2. **运行可靠性**：真实 Provider 至少积累 20 个终态样本后，才允许把成功率解释为稳定指标；
-3. **本地规模性能**：10k Session / 100k Question 的分页、检索、随机抽题和数据库状态必须在预算内。
-4. **前端资源预算**：单个 JavaScript 产物不超过 450 KiB，总 JavaScript 不超过 2 MiB，总 CSS 不超过 400 KiB。
+2. **教学策略正确性**：每个教学质量维度必须同时通过正例和负例控制；
+3. **运行可靠性**：真实 Provider 至少积累 20 个终态样本后，才允许把成功率解释为稳定指标；
+4. **本地规模性能**：10k Session / 100k Question 的分页、检索、随机抽题和数据库状态必须在预算内。
+5. **前端资源预算**：单个 JavaScript 产物不超过 450 KiB，总 JavaScript 不超过 2 MiB，总 CSS 不超过 400 KiB。
 
 契约通过但真实样本不足时，状态是“契约就绪，继续观察”，不能宣传为模型连接已经稳定。
 

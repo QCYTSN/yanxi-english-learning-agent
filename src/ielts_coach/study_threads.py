@@ -13,6 +13,7 @@ from xml.etree import ElementTree
 from .content_imports import create_import
 from .context_engine import ContextBudget, assemble_tutor_context
 from .data_lifecycle import delete_study_thread_data, purge_unreferenced_media
+from .domain_packs import DEFAULT_TRACK_ID, get_domain_pack
 from .media import import_image_bytes, resolve_media_file
 from .question_bank import show_reading_set
 from .storage import (
@@ -65,13 +66,18 @@ def create_study_thread(
     *,
     title: str,
     module: str = "mixed",
+    track_id: str = DEFAULT_TRACK_ID,
     model_provider_id: str | None = None,
     source_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     initialise_database(home)
-    if module not in {"listening", "reading", "writing", "speaking", "mixed"}:
+    pack = get_domain_pack(track_id)
+    if pack.status != "active":
+        raise ValueError(f"Learning track is not active: {track_id}")
+    supported_modules = {item.dimension_id for item in pack.dimensions} | {"mixed"}
+    if module not in supported_modules:
         raise ValueError(
-            "Study thread module must be listening, reading, writing, speaking or mixed"
+            "Study thread module must belong to the selected learning track or be mixed"
         )
     clean_title = " ".join(title.strip().split())[:120] or "新的 IELTS 学习对话"
     thread_id = _id("thread")
@@ -80,14 +86,15 @@ def create_study_thread(
         conn.execute(
             """
             INSERT INTO study_threads(
-              thread_id,title,module,status,model_provider_id,
+              thread_id,title,module,track_id,status,model_provider_id,
               source_context_json,created_at,updated_at
-            ) VALUES(?,?,?,'active',?,?,?,?)
+            ) VALUES(?,?,?,?,'active',?,?,?,?)
             """,
             (
                 thread_id,
                 clean_title,
                 module,
+                track_id,
                 model_provider_id,
                 json.dumps(source_context or {}, ensure_ascii=False),
                 now,
@@ -986,6 +993,7 @@ def _thread_row(
         "thread_id": row["thread_id"],
         "title": row["title"],
         "module": row["module"],
+        "track_id": row["track_id"] if "track_id" in keys else DEFAULT_TRACK_ID,
         "status": row["status"],
         "model_provider_id": row["model_provider_id"],
         "source_context": json.loads(row["source_context_json"] or "{}"),

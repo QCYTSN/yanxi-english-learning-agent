@@ -14,6 +14,7 @@ from ielts_coach.capability_evaluation import (
 from ielts_coach.cli import app
 from ielts_coach.init_home import initialise_home
 from ielts_coach.storage import connect
+from ielts_coach.teaching_quality import run_teaching_quality_evaluation
 from ielts_coach.web.app import create_app
 from ielts_coach.web.auth import AuthState
 
@@ -76,8 +77,11 @@ def test_reliability_report_distinguishes_contract_gate_from_runtime_sample(
     run_contract_evaluation(home, FIXTURES)
     after = provider_reliability_report(home)
     assert after["latest_contract_evaluation"]["status"] == "passed"
+    assert after["release_gate"]["status"] == "teaching_evaluation_required"
+    run_teaching_quality_evaluation(home)
+    complete = provider_reliability_report(home)
     assert (
-        after["release_gate"]["status"]
+        complete["release_gate"]["status"]
         == "contract_ready_runtime_observation_needed"
     )
     assert after["privacy"] == "metadata_only_no_prompts_or_responses"
@@ -133,6 +137,8 @@ def test_release_gate_combines_contract_and_scale_checks(tmp_path: Path) -> None
     report = json.loads(result.output)
     assert report["status"] == "passed"
     assert report["contract_gate"]["case_count"] == 18
+    assert report["teaching_quality_gate"]["case_count"] == 14
+    assert report["teaching_quality_gate"]["status"] == "passed"
     assert report["scale_gate"]["passed"] is True
     assert report["visual_review"] == "separate_human_decision_required"
 
@@ -143,14 +149,19 @@ def test_local_system_api_exposes_evaluation_and_reliability_metadata(
     home = tmp_path / "home"
     initialise_home(home)
     run_contract_evaluation(home, FIXTURES)
+    run_teaching_quality_evaluation(home)
     client = _client(home)
 
     evaluations = client.get("/api/v1/system/evaluations?limit=1")
     reliability = client.get("/api/v1/system/reliability?days=30")
+    teaching = client.get("/api/v1/system/teaching-evaluations?limit=1")
 
     assert evaluations.status_code == 200
     assert evaluations.json()[0]["status"] == "passed"
     assert evaluations.json()[0]["content_retention"] == "hashes_and_outcomes_only"
     assert reliability.status_code == 200
     assert reliability.json()["latest_contract_evaluation"]["status"] == "passed"
+    assert reliability.json()["latest_teaching_evaluation"]["status"] == "passed"
     assert reliability.json()["privacy"] == "metadata_only_no_prompts_or_responses"
+    assert teaching.status_code == 200
+    assert teaching.json()[0]["content_retention"] == "case_hashes_rule_outcomes_and_scores_only"

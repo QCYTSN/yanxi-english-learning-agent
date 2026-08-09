@@ -45,6 +45,7 @@ include-package-data = false
 [tool.setuptools.package-data]
 "ielts_coach.resources" = [
   "assets/*",
+  "evaluations/*.json",
   "schemas/*.json"
 ]
 "ielts_coach.web" = [

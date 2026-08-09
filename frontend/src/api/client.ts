@@ -41,6 +41,7 @@ export type Bootstrap = {
   setup_required: boolean
   onboarding: { status: string; baseline_status: string } | null
   profile: {
+    active_learning_track_id: string
     exam_type: string
     test_date?: string | null
     target: Record<string, number>
@@ -52,6 +53,8 @@ export type Bootstrap = {
   active_session: SessionSummary | null
   health: Record<string, boolean>
   agents: AgentDescriptor[]
+  learning_tracks: LearningTrackDescriptor[]
+  active_learning_track_id: string
   capabilities: CapabilityDescriptor[]
   execution_profiles: ExecutionProfile[]
   model_providers: ModelProvider[]
@@ -80,6 +83,7 @@ export type AgentDescriptor = {
 }
 
 export type CapabilityDescriptor = {
+  track_id: string
   capability_id: string
   title: string
   module: string
@@ -88,6 +92,31 @@ export type CapabilityDescriptor = {
   privacy_scope: 'learning_record' | 'private_material'
   media_types: Array<'image' | 'audio'>
   default_timeout_seconds: number
+}
+
+export type LearningTrackDescriptor = {
+  track_id: string
+  title: string
+  short_title: string
+  description: string
+  language: string
+  status: 'active' | 'preview' | 'disabled'
+  teaching_policy_id: string
+  assessment_scale: {
+    scale_id: string
+    title: string
+    minimum: number
+    maximum: number
+    step: number | null
+  }
+  dimensions: Array<{
+    dimension_id: string
+    title: string
+    description: string
+    default_skill_id: string
+    order: number
+  }>
+  capabilities: CapabilityDescriptor[]
 }
 
 export type ExecutionProfile = {
@@ -284,6 +313,82 @@ export type ThreadLearningState = {
   last_message_id: string | null
   last_agent_run_id: string | null
   updated_at: string | null
+  teaching_cycle: TeachingCycle | null
+}
+
+export type LearnerMemory = {
+  memory_id: string
+  track_id: string
+  memory_type: string
+  memory_key: string
+  statement: string
+  content_hash: string
+  confidence: number
+  evidence_refs: string[]
+  scope: string
+  status: 'active' | 'dismissed'
+  validity_status: 'current' | 'conflicted' | 'superseded' | 'expired'
+  effective_validity_status: 'current' | 'conflicted' | 'superseded' | 'expired'
+  effective: boolean
+  revision: number
+  source_kind: 'learner_confirmed' | 'runtime_observation' | 'imported'
+  supersedes_memory_id: string | null
+  conflict_group_id: string | null
+  valid_from: string | null
+  expires_at: string | null
+  last_accessed_at: string | null
+  access_count: number
+  created_at: string
+  updated_at: string
+}
+
+export type TeachingCycleRecommendation = {
+  action: 'transition' | 'complete' | 'resume' | 'none'
+  target_phase: TeachingCycle['phase'] | null
+  reason_code: string
+  deterministic: true
+  applied: false
+  mastery: {
+    skill_id: string
+    estimate: number
+    confidence: number
+    evidence_count: number
+    status: string
+  } | null
+}
+
+export type TeachingCycle = {
+  cycle_id: string
+  track_id: string
+  dimension_id: string | null
+  skill_id: string | null
+  objective_id: string | null
+  activity_id: string | null
+  thread_id: string | null
+  session_id: string | null
+  title: string
+  phase: 'diagnose' | 'teach' | 'guided_practice' | 'independent_practice' | 'assess' | 'review' | 'consolidate'
+  status: 'active' | 'paused' | 'completed' | 'cancelled'
+  revision: number
+  context: Record<string, unknown>
+  source_type: string
+  source_id: string | null
+  started_at: string
+  updated_at: string
+  completed_at: string | null
+  recommendation: TeachingCycleRecommendation
+  events?: Array<{
+    event_id: string
+    sequence: number
+    event_type: string
+    from_phase: TeachingCycle['phase']
+    to_phase: TeachingCycle['phase']
+    actor: 'runtime' | 'learner'
+    reason_code: string
+    evidence_refs: string[]
+    metadata: Record<string, unknown>
+    created_at: string
+  }>
 }
 
 export type TutorProposal = {
@@ -304,6 +409,7 @@ export type TutorProposal = {
 
 export type StudyThread = {
   thread_id: string
+  track_id: string
   title: string
   module: 'listening' | 'reading' | 'writing' | 'speaking' | 'mixed'
   status: string

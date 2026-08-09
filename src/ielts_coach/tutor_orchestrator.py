@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .agent_contracts import validate_agent_contract
+from .learning_model import get_learning_model_snapshot, list_learning_reviews
 from .learning_orchestration import list_review_tasks
+from .pedagogy import get_active_teaching_cycle
 from .question_bank import show_question, show_reading_set
 from .session_manager import show_session
 from .storage import (
@@ -280,8 +282,51 @@ class DomainToolRegistry:
             "answer_key_exposed": False,
         }
 
-    def _learner_snapshot(self, module: str | None = None) -> dict[str, Any]:
+    def _learner_snapshot(
+        self,
+        module: str | None = None,
+        thread_id: str | None = None,
+    ) -> dict[str, Any]:
         snapshot = build_study_context(self.home, module=module)
+        learning_model = get_learning_model_snapshot(
+            self.home,
+            dimension_id=module,
+        )
+        objectives = [
+            {
+                "objective_id": item["objective_id"],
+                "dimension_id": item["dimension_id"],
+                "skill_id": item["skill_id"],
+                "title": item["title"],
+                "status": item["status"],
+                "priority": item["priority"],
+                "target_value": item["target_value"],
+                "due_at": item["due_at"],
+            }
+            for item in learning_model["objectives"][:10]
+        ]
+        observed_skills = [
+            {
+                "skill_id": item["skill_id"],
+                "dimension_id": item["dimension_id"],
+                "title": item["title"],
+                "mastery": {
+                    key: value
+                    for key, value in item["mastery"].items()
+                    if key != "calculation"
+                },
+            }
+            for item in learning_model["skills"]
+            if item["mastery"] is not None
+            and int(item["mastery"]["evidence_count"]) > 0
+        ]
+        observed_skills.sort(
+            key=lambda item: (
+                float(item["mastery"]["estimate"]),
+                -int(item["mastery"]["evidence_count"]),
+                str(item["skill_id"]),
+            )
+        )
         return {
             "context_version": snapshot["context_version"],
             "module": snapshot["module"],
@@ -289,15 +334,45 @@ class DomainToolRegistry:
             "history": snapshot.get("history"),
             "allocation": snapshot.get("allocation"),
             "next_action": snapshot.get("next_action"),
+            "learning_model": {
+                "model_version": learning_model["model_version"],
+                "summary": learning_model["summary"],
+                "objectives": objectives,
+                "observed_skills": observed_skills[:12],
+            },
+            "active_teaching_cycle": (
+                get_active_teaching_cycle(self.home, thread_id)
+                if thread_id
+                else None
+            ),
         }
 
     def _due_reviews(self, module: str | None = None, limit: int = 5) -> list[dict[str, Any]]:
-        return list_review_tasks(
+        bounded = max(1, min(int(limit), 10))
+        runtime_reviews = list_review_tasks(
             self.home,
             status="pending",
             module=module,
-            limit=max(1, min(int(limit), 10)),
+            limit=bounded,
         )
+        learning_reviews = list_learning_reviews(
+            self.home,
+            dimension_id=module,
+            status="pending",
+            due_only=True,
+            limit=bounded,
+        )
+        combined = [
+            {"queue": "ielts_runtime", **item} for item in runtime_reviews
+        ] + [{"queue": "learning_model", **item} for item in learning_reviews]
+        combined.sort(
+            key=lambda item: (
+                str(item.get("due_at") or "9999"),
+                -int(item.get("priority") or 0),
+                str(item.get("queue") or ""),
+            )
+        )
+        return combined[:bounded]
 
     def _approved_materials(
         self,
@@ -340,7 +415,11 @@ class DomainToolRegistry:
         return search_learning_history(self.home, query, limit=max(1, min(int(limit), 10)))
 
     def _learner_memories(self, limit: int = 8) -> list[dict[str, Any]]:
-        return list_learner_memories(self.home, limit=max(1, min(int(limit), 10)))
+        return list_learner_memories(
+            self.home,
+            limit=max(1, min(int(limit), 10)),
+            touch_access=True,
+        )
 
     def _teaching_policy(
         self,
@@ -427,6 +506,10 @@ class DomainToolRegistry:
         self,
         statement: str,
         title: str | None = None,
+        memory_type: str | None = None,
+        memory_key: str | None = None,
+        scope: str | None = None,
+        expires_at: str | None = None,
     ) -> dict[str, Any]:
         return {
             "command": "save_learner_memory",
@@ -435,8 +518,10 @@ class DomainToolRegistry:
             "rationale": "这只会影响后续教学方式，不会改变答案或分数。",
             "payload": {
                 "statement": str(statement)[:1000],
-                "memory_type": "teaching_preference",
-                "scope": "teaching_style",
+                "memory_type": str(memory_type or "teaching_preference")[:80],
+                "memory_key": str(memory_key)[:160] if memory_key else None,
+                "scope": str(scope or "teaching_style")[:80],
+                "expires_at": str(expires_at)[:80] if expires_at else None,
                 "confidence": 0.8,
             },
             "requires_confirmation": True,
@@ -510,6 +595,22 @@ class TutorOrchestrator:
         conversation_length: int = 0,
     ) -> dict[str, Any]:
         state = get_thread_learning_state(self.home, thread_id)
+        memories = [
+            {
+                "memory_id": item["memory_id"],
+                "memory_type": item["memory_type"],
+                "memory_key": item["memory_key"],
+                "statement": str(item["statement"])[:400],
+                "confidence": item["confidence"],
+                "scope": item["scope"],
+                "revision": item["revision"],
+            }
+            for item in list_learner_memories(
+                self.home,
+                limit=6,
+                touch_access=True,
+            )
+        ]
         inferred_module = module if module in _MODULES else _infer_module(user_request)
         route = _route_turn(
             user_request,
@@ -530,6 +631,7 @@ class TutorOrchestrator:
             **latency,
             "answer_policy": _answer_policy(user_request, source_context or {}, state["state"]),
             "thread_state": state,
+            "learner_memories": memories,
             "tools": self.registry.descriptors(),
             "budgets": {"max_rounds": MAX_TOOL_ROUNDS, "max_tool_calls": MAX_TOOL_CALLS},
             "tool_policy": _tool_policy(),
@@ -607,6 +709,7 @@ class TutorOrchestrator:
             "teaching_goal": teaching_goal,
             "answer_policy": answer_policy,
             "thread_learning_state": initial.get("thread_state"),
+            "learner_memories": initial.get("learner_memories") or [],
             "tool_observations": observations,
             "tool_budget_exhausted": (
                 len(tools_used) >= MAX_TOOL_CALLS
@@ -722,7 +825,12 @@ def _scope_tool_arguments(
     canonical: dict[str, Any],
 ) -> dict[str, Any]:
     thread_id = str(canonical.get("thread_id") or "")
-    thread_tools = {"inspect_thread_material", "locate_passage_evidence", "get_question_context"}
+    thread_tools = {
+        "inspect_thread_material",
+        "locate_passage_evidence",
+        "get_question_context",
+        "get_learner_snapshot",
+    }
     if name in thread_tools:
         requested = str(arguments.get("thread_id") or thread_id)
         if not thread_id or requested != thread_id:

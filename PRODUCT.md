@@ -39,6 +39,12 @@ Versioned Capabilities, complete Skills, IELTS integrity rules and output
 contracts constrain every assisted teaching action. Candidate model output
 must pass Schema and semantic validation before the Runtime may persist it.
 
+The public product remains IELTS Academic, while its internal longitudinal
+learning state is implemented by a reusable Learning Agent Kernel. The IELTS
+Academic Domain Pack owns the current four-module skill graph, assessment
+scale, Capabilities and evidence mappings. This is an internal architecture
+boundary, not a promise of unfinished subjects in the learner interface.
+
 The product is also bring-your-own-content and bring-your-own-model. Public
 builds start with an empty question bank, support multiple provider routes and
 keep external CLI Agents optional and separate from the primary teaching
@@ -77,10 +83,18 @@ model.
   planning-dependent turns may use at most three planning rounds and six
   allowlisted Runtime tool calls. Shell, arbitrary filesystem and direct SQL
   access are never exposed.
-- Study Threads and versioned soft teaching state save locally and
-  automatically. Errors, review tasks, learner memories, material promotion
-  and formal Practice actions require an explicit learner confirmation before
+- Study Threads, versioned soft teaching state and Runtime-owned Teaching
+  Cycles save locally. Learner memories are revisioned, expirable and excluded
+  when contradictory. Errors, review tasks, memory proposals, material
+  promotion and formal Practice actions require learner confirmation before
   the Runtime applies them.
+- Revisioned objectives, learning activities, mastery evidence and spaced
+  review schedules are stored by the generic learning kernel. Its estimates
+  are derived from admitted evidence and never replace official-score
+  provenance or IELTS-specific rules.
+- Release evidence includes deterministic positive and negative teaching-policy
+  controls in addition to output Schema checks and runtime reliability samples;
+  evaluation history never retains the raw learner content used by a case.
 - One primary Model Provider and optional fallbacks support ChatGPT login,
   OpenAI-compatible APIs and local compatible HTTP services. External CLI
   Agents are optional advanced tools, not teaching providers.

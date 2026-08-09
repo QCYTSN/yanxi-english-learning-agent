@@ -29,6 +29,10 @@ def _arguments(**updates: Any) -> dict[str, Any]:
         "title": None,
         "action": None,
         "statement": None,
+        "memory_type": None,
+        "memory_key": None,
+        "scope": None,
+        "expires_at": None,
     }
     result.update(updates)
     return result

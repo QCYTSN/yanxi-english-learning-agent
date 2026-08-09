@@ -13,7 +13,7 @@ from .storage import (
 )
 
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 _MODULES = {"listening", "reading", "writing", "speaking", "mixed"}
 _PROPOSAL_TYPES = {
     "practice_session",
@@ -55,6 +55,9 @@ def get_thread_learning_state(home: Path, thread_id: str) -> dict[str, Any]:
         row = conn.execute(
             "SELECT * FROM tutor_thread_states WHERE thread_id=?", (thread_id,)
         ).fetchone()
+    from .pedagogy import get_active_teaching_cycle
+
+    teaching_cycle = get_active_teaching_cycle(home, thread_id)
     if not row:
         state = _empty_state()
         state["module"] = str(thread["module"])
@@ -65,6 +68,7 @@ def get_thread_learning_state(home: Path, thread_id: str) -> dict[str, Any]:
             "last_message_id": None,
             "last_agent_run_id": None,
             "updated_at": None,
+            "teaching_cycle": teaching_cycle,
         }
     state = _normalise_state(json.loads(row["state_json"] or "{}"))
     return {
@@ -74,6 +78,7 @@ def get_thread_learning_state(home: Path, thread_id: str) -> dict[str, Any]:
         "last_message_id": row["last_message_id"],
         "last_agent_run_id": row["last_agent_run_id"],
         "updated_at": row["updated_at"],
+        "teaching_cycle": teaching_cycle,
     }
 
 
@@ -200,9 +205,19 @@ def persist_tutor_turn_effects(
                 """,
                 (run_id, thread_id, state_revision, now),
             )
+    from .pedagogy import observe_tutor_turn
+
+    teaching_cycle = observe_tutor_turn(
+        home,
+        thread_id=thread_id,
+        result=result,
+        run_id=run_id,
+        message_id=message_id,
+    )
     return {
         "learning_state": get_thread_learning_state(home, thread_id),
         "proposals": list_tutor_proposals(home, thread_id=thread_id, status="pending"),
+        "teaching_cycle": teaching_cycle,
     }
 
 
@@ -283,6 +298,16 @@ def _execute_confirmed_proposal(
             evidence_refs=[f"tutor-proposal:{proposal['proposal_id']}"],
             scope=str(payload.get("scope") or "teaching_style")[:80],
             source_thread_id=str(proposal["thread_id"]),
+            memory_key=(
+                str(payload["memory_key"])[:160]
+                if payload.get("memory_key")
+                else None
+            ),
+            expires_at=(
+                str(payload["expires_at"])
+                if payload.get("expires_at")
+                else None
+            ),
         )
         return {"memory_id": memory["memory_id"], "route": "/settings/memory"}
     if proposal_type == "review_item":
@@ -430,7 +455,19 @@ def _normalise_proposal(
     if proposal_type not in _PROPOSAL_TYPES:
         return None
     payload = dict(value.get("payload") or {})
-    for key in ("module", "route", "title", "action", "statement", "review_kind", "memory_type", "scope", "session_id"):
+    for key in (
+        "module",
+        "route",
+        "title",
+        "action",
+        "statement",
+        "review_kind",
+        "memory_type",
+        "memory_key",
+        "scope",
+        "expires_at",
+        "session_id",
+    ):
         if value.get(key) is not None and key not in payload:
             payload[key] = value[key]
     title = str(value.get("title") or {

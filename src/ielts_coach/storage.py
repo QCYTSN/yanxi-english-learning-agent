@@ -15,7 +15,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 30
+SCHEMA_VERSION = 32
 
 _CACHE_LOCK = threading.RLock()
 _DB_FILENAME_CACHE: dict[Path, tuple[tuple[int, int] | None, str]] = {}
@@ -27,6 +27,8 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS sessions (
     session_id TEXT PRIMARY KEY,
     module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
+    track_id TEXT NOT NULL DEFAULT 'ielts-academic',
+    learning_activity_id TEXT,
     occurred_at TEXT NOT NULL,
     source_id TEXT,
     question_id TEXT,
@@ -667,6 +669,7 @@ CREATE TABLE IF NOT EXISTS study_threads (
     thread_id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     module TEXT NOT NULL DEFAULT 'mixed',
+    track_id TEXT NOT NULL DEFAULT 'ielts-academic',
     status TEXT NOT NULL DEFAULT 'active',
     model_provider_id TEXT,
     source_context_json TEXT NOT NULL DEFAULT '{}',
@@ -773,22 +776,77 @@ CREATE TABLE IF NOT EXISTS study_thread_summaries (
 
 CREATE TABLE IF NOT EXISTS learner_memories (
     memory_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL DEFAULT 'ielts-academic',
     memory_type TEXT NOT NULL,
+    memory_key TEXT NOT NULL DEFAULT '',
     statement TEXT NOT NULL,
+    content_hash TEXT NOT NULL DEFAULT '',
     confidence REAL NOT NULL CHECK(confidence>=0 AND confidence<=1),
     evidence_refs_json TEXT NOT NULL DEFAULT '[]',
     scope TEXT NOT NULL DEFAULT 'teaching_style',
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','dismissed')),
+    validity_status TEXT NOT NULL DEFAULT 'current' CHECK(
+      validity_status IN ('current','conflicted','superseded','expired')
+    ),
+    revision INTEGER NOT NULL DEFAULT 1,
+    source_kind TEXT NOT NULL DEFAULT 'learner_confirmed',
+    supersedes_memory_id TEXT,
+    conflict_group_id TEXT,
+    valid_from TEXT,
+    expires_at TEXT,
+    last_accessed_at TEXT,
+    access_count INTEGER NOT NULL DEFAULT 0,
     source_thread_id TEXT,
     source_session_id TEXT,
     created_at TEXT NOT NULL,
     last_confirmed_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
+    FOREIGN KEY(supersedes_memory_id) REFERENCES learner_memories(memory_id) ON DELETE SET NULL,
     FOREIGN KEY(source_thread_id) REFERENCES study_threads(thread_id) ON DELETE SET NULL,
     FOREIGN KEY(source_session_id) REFERENCES sessions(session_id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_learner_memories_active
 ON learner_memories(status,memory_type,updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS learner_memory_revisions (
+    memory_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    statement TEXT NOT NULL,
+    content_hash TEXT NOT NULL,
+    confidence REAL NOT NULL CHECK(confidence>=0 AND confidence<=1),
+    evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+    memory_key TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    status TEXT NOT NULL,
+    validity_status TEXT NOT NULL,
+    source_kind TEXT NOT NULL,
+    expires_at TEXT,
+    change_reason TEXT NOT NULL,
+    changed_at TEXT NOT NULL,
+    PRIMARY KEY(memory_id,revision),
+    FOREIGN KEY(memory_id) REFERENCES learner_memories(memory_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_learner_memory_revisions_time
+ON learner_memory_revisions(memory_id,revision DESC);
+
+CREATE TABLE IF NOT EXISTS learner_memory_conflicts (
+    conflict_id TEXT PRIMARY KEY,
+    conflict_group_id TEXT NOT NULL,
+    left_memory_id TEXT NOT NULL,
+    right_memory_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','resolved')),
+    resolution TEXT CHECK(
+      resolution IS NULL OR resolution IN ('keep_left','keep_right','keep_both','dismiss_both')
+    ),
+    rationale TEXT,
+    created_at TEXT NOT NULL,
+    resolved_at TEXT,
+    FOREIGN KEY(left_memory_id) REFERENCES learner_memories(memory_id) ON DELETE CASCADE,
+    FOREIGN KEY(right_memory_id) REFERENCES learner_memories(memory_id) ON DELETE CASCADE,
+    UNIQUE(left_memory_id,right_memory_id)
+);
+CREATE INDEX IF NOT EXISTS idx_learner_memory_conflicts_open
+ON learner_memory_conflicts(status,created_at DESC);
 
 CREATE TABLE IF NOT EXISTS capability_evaluation_runs (
     evaluation_id TEXT PRIMARY KEY,
@@ -805,6 +863,25 @@ CREATE TABLE IF NOT EXISTS capability_evaluation_runs (
 );
 CREATE INDEX IF NOT EXISTS idx_capability_evaluations_time
 ON capability_evaluation_runs(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS teaching_quality_evaluation_runs (
+    evaluation_id TEXT PRIMARY KEY,
+    suite_name TEXT NOT NULL,
+    source_label TEXT NOT NULL,
+    evaluator_version INTEGER NOT NULL,
+    case_count INTEGER NOT NULL,
+    passed_count INTEGER NOT NULL,
+    failed_count INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('passed','failed')),
+    score REAL NOT NULL CHECK(score>=0 AND score<=1),
+    dimension_scores_json TEXT NOT NULL DEFAULT '{}',
+    report_hash TEXT NOT NULL,
+    report_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    completed_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_teaching_quality_evaluations_time
+ON teaching_quality_evaluation_runs(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS ui_settings (
     key TEXT PRIMARY KEY,
@@ -906,6 +983,8 @@ CREATE TABLE IF NOT EXISTS practice_units (
     unit_id TEXT PRIMARY KEY,
     unit_kind TEXT NOT NULL CHECK(unit_kind IN ('diagnostic','practice','review')),
     module TEXT CHECK(module IN ('listening','reading','writing','speaking') OR module IS NULL),
+    track_id TEXT NOT NULL DEFAULT 'ielts-academic',
+    objective_id TEXT,
     title TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('planned','in_progress','completed','cancelled')),
     scheduled_for TEXT NOT NULL,
@@ -934,6 +1013,9 @@ CREATE TABLE IF NOT EXISTS review_tasks (
     review_task_id TEXT PRIMARY KEY,
     stable_key TEXT NOT NULL UNIQUE,
     module TEXT NOT NULL CHECK(module IN ('listening','reading','writing','speaking')),
+    track_id TEXT NOT NULL DEFAULT 'ielts-academic',
+    skill_id TEXT,
+    objective_id TEXT,
     review_kind TEXT NOT NULL CHECK(review_kind IN (
       'error_review','listening_expression','writing_revision','reading_wrong_answer'
     )),
@@ -958,6 +1040,220 @@ CREATE INDEX IF NOT EXISTS idx_review_tasks_queue
 ON review_tasks(status,due_at,priority DESC,created_at);
 CREATE INDEX IF NOT EXISTS idx_review_tasks_session
 ON review_tasks(session_id,status);
+
+CREATE TABLE IF NOT EXISTS learning_skill_nodes (
+    track_id TEXT NOT NULL,
+    skill_id TEXT NOT NULL,
+    dimension_id TEXT NOT NULL,
+    parent_skill_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(track_id,skill_id),
+    FOREIGN KEY(track_id,parent_skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE RESTRICT
+);
+CREATE INDEX IF NOT EXISTS idx_learning_skill_nodes_dimension
+ON learning_skill_nodes(track_id,dimension_id,sort_order,skill_id);
+
+CREATE TABLE IF NOT EXISTS learning_objectives (
+    objective_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    dimension_id TEXT NOT NULL,
+    skill_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK(
+      status IN ('planned','active','achieved','paused','archived')
+    ),
+    priority INTEGER NOT NULL DEFAULT 50 CHECK(priority>=0 AND priority<=100),
+    target_value REAL CHECK(target_value IS NULL OR (target_value>=0 AND target_value<=1)),
+    target_label TEXT,
+    due_at TEXT,
+    source_type TEXT NOT NULL DEFAULT 'learner',
+    source_id TEXT,
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    revision INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    achieved_at TEXT,
+    FOREIGN KEY(track_id,skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE RESTRICT
+);
+CREATE INDEX IF NOT EXISTS idx_learning_objectives_active
+ON learning_objectives(track_id,status,priority DESC,due_at,created_at);
+CREATE INDEX IF NOT EXISTS idx_learning_objectives_skill
+ON learning_objectives(track_id,skill_id,status);
+
+CREATE TABLE IF NOT EXISTS learning_activities (
+    activity_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    dimension_id TEXT,
+    activity_type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'planned' CHECK(
+      status IN ('planned','in_progress','completed','cancelled')
+    ),
+    objective_id TEXT,
+    source_type TEXT NOT NULL,
+    source_id TEXT,
+    session_id TEXT,
+    thread_id TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    revision INTEGER NOT NULL DEFAULT 0,
+    started_at TEXT,
+    completed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(objective_id) REFERENCES learning_objectives(objective_id) ON DELETE SET NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE SET NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_learning_activities_track
+ON learning_activities(track_id,status,updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_learning_activities_objective
+ON learning_activities(objective_id,status,updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS mastery_evidence (
+    evidence_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    skill_id TEXT NOT NULL,
+    objective_id TEXT,
+    activity_id TEXT,
+    evidence_kind TEXT NOT NULL CHECK(
+      evidence_kind IN ('attempt','assessment','review','tutor_observation','self_report')
+    ),
+    score REAL NOT NULL CHECK(score>=0 AND score<=1),
+    confidence REAL NOT NULL CHECK(confidence>=0 AND confidence<=1),
+    source_type TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    session_id TEXT,
+    thread_id TEXT,
+    rationale TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    observed_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(track_id,skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE RESTRICT,
+    FOREIGN KEY(objective_id) REFERENCES learning_objectives(objective_id) ON DELETE SET NULL,
+    FOREIGN KEY(activity_id) REFERENCES learning_activities(activity_id) ON DELETE SET NULL,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE SET NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mastery_evidence_source
+ON mastery_evidence(track_id,skill_id,source_type,source_id);
+CREATE INDEX IF NOT EXISTS idx_mastery_evidence_skill
+ON mastery_evidence(track_id,skill_id,observed_at DESC);
+
+CREATE TABLE IF NOT EXISTS skill_mastery (
+    track_id TEXT NOT NULL,
+    skill_id TEXT NOT NULL,
+    estimate REAL NOT NULL CHECK(estimate>=0 AND estimate<=1),
+    confidence REAL NOT NULL CHECK(confidence>=0 AND confidence<=1),
+    evidence_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL CHECK(
+      status IN ('unknown','needs_support','developing','secure','strong')
+    ),
+    last_evidence_at TEXT,
+    next_review_at TEXT,
+    calculation_json TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY(track_id,skill_id),
+    FOREIGN KEY(track_id,skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_skill_mastery_status
+ON skill_mastery(track_id,status,estimate,updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS learning_review_schedules (
+    review_id TEXT PRIMARY KEY,
+    stable_key TEXT NOT NULL UNIQUE,
+    track_id TEXT NOT NULL,
+    skill_id TEXT NOT NULL,
+    objective_id TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(
+      status IN ('pending','in_progress','completed','dismissed')
+    ),
+    due_at TEXT NOT NULL,
+    interval_days INTEGER NOT NULL DEFAULT 1 CHECK(interval_days>=0),
+    repetition_count INTEGER NOT NULL DEFAULT 0 CHECK(repetition_count>=0),
+    priority INTEGER NOT NULL DEFAULT 50 CHECK(priority>=0 AND priority<=100),
+    source_evidence_id TEXT,
+    last_reviewed_at TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(track_id,skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE CASCADE,
+    FOREIGN KEY(objective_id) REFERENCES learning_objectives(objective_id) ON DELETE SET NULL,
+    FOREIGN KEY(source_evidence_id) REFERENCES mastery_evidence(evidence_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_learning_reviews_due
+ON learning_review_schedules(track_id,status,due_at,priority DESC);
+
+CREATE TABLE IF NOT EXISTS teaching_cycles (
+    cycle_id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    dimension_id TEXT,
+    skill_id TEXT,
+    objective_id TEXT,
+    activity_id TEXT,
+    thread_id TEXT,
+    session_id TEXT,
+    title TEXT NOT NULL,
+    phase TEXT NOT NULL CHECK(
+      phase IN ('diagnose','teach','guided_practice','independent_practice','assess','review','consolidate')
+    ),
+    status TEXT NOT NULL DEFAULT 'active' CHECK(
+      status IN ('active','paused','completed','cancelled')
+    ),
+    revision INTEGER NOT NULL DEFAULT 0,
+    context_json TEXT NOT NULL DEFAULT '{}',
+    source_type TEXT NOT NULL DEFAULT 'runtime',
+    source_id TEXT,
+    started_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    completed_at TEXT,
+    FOREIGN KEY(track_id,skill_id)
+      REFERENCES learning_skill_nodes(track_id,skill_id) ON DELETE RESTRICT,
+    FOREIGN KEY(objective_id) REFERENCES learning_objectives(objective_id) ON DELETE SET NULL,
+    FOREIGN KEY(activity_id) REFERENCES learning_activities(activity_id) ON DELETE SET NULL,
+    FOREIGN KEY(thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
+    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_teaching_cycles_track
+ON teaching_cycles(track_id,status,updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_teaching_cycles_thread
+ON teaching_cycles(thread_id,status,updated_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_teaching_cycles_active_thread
+ON teaching_cycles(thread_id)
+WHERE thread_id IS NOT NULL AND status IN ('active','paused');
+
+CREATE TABLE IF NOT EXISTS teaching_cycle_events (
+    event_id TEXT PRIMARY KEY,
+    cycle_id TEXT NOT NULL,
+    sequence INTEGER NOT NULL,
+    event_type TEXT NOT NULL,
+    from_phase TEXT NOT NULL,
+    to_phase TEXT NOT NULL,
+    actor TEXT NOT NULL CHECK(actor IN ('runtime','learner')),
+    reason_code TEXT NOT NULL,
+    source_type TEXT,
+    source_id TEXT,
+    evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(cycle_id) REFERENCES teaching_cycles(cycle_id) ON DELETE CASCADE,
+    UNIQUE(cycle_id,sequence)
+);
+CREATE INDEX IF NOT EXISTS idx_teaching_cycle_events_cycle
+ON teaching_cycle_events(cycle_id,sequence);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_teaching_cycle_events_source
+ON teaching_cycle_events(cycle_id,event_type,source_type,source_id)
+WHERE source_type IS NOT NULL AND source_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS weekly_reports (
     report_id TEXT PRIMARY KEY,
@@ -1079,6 +1375,8 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     # V0.1 databases remain usable without destructive migration.
     session_columns = _columns(conn, "sessions")
     additions = {
+        "track_id": "TEXT NOT NULL DEFAULT 'ielts-academic'",
+        "learning_activity_id": "TEXT",
         "question_id": "TEXT",
         "passage_id": "TEXT",
         "assessment_pack_id": "TEXT",
@@ -1105,6 +1403,58 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
     for name, declaration in additions.items():
         if name not in session_columns:
             conn.execute(f"ALTER TABLE sessions ADD COLUMN {name} {declaration}")
+    for table, table_additions in (
+        (
+            "study_threads",
+            {"track_id": "TEXT NOT NULL DEFAULT 'ielts-academic'"},
+        ),
+        (
+            "learner_memories",
+            {
+                "track_id": "TEXT NOT NULL DEFAULT 'ielts-academic'",
+                "memory_key": "TEXT NOT NULL DEFAULT ''",
+                "content_hash": "TEXT NOT NULL DEFAULT ''",
+                "validity_status": "TEXT NOT NULL DEFAULT 'current'",
+                "revision": "INTEGER NOT NULL DEFAULT 1",
+                "source_kind": "TEXT NOT NULL DEFAULT 'learner_confirmed'",
+                "supersedes_memory_id": "TEXT",
+                "conflict_group_id": "TEXT",
+                "valid_from": "TEXT",
+                "expires_at": "TEXT",
+                "last_accessed_at": "TEXT",
+                "access_count": "INTEGER NOT NULL DEFAULT 0",
+            },
+        ),
+        (
+            "practice_units",
+            {
+                "track_id": "TEXT NOT NULL DEFAULT 'ielts-academic'",
+                "objective_id": "TEXT",
+            },
+        ),
+        (
+            "review_tasks",
+            {
+                "track_id": "TEXT NOT NULL DEFAULT 'ielts-academic'",
+                "skill_id": "TEXT",
+                "objective_id": "TEXT",
+            },
+        ),
+    ):
+        existing_columns = _columns(conn, table)
+        for name, declaration in table_additions.items():
+            if name not in existing_columns:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_learner_memories_effective "
+        "ON learner_memories(track_id,status,validity_status,memory_key,updated_at DESC)"
+    )
+    conn.execute("DROP INDEX IF EXISTS idx_teaching_cycles_active_thread")
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_teaching_cycles_active_thread "
+        "ON teaching_cycles(thread_id) "
+        "WHERE thread_id IS NOT NULL AND status IN ('active','paused')"
+    )
     diagnostic_columns = _columns(conn, "diagnostic_runs")
     if "practice_unit_id" not in diagnostic_columns:
         conn.execute("ALTER TABLE diagnostic_runs ADD COLUMN practice_unit_id TEXT")
@@ -1476,14 +1826,16 @@ def record_session(
         conn.execute(
             """
             INSERT INTO sessions(
-              session_id,module,occurred_at,source_id,question_id,passage_id,assessment_pack_id,mode,practice_mode,conformance_status,status,raw_score,band,
+              session_id,module,track_id,learning_activity_id,occurred_at,source_id,question_id,passage_id,assessment_pack_id,mode,practice_mode,conformance_status,status,raw_score,band,
               score_kind,score_confidence,answer_key_source,band_conversion_source,
               rubric_json,time_limit_minutes,started_at,submitted_at,answer_revealed_at,hints_used,
               duration_minutes,payload_json,payload_hash,mirror_status,mirror_checked_at,
               created_at,updated_at
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(session_id) DO UPDATE SET
-              module=excluded.module,occurred_at=excluded.occurred_at,
+              module=excluded.module,track_id=excluded.track_id,
+              learning_activity_id=excluded.learning_activity_id,
+              occurred_at=excluded.occurred_at,
               source_id=excluded.source_id,question_id=excluded.question_id,
               passage_id=excluded.passage_id,assessment_pack_id=excluded.assessment_pack_id,
               mode=excluded.mode,practice_mode=excluded.practice_mode,
@@ -1502,7 +1854,9 @@ def record_session(
               updated_at=excluded.updated_at
             """,
             (
-                session_id, module, occurred_at, data.get("source_id"), data.get("question_id"),
+                session_id, module, str(data.get("track_id") or "ielts-academic"),
+                data.get("learning_activity_id"), occurred_at,
+                data.get("source_id"), data.get("question_id"),
                 data.get("passage_id"), data.get("assessment_pack_id"), data.get("mode"),
                 data.get("practice_mode"), data.get("conformance_status"),
                 data.get("status", "completed"), raw_score,
@@ -1636,6 +1990,12 @@ def record_session(
                 ),
             )
 
+        from .learning_model import ingest_session_mastery_evidence
+        from .pedagogy import ingest_session_teaching_cycle
+
+        ingest_session_mastery_evidence(conn, data)
+        ingest_session_teaching_cycle(conn, data)
+
 
 def get_session(home: Path, session_id: str) -> sqlite3.Row | None:
     initialise_database(home)
@@ -1651,7 +2011,7 @@ def list_sessions(
 ) -> list[sqlite3.Row]:
     initialise_database(home)
     sql = (
-        "SELECT session_id,module,occurred_at,status,mode,band,score_kind,score_confidence,"
+        "SELECT session_id,module,track_id,learning_activity_id,occurred_at,status,mode,band,score_kind,score_confidence,"
         "duration_minutes,question_id,passage_id FROM sessions"
     )
     params: list[Any] = []
@@ -1669,7 +2029,7 @@ def latest_active_session(home: Path) -> sqlite3.Row | None:
     with connect(home) as conn:
         return conn.execute(
             """
-            SELECT session_id,module,occurred_at,status,mode,band,score_kind,
+            SELECT session_id,module,track_id,learning_activity_id,occurred_at,status,mode,band,score_kind,
                    score_confidence,duration_minutes,question_id,passage_id
             FROM sessions
             WHERE status NOT IN ('completed','cancelled')
@@ -3667,40 +4027,143 @@ def create_learner_memory(
     source_thread_id: str | None = None,
     source_session_id: str | None = None,
     memory_id: str | None = None,
+    track_id: str = "ielts-academic",
+    memory_key: str | None = None,
+    expires_at: str | None = None,
+    source_kind: str = "learner_confirmed",
+    supersedes_memory_id: str | None = None,
+    conflicts_with: list[str] | None = None,
 ) -> dict[str, Any]:
     initialise_database(home)
-    clean = " ".join(statement.strip().split())
+    clean = _normalise_memory_statement(statement)
     if not clean:
         raise ValueError("Learner memory statement cannot be empty")
     confidence = float(confidence)
     if not 0 <= confidence <= 1:
         raise ValueError("Learner memory confidence must be between 0 and 1")
+    source_kind = str(source_kind).strip()
+    if source_kind not in {
+        "learner_confirmed",
+        "runtime_observation",
+        "imported",
+    }:
+        raise ValueError("Unsupported learner memory source kind")
+    expires_at = _normalise_memory_expiry(expires_at)
+    memory_type = str(memory_type).strip()[:80]
+    scope = str(scope).strip()[:80]
+    if not memory_type or not scope:
+        raise ValueError("Learner memory type and scope are required")
+    content_hash = _memory_content_hash(clean)
+    memory_key = _normalise_memory_key(
+        memory_key,
+        memory_type=memory_type,
+        scope=scope,
+        content_hash=content_hash,
+    )
     memory_id = memory_id or f"memory_{uuid.uuid4().hex}"
     now = _now()
+    result_memory_id = memory_id
     with connect(home) as conn:
-        conn.execute(
+        conn.execute("BEGIN IMMEDIATE")
+        existing_by_id = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?",
+            (memory_id,),
+        ).fetchone()
+        if existing_by_id:
+            if (
+                str(existing_by_id["track_id"]) == track_id
+                and str(existing_by_id["memory_key"]) == memory_key
+                and str(existing_by_id["content_hash"]) == content_hash
+            ):
+                return _learner_memory_row(existing_by_id)
+            raise ValueError("Learner memory ID already exists with different content")
+        if supersedes_memory_id:
+            predecessor = conn.execute(
+                "SELECT * FROM learner_memories WHERE memory_id=?",
+                (supersedes_memory_id,),
+            ).fetchone()
+            if not predecessor:
+                raise ValueError("Superseded learner memory not found")
+            if str(predecessor["track_id"]) != track_id:
+                raise ValueError("Learner memories from different tracks cannot supersede each other")
+        duplicate = conn.execute(
             """
-            INSERT INTO learner_memories(
-              memory_id,memory_type,statement,confidence,evidence_refs_json,
-              scope,status,source_thread_id,source_session_id,created_at,
-              last_confirmed_at,updated_at
-            ) VALUES(?,?,?,?,?,?,'active',?,?,?,?,?)
+            SELECT * FROM learner_memories
+            WHERE track_id=? AND memory_key=? AND content_hash=?
+              AND status='active' AND validity_status='current'
+              AND (expires_at IS NULL OR expires_at>?)
+            ORDER BY updated_at DESC LIMIT 1
             """,
-            (
+            (track_id, memory_key, content_hash, now),
+        ).fetchone()
+        if duplicate and not supersedes_memory_id and not conflicts_with:
+            result_memory_id = str(duplicate["memory_id"])
+            conn.execute(
+                """
+                UPDATE learner_memories
+                SET last_confirmed_at=?,updated_at=?
+                WHERE memory_id=?
+                """,
+                (now, now, result_memory_id),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO learner_memories(
+                  memory_id,track_id,memory_type,memory_key,statement,content_hash,
+                  confidence,evidence_refs_json,scope,status,validity_status,revision,
+                  source_kind,supersedes_memory_id,conflict_group_id,valid_from,
+                  expires_at,last_accessed_at,access_count,source_thread_id,
+                  source_session_id,created_at,last_confirmed_at,updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,'active','current',1,?,?,NULL,?,?,NULL,0,?,?,?,?,?)
+                """,
+                (
+                    memory_id,
+                    track_id,
+                    memory_type,
+                    memory_key,
+                    clean,
+                    content_hash,
+                    confidence,
+                    json.dumps(evidence_refs or [], ensure_ascii=False),
+                    scope,
+                    source_kind,
+                    supersedes_memory_id,
+                    now,
+                    expires_at,
+                    source_thread_id,
+                    source_session_id,
+                    now,
+                    now,
+                    now,
+                ),
+            )
+            if supersedes_memory_id:
+                _set_memory_lifecycle_conn(
+                    conn,
+                    supersedes_memory_id,
+                    status=None,
+                    validity_status="superseded",
+                    conflict_group_id=None,
+                    reason="superseded_by_new_memory",
+                    changed_at=now,
+                )
+            _detect_memory_conflicts_conn(
+                conn,
                 memory_id,
-                memory_type[:80],
-                clean[:2000],
-                confidence,
-                json.dumps(evidence_refs or [], ensure_ascii=False),
-                scope[:80],
-                source_thread_id,
-                source_session_id,
-                now,
-                now,
-                now,
-            ),
-        )
-    return get_learner_memory(home, memory_id) or {}
+                explicit_memory_ids=conflicts_with or [],
+                changed_at=now,
+            )
+            created = conn.execute(
+                "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+            ).fetchone()
+            _insert_memory_revision_conn(
+                conn,
+                created,
+                change_reason="created",
+                changed_at=now,
+            )
+    return get_learner_memory(home, result_memory_id) or {}
 
 
 def get_learner_memory(home: Path, memory_id: str) -> dict[str, Any] | None:
@@ -3715,24 +4178,70 @@ def get_learner_memory(home: Path, memory_id: str) -> dict[str, Any] | None:
 def list_learner_memories(
     home: Path,
     *,
-    status: str = "active",
+    status: str | None = "active",
     memory_type: str | None = None,
+    track_id: str | None = "ielts-academic",
+    validity_status: str | None = "current",
+    include_expired: bool = False,
+    touch_access: bool = False,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
     initialise_database(home)
-    clauses = ["status=?"]
-    params: list[Any] = [status]
+    clauses: list[str] = []
+    params: list[Any] = []
+    if status:
+        if status not in {"active", "dismissed"}:
+            raise ValueError("Unsupported learner memory status")
+        clauses.append("status=?")
+        params.append(status)
+    if track_id:
+        clauses.append("track_id=?")
+        params.append(track_id)
     if memory_type:
         clauses.append("memory_type=?")
         params.append(memory_type)
+    if validity_status:
+        if validity_status not in {"current", "conflicted", "superseded", "expired"}:
+            raise ValueError("Unsupported learner memory validity status")
+        if validity_status == "expired":
+            clauses.append(
+                "(validity_status='expired' OR "
+                "(validity_status='current' AND expires_at IS NOT NULL AND expires_at<=?))"
+            )
+            params.append(_now())
+        else:
+            clauses.append("validity_status=?")
+            params.append(validity_status)
+    if not include_expired and validity_status != "expired":
+        clauses.append("(expires_at IS NULL OR expires_at>?)")
+        params.append(_now())
     params.append(max(1, min(int(limit), 200)))
+    where = " AND ".join(clauses) if clauses else "1=1"
     with connect(home) as conn:
         rows = conn.execute(
             "SELECT * FROM learner_memories WHERE "
-            + " AND ".join(clauses)
+            + where
             + " ORDER BY confidence DESC,updated_at DESC LIMIT ?",
             params,
         ).fetchall()
+        if touch_access and rows:
+            accessed_at = _now()
+            ordered_ids = [str(row["memory_id"]) for row in rows]
+            conn.executemany(
+                """
+                UPDATE learner_memories
+                SET last_accessed_at=?,access_count=access_count+1
+                WHERE memory_id=?
+                """,
+                [(accessed_at, row["memory_id"]) for row in rows],
+            )
+            refreshed = conn.execute(
+                f"SELECT * FROM learner_memories WHERE memory_id IN "
+                f"({','.join('?' for _ in rows)})",
+                ordered_ids,
+            ).fetchall()
+            refreshed_by_id = {str(row["memory_id"]): row for row in refreshed}
+            rows = [refreshed_by_id[memory_id] for memory_id in ordered_ids]
     return [_learner_memory_row(row) for row in rows]
 
 
@@ -3744,45 +4253,297 @@ def update_learner_memory(
     confidence: float | None = None,
     status: str | None = None,
     scope: str | None = None,
+    memory_key: str | None = None,
+    expires_at: str | None = None,
+    clear_expiry: bool = False,
+    expected_revision: int | None = None,
+    change_reason: str = "learner_update",
 ) -> dict[str, Any]:
-    existing = get_learner_memory(home, memory_id)
-    if not existing:
-        raise ValueError("Learner memory not found")
     if status is not None and status not in {"active", "dismissed"}:
         raise ValueError("Unsupported learner memory status")
     if confidence is not None and not 0 <= float(confidence) <= 1:
         raise ValueError("Learner memory confidence must be between 0 and 1")
-    values = {
-        "statement": (
-            " ".join(statement.strip().split())[:2000]
-            if statement is not None
-            else existing["statement"]
-        ),
-        "confidence": float(confidence) if confidence is not None else existing["confidence"],
-        "status": status or existing["status"],
-        "scope": scope[:80] if scope is not None else existing["scope"],
-    }
-    if not values["statement"]:
-        raise ValueError("Learner memory statement cannot be empty")
+    if expires_at is not None:
+        expires_at = _normalise_memory_expiry(expires_at)
     now = _now()
     with connect(home) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+        ).fetchone()
+        if not row:
+            raise ValueError("Learner memory not found")
+        current_revision = int(row["revision"])
+        if expected_revision is not None and current_revision != int(expected_revision):
+            from .errors import LearningRevisionConflictError
+
+            raise LearningRevisionConflictError(
+                f"Stale LearnerMemory revision: expected {expected_revision}, current {current_revision}",
+                details={
+                    "memory_id": memory_id,
+                    "expected_revision": int(expected_revision),
+                    "current_revision": current_revision,
+                },
+            )
+        clean_statement = (
+            _normalise_memory_statement(statement)
+            if statement is not None
+            else str(row["statement"])
+        )
+        if not clean_statement:
+            raise ValueError("Learner memory statement cannot be empty")
+        clean_scope = str(scope).strip()[:80] if scope is not None else str(row["scope"])
+        if not clean_scope:
+            raise ValueError("Learner memory scope cannot be empty")
+        content_hash = _memory_content_hash(clean_statement)
+        clean_key = (
+            _normalise_memory_key(
+                memory_key,
+                memory_type=str(row["memory_type"]),
+                scope=clean_scope,
+                content_hash=content_hash,
+            )
+            if memory_key is not None
+            else _normalise_memory_key(
+                None,
+                memory_type=str(row["memory_type"]),
+                scope=clean_scope,
+                content_hash=content_hash,
+            )
+            if scope is not None
+            and str(row["memory_type"]) in _SINGLETON_MEMORY_TYPES
+            else str(row["memory_key"])
+        )
+        next_status = status if status is not None else str(row["status"])
+        next_expires = (
+            None
+            if clear_expiry
+            else expires_at
+            if expires_at is not None
+            else row["expires_at"]
+        )
+        semantic_changed = bool(
+            clean_statement != str(row["statement"])
+            or clean_scope != str(row["scope"])
+            or clean_key != str(row["memory_key"])
+        )
+        lifecycle_changed = bool(
+            next_status != str(row["status"])
+            or next_expires != row["expires_at"]
+        )
         conn.execute(
             """
             UPDATE learner_memories
-            SET statement=?,confidence=?,status=?,scope=?,last_confirmed_at=?,updated_at=?
+            SET statement=?,content_hash=?,memory_key=?,confidence=?,status=?,scope=?,
+                expires_at=?,revision=revision+1,last_confirmed_at=?,updated_at=?
             WHERE memory_id=?
             """,
             (
-                values["statement"],
-                values["confidence"],
-                values["status"],
-                values["scope"],
+                clean_statement,
+                content_hash,
+                clean_key,
+                float(confidence) if confidence is not None else float(row["confidence"]),
+                next_status,
+                clean_scope,
+                next_expires,
                 now,
                 now,
                 memory_id,
             ),
         )
+        if next_status == "dismissed":
+            _resolve_conflicts_for_dismissed_conn(conn, memory_id, changed_at=now)
+        elif semantic_changed or lifecycle_changed:
+            _resolve_conflicts_for_changed_memory_conn(
+                conn,
+                memory_id,
+                changed_at=now,
+            )
+            is_expired = bool(next_expires and str(next_expires) <= now)
+            if not is_expired:
+                _detect_memory_conflicts_conn(
+                    conn,
+                    memory_id,
+                    explicit_memory_ids=[],
+                    changed_at=now,
+                )
+        elif str(row["validity_status"]) == "current":
+            _detect_memory_conflicts_conn(
+                conn,
+                memory_id,
+                explicit_memory_ids=[],
+                changed_at=now,
+            )
+        updated = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+        ).fetchone()
+        _insert_memory_revision_conn(
+            conn,
+            updated,
+            change_reason=str(change_reason).strip()[:120] or "learner_update",
+            changed_at=now,
+        )
     return get_learner_memory(home, memory_id) or {}
+
+
+def list_learner_memory_revisions(
+    home: Path,
+    memory_id: str,
+    *,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    with connect(home) as conn:
+        if not conn.execute(
+            "SELECT 1 FROM learner_memories WHERE memory_id=?", (memory_id,)
+        ).fetchone():
+            raise ValueError("Learner memory not found")
+        rows = conn.execute(
+            """
+            SELECT * FROM learner_memory_revisions
+            WHERE memory_id=? ORDER BY revision DESC LIMIT ?
+            """,
+            (memory_id, max(1, min(int(limit), 500))),
+        ).fetchall()
+    return [
+        {
+            **{
+                key: row[key]
+                for key in row.keys()
+                if key != "evidence_refs_json"
+            },
+            "confidence": float(row["confidence"]),
+            "evidence_refs": json.loads(row["evidence_refs_json"] or "[]"),
+        }
+        for row in rows
+    ]
+
+
+def list_learner_memory_conflicts(
+    home: Path,
+    *,
+    status: str | None = "open",
+    track_id: str | None = "ielts-academic",
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    initialise_database(home)
+    clauses: list[str] = []
+    params: list[Any] = []
+    if status:
+        if status not in {"open", "resolved"}:
+            raise ValueError("Unsupported learner memory conflict status")
+        clauses.append("conflicts.status=?")
+        params.append(status)
+    if track_id:
+        clauses.append("left_memory.track_id=?")
+        params.append(track_id)
+    where = " AND ".join(clauses) if clauses else "1=1"
+    params.append(max(1, min(int(limit), 500)))
+    with connect(home) as conn:
+        rows = conn.execute(
+            f"""
+            SELECT conflicts.*
+            FROM learner_memory_conflicts AS conflicts
+            JOIN learner_memories AS left_memory
+              ON left_memory.memory_id=conflicts.left_memory_id
+            WHERE {where}
+            ORDER BY conflicts.created_at DESC LIMIT ?
+            """,
+            params,
+        ).fetchall()
+        memories = {
+            str(item["memory_id"]): _learner_memory_row(item)
+            for item in conn.execute(
+                "SELECT * FROM learner_memories WHERE memory_id IN ("
+                + ",".join("?" for _ in {str(r['left_memory_id']) for r in rows} | {str(r['right_memory_id']) for r in rows})
+                + ")",
+                list({str(r['left_memory_id']) for r in rows} | {str(r['right_memory_id']) for r in rows}),
+            ).fetchall()
+        } if rows else {}
+    return [
+        {
+            **dict(row),
+            "left_memory": memories.get(str(row["left_memory_id"])),
+            "right_memory": memories.get(str(row["right_memory_id"])),
+        }
+        for row in rows
+    ]
+
+
+def resolve_learner_memory_conflict(
+    home: Path,
+    conflict_id: str,
+    *,
+    resolution: str,
+    rationale: str | None = None,
+) -> dict[str, Any]:
+    if resolution not in {"keep_left", "keep_right", "keep_both", "dismiss_both"}:
+        raise ValueError("Unsupported learner memory conflict resolution")
+    initialise_database(home)
+    now = _now()
+    with connect(home) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        conflict = conn.execute(
+            "SELECT * FROM learner_memory_conflicts WHERE conflict_id=?",
+            (conflict_id,),
+        ).fetchone()
+        if not conflict:
+            raise ValueError("Learner memory conflict not found")
+        if str(conflict["status"]) == "resolved":
+            return {
+                **dict(conflict),
+                "left_memory": _learner_memory_row(
+                    conn.execute(
+                        "SELECT * FROM learner_memories WHERE memory_id=?",
+                        (conflict["left_memory_id"],),
+                    ).fetchone()
+                ),
+                "right_memory": _learner_memory_row(
+                    conn.execute(
+                        "SELECT * FROM learner_memories WHERE memory_id=?",
+                        (conflict["right_memory_id"],),
+                    ).fetchone()
+                ),
+            }
+        left_id = str(conflict["left_memory_id"])
+        right_id = str(conflict["right_memory_id"])
+        if resolution == "keep_left":
+            _set_memory_lifecycle_conn(conn, left_id, status="active", validity_status="current", conflict_group_id=None, reason="conflict_keep_left", changed_at=now)
+            _set_memory_lifecycle_conn(conn, right_id, status="dismissed", validity_status="superseded", conflict_group_id=None, reason="conflict_keep_left", changed_at=now)
+        elif resolution == "keep_right":
+            _set_memory_lifecycle_conn(conn, left_id, status="dismissed", validity_status="superseded", conflict_group_id=None, reason="conflict_keep_right", changed_at=now)
+            _set_memory_lifecycle_conn(conn, right_id, status="active", validity_status="current", conflict_group_id=None, reason="conflict_keep_right", changed_at=now)
+        elif resolution == "keep_both":
+            _set_memory_lifecycle_conn(conn, left_id, status="active", validity_status="current", conflict_group_id=None, reason="conflict_keep_both", changed_at=now)
+            _set_memory_lifecycle_conn(conn, right_id, status="active", validity_status="current", conflict_group_id=None, reason="conflict_keep_both", changed_at=now)
+        else:
+            _set_memory_lifecycle_conn(conn, left_id, status="dismissed", validity_status="current", conflict_group_id=None, reason="conflict_dismiss_both", changed_at=now)
+            _set_memory_lifecycle_conn(conn, right_id, status="dismissed", validity_status="current", conflict_group_id=None, reason="conflict_dismiss_both", changed_at=now)
+        conn.execute(
+            """
+            UPDATE learner_memory_conflicts
+            SET status='resolved',resolution=?,rationale=?,resolved_at=?
+            WHERE conflict_id=?
+            """,
+            (resolution, (rationale or "")[:1000] or None, now, conflict_id),
+        )
+        for memory_id in (left_id, right_id):
+            _restore_memory_after_conflict_conn(conn, memory_id, changed_at=now)
+        updated = conn.execute(
+            "SELECT * FROM learner_memory_conflicts WHERE conflict_id=?",
+            (conflict_id,),
+        ).fetchone()
+        left = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?", (left_id,)
+        ).fetchone()
+        right = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?", (right_id,)
+        ).fetchone()
+    return {
+        **dict(updated),
+        "left_memory": _learner_memory_row(left),
+        "right_memory": _learner_memory_row(right),
+    }
 
 
 def delete_learner_memory(home: Path, memory_id: str) -> bool:
@@ -3795,11 +4556,346 @@ def delete_learner_memory(home: Path, memory_id: str) -> bool:
 
 
 def _learner_memory_row(row: sqlite3.Row) -> dict[str, Any]:
-    return {
+    result = {
         **{key: row[key] for key in row.keys() if key != "evidence_refs_json"},
         "confidence": float(row["confidence"]),
         "evidence_refs": json.loads(row["evidence_refs_json"]),
     }
+    expired = bool(
+        result.get("expires_at")
+        and str(result["expires_at"]) <= _now()
+        and result.get("validity_status") == "current"
+    )
+    result["effective_validity_status"] = "expired" if expired else result.get("validity_status")
+    result["effective"] = bool(
+        result.get("status") == "active"
+        and result["effective_validity_status"] == "current"
+    )
+    return result
+
+
+_SINGLETON_MEMORY_TYPES = {
+    "preferred_name",
+    "feedback_language",
+    "interface_language",
+    "target_band",
+    "explanation_order",
+    "timezone",
+}
+
+
+def _normalise_memory_statement(value: Any) -> str:
+    return " ".join(str(value or "").strip().split())[:2000]
+
+
+def _memory_content_hash(statement: str) -> str:
+    return hashlib.sha256(statement.casefold().encode("utf-8")).hexdigest()
+
+
+def _normalise_memory_key(
+    value: str | None,
+    *,
+    memory_type: str,
+    scope: str,
+    content_hash: str,
+) -> str:
+    if value is not None and str(value).strip():
+        clean = re.sub(r"[^a-z0-9._:-]+", "-", str(value).casefold()).strip("-")
+        if not clean:
+            raise ValueError("Learner memory key contains no usable characters")
+        return clean[:160]
+    if memory_type in _SINGLETON_MEMORY_TYPES:
+        return f"{scope}:{memory_type}"[:160]
+    seed = f"{scope}|{memory_type}|{content_hash[:20]}"
+    return f"memory:{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:32]}"
+
+
+def _normalise_memory_expiry(value: str | None) -> str | None:
+    if value is None or not str(value).strip():
+        return None
+    text = str(value).strip()
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("Learner memory expiry must be an ISO-8601 datetime") from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat()
+
+
+def _insert_memory_revision_conn(
+    conn: sqlite3.Connection,
+    row: sqlite3.Row,
+    *,
+    change_reason: str,
+    changed_at: str,
+) -> None:
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO learner_memory_revisions(
+          memory_id,revision,statement,content_hash,confidence,evidence_refs_json,
+          memory_key,scope,status,validity_status,source_kind,expires_at,
+          change_reason,changed_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            row["memory_id"],
+            int(row["revision"]),
+            row["statement"],
+            row["content_hash"],
+            float(row["confidence"]),
+            row["evidence_refs_json"],
+            row["memory_key"],
+            row["scope"],
+            row["status"],
+            row["validity_status"],
+            row["source_kind"],
+            row["expires_at"],
+            change_reason[:120],
+            changed_at,
+        ),
+    )
+
+
+def _set_memory_lifecycle_conn(
+    conn: sqlite3.Connection,
+    memory_id: str,
+    *,
+    status: str | None,
+    validity_status: str,
+    conflict_group_id: str | None,
+    reason: str,
+    changed_at: str,
+) -> None:
+    row = conn.execute(
+        "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+    ).fetchone()
+    if not row:
+        raise ValueError("Learner memory not found")
+    next_status = status if status is not None else str(row["status"])
+    if (
+        next_status == str(row["status"])
+        and validity_status == str(row["validity_status"])
+        and conflict_group_id == row["conflict_group_id"]
+    ):
+        return
+    conn.execute(
+        """
+        UPDATE learner_memories
+        SET status=?,validity_status=?,conflict_group_id=?,revision=revision+1,
+            updated_at=? WHERE memory_id=?
+        """,
+        (next_status, validity_status, conflict_group_id, changed_at, memory_id),
+    )
+    updated = conn.execute(
+        "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+    ).fetchone()
+    _insert_memory_revision_conn(
+        conn, updated, change_reason=reason, changed_at=changed_at
+    )
+
+
+def _detect_memory_conflicts_conn(
+    conn: sqlite3.Connection,
+    memory_id: str,
+    *,
+    explicit_memory_ids: list[str],
+    changed_at: str,
+) -> None:
+    row = conn.execute(
+        "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+    ).fetchone()
+    if (
+        not row
+        or str(row["status"]) != "active"
+        or (
+            row["expires_at"] is not None
+            and str(row["expires_at"]) <= changed_at
+        )
+    ):
+        return
+    candidates = conn.execute(
+        """
+        SELECT * FROM learner_memories
+        WHERE memory_id<>? AND track_id=? AND memory_key=? AND status='active'
+          AND validity_status IN ('current','conflicted')
+          AND (expires_at IS NULL OR expires_at>?)
+        """,
+        (memory_id, row["track_id"], row["memory_key"], changed_at),
+    ).fetchall()
+    explicit = {str(item) for item in explicit_memory_ids if str(item).strip()}
+    if explicit:
+        placeholders = ",".join("?" for _ in explicit)
+        candidates.extend(
+            conn.execute(
+                f"SELECT * FROM learner_memories WHERE memory_id IN ({placeholders})",
+                sorted(explicit),
+            ).fetchall()
+        )
+    mismatched = [
+        str(item["memory_id"])
+        for item in candidates
+        if str(item["track_id"]) != str(row["track_id"])
+    ]
+    if mismatched:
+        raise ValueError("Learner memory conflicts cannot cross learning tracks")
+    unique = {
+        str(item["memory_id"]): item
+        for item in candidates
+        if str(item["memory_id"]) != memory_id
+        and (
+            str(item["content_hash"]) != str(row["content_hash"])
+            or str(item["memory_id"]) in explicit
+        )
+    }
+    if not unique:
+        return
+    group_seed = f"{row['track_id']}|{row['memory_key']}"
+    group_id = f"memory_conflict_{hashlib.sha256(group_seed.encode('utf-8')).hexdigest()[:20]}"
+    conn.execute(
+        """
+        UPDATE learner_memories
+        SET validity_status='conflicted',conflict_group_id=?,updated_at=?
+        WHERE memory_id=?
+        """,
+        (group_id, changed_at, memory_id),
+    )
+    for candidate_id in sorted(unique):
+        candidate = unique[candidate_id]
+        if str(candidate["validity_status"]) != "conflicted" or candidate["conflict_group_id"] != group_id:
+            _set_memory_lifecycle_conn(
+                conn,
+                candidate_id,
+                status=None,
+                validity_status="conflicted",
+                conflict_group_id=group_id,
+                reason="conflict_detected",
+                changed_at=changed_at,
+            )
+        left_id, right_id = sorted((memory_id, candidate_id))
+        conflict_id = f"memory_conflict_{hashlib.sha256(f'{left_id}|{right_id}'.encode()).hexdigest()[:24]}"
+        conn.execute(
+            """
+            INSERT INTO learner_memory_conflicts(
+              conflict_id,conflict_group_id,left_memory_id,right_memory_id,
+              status,created_at
+            ) VALUES(?,?,?,?,'open',?)
+            ON CONFLICT(conflict_id) DO UPDATE SET
+              conflict_group_id=excluded.conflict_group_id,
+              status='open',resolution=NULL,rationale=NULL,
+              created_at=excluded.created_at,resolved_at=NULL
+            """,
+            (conflict_id, group_id, left_id, right_id, changed_at),
+        )
+
+
+def _resolve_conflicts_for_dismissed_conn(
+    conn: sqlite3.Connection,
+    memory_id: str,
+    *,
+    changed_at: str,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT * FROM learner_memory_conflicts
+        WHERE status='open' AND (left_memory_id=? OR right_memory_id=?)
+        """,
+        (memory_id, memory_id),
+    ).fetchall()
+    for conflict in rows:
+        other_id = (
+            str(conflict["right_memory_id"])
+            if str(conflict["left_memory_id"]) == memory_id
+            else str(conflict["left_memory_id"])
+        )
+        resolution = (
+            "keep_right"
+            if str(conflict["left_memory_id"]) == memory_id
+            else "keep_left"
+        )
+        conn.execute(
+            """
+            UPDATE learner_memory_conflicts
+            SET status='resolved',resolution=?,rationale='memory_dismissed',resolved_at=?
+            WHERE conflict_id=?
+            """,
+            (resolution, changed_at, conflict["conflict_id"]),
+        )
+        _restore_memory_after_conflict_conn(conn, other_id, changed_at=changed_at)
+
+
+def _resolve_conflicts_for_changed_memory_conn(
+    conn: sqlite3.Connection,
+    memory_id: str,
+    *,
+    changed_at: str,
+) -> None:
+    rows = conn.execute(
+        """
+        SELECT * FROM learner_memory_conflicts
+        WHERE status='open' AND (left_memory_id=? OR right_memory_id=?)
+        """,
+        (memory_id, memory_id),
+    ).fetchall()
+    peers: set[str] = set()
+    for conflict in rows:
+        peers.add(
+            str(conflict["right_memory_id"])
+            if str(conflict["left_memory_id"]) == memory_id
+            else str(conflict["left_memory_id"])
+        )
+        conn.execute(
+            """
+            UPDATE learner_memory_conflicts
+            SET status='resolved',resolution='keep_both',
+                rationale='memory_changed',resolved_at=?
+            WHERE conflict_id=?
+            """,
+            (changed_at, conflict["conflict_id"]),
+        )
+    for candidate_id in sorted(peers | {memory_id}):
+        _restore_memory_after_conflict_conn(
+            conn,
+            candidate_id,
+            changed_at=changed_at,
+        )
+
+
+def _restore_memory_after_conflict_conn(
+    conn: sqlite3.Connection,
+    memory_id: str,
+    *,
+    changed_at: str,
+) -> None:
+    row = conn.execute(
+        "SELECT * FROM learner_memories WHERE memory_id=?", (memory_id,)
+    ).fetchone()
+    if (
+        not row
+        or str(row["status"]) != "active"
+        or str(row["validity_status"]) in {"superseded", "expired"}
+    ):
+        return
+    open_conflict = conn.execute(
+        """
+        SELECT conflict_group_id FROM learner_memory_conflicts
+        WHERE status='open' AND (left_memory_id=? OR right_memory_id=?)
+        ORDER BY created_at DESC LIMIT 1
+        """,
+        (memory_id, memory_id),
+    ).fetchone()
+    desired = "conflicted" if open_conflict else "current"
+    desired_group = str(open_conflict["conflict_group_id"]) if open_conflict else None
+    if str(row["validity_status"]) != desired or row["conflict_group_id"] != desired_group:
+        _set_memory_lifecycle_conn(
+            conn,
+            memory_id,
+            status=None,
+            validity_status=desired,
+            conflict_group_id=desired_group,
+            reason="conflicts_remaining" if desired == "conflicted" else "conflicts_resolved",
+            changed_at=changed_at,
+        )
 
 
 def search_learning_history(

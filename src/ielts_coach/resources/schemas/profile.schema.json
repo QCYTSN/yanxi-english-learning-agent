@@ -4,6 +4,10 @@
   "required": ["exam", "target", "base_allocation", "allocation_policy"],
   "properties": {
     "profile_version": {"type": "integer", "minimum": 1},
+    "active_learning_track_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
     "onboarding": {
       "type": "object",
       "required": ["status"],

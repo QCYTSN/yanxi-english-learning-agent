@@ -4,7 +4,7 @@ System completeness work after V0.7 is tracked authoritatively in
 [SYSTEM_COMPLETENESS_PLAN.md](SYSTEM_COMPLETENESS_PLAN.md). Content inventory
 targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 
-## Delivered through V1.4
+## Delivered through the current local build
 
 - six-Skill architecture
 - independent Reading coach
@@ -108,6 +108,17 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   and lifecycle-safe conversation deletion
 - schema v29 durable background jobs plus SQLite FTS5 learning-history search
 - schema v30 persistent Provider health, retry and circuit-breaker state
+- schema v31 Learning Agent Kernel with track-aware objectives, activities,
+  mastery evidence, deterministic skill state and review schedules
+- IELTS Academic Domain Pack with four dimensions, 21 skill nodes, existing
+  Capability contracts and deterministic Session evidence projection
+- schema v32 revisioned and expirable learner memory, duplicate suppression,
+  explicit contradiction resolution and bounded effective-memory retrieval
+- Runtime-owned Teaching Cycles with optimistic revision checks, append-only
+  events and deterministic next-phase recommendations
+- privacy-safe teaching-quality regression across instructional fit, answer
+  integrity, grounding, active learning, memory continuity, pedagogy authority
+  and recovery, integrated into the release gate
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
@@ -155,6 +166,9 @@ The remaining sequence is:
 2. exercise the implemented visual system and complete learning workflows with
    real material, then resolve the resulting accessibility, performance and
    interaction findings. `DESIGN.md` is the current visual authority.
+3. decide separately whether to author a hidden General English pilot Domain
+   Pack; it requires its own curriculum, Skills, contracts and evaluation set
+   and is not part of the current IELTS release.
 
 ## Deferred product decisions
 

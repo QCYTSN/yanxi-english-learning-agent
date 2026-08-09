@@ -1,0 +1,179 @@
+{
+  "suite_version": 1,
+  "cases": [
+    {
+      "case_id": "instructional-fit-positive",
+      "dimension": "instructional_fit",
+      "expected_pass": true,
+      "context": {
+        "allowed_moves": ["explain", "model_then_practise"],
+        "requested_depth": "brief"
+      },
+      "response": {
+        "teaching_move": "explain",
+        "response_depth": "brief",
+        "next_action": "Try one example independently."
+      }
+    },
+    {
+      "case_id": "instructional-fit-negative",
+      "dimension": "instructional_fit",
+      "expected_pass": false,
+      "context": {
+        "allowed_moves": ["guided_question"],
+        "requested_depth": "brief"
+      },
+      "response": {
+        "teaching_move": "lecture",
+        "response_depth": "extended",
+        "next_action": ""
+      }
+    },
+    {
+      "case_id": "answer-integrity-positive",
+      "dimension": "answer_integrity",
+      "expected_pass": true,
+      "context": {
+        "answer_policy": "locked",
+        "authoritative_key_available": false
+      },
+      "response": {
+        "request_kind": "teacher_dialogue",
+        "answer_status": "withheld"
+      }
+    },
+    {
+      "case_id": "answer-integrity-negative",
+      "dimension": "answer_integrity",
+      "expected_pass": false,
+      "context": {
+        "answer_policy": "locked",
+        "authoritative_key_available": false
+      },
+      "response": {
+        "request_kind": "question_explanation",
+        "answer_status": "verified"
+      }
+    },
+    {
+      "case_id": "evidence-grounding-positive",
+      "dimension": "evidence_grounding",
+      "expected_pass": true,
+      "context": {"quote_required": true},
+      "response": {
+        "evidence_status": "sufficient",
+        "evidence": [
+          {
+            "claim": "The explanation is grounded in the passage.",
+            "source": "passage:p1",
+            "quote": "A short anchored excerpt."
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "evidence-grounding-negative",
+      "dimension": "evidence_grounding",
+      "expected_pass": false,
+      "context": {"quote_required": true},
+      "response": {
+        "evidence_status": "sufficient",
+        "evidence": []
+      }
+    },
+    {
+      "case_id": "active-learning-positive",
+      "dimension": "active_learning",
+      "expected_pass": true,
+      "context": {"learner_revision_count": 0},
+      "response": {"next_action": "Revise the two priority issues first."},
+      "trace": {
+        "model_alternative_shown": false,
+        "stages": ["evidence", "priorities", "learner_revision"]
+      }
+    },
+    {
+      "case_id": "active-learning-negative",
+      "dimension": "active_learning",
+      "expected_pass": false,
+      "context": {"learner_revision_count": 1},
+      "response": {"next_action": ""},
+      "trace": {
+        "model_alternative_shown": true,
+        "stages": ["model_alternative", "evidence", "priorities"]
+      }
+    },
+    {
+      "case_id": "memory-continuity-positive",
+      "dimension": "memory_continuity",
+      "expected_pass": true,
+      "context": {"required_memory_ids": ["memory-a"]},
+      "trace": {
+        "loaded_memory_ids": ["memory-a", "memory-b"],
+        "used_memory_ids": ["memory-a"],
+        "expired_memory_ids": [],
+        "conflicted_memory_ids": []
+      }
+    },
+    {
+      "case_id": "memory-continuity-negative",
+      "dimension": "memory_continuity",
+      "expected_pass": false,
+      "context": {"required_memory_ids": ["memory-a"]},
+      "trace": {
+        "loaded_memory_ids": ["memory-b"],
+        "used_memory_ids": ["memory-b"],
+        "expired_memory_ids": ["memory-b"],
+        "conflicted_memory_ids": []
+      }
+    },
+    {
+      "case_id": "pedagogy-control-positive",
+      "dimension": "pedagogy_control",
+      "expected_pass": true,
+      "trace": {
+        "from_phase": "guided_practice",
+        "to_phase": "independent_practice",
+        "mutation_actor": "runtime",
+        "confirmed": false,
+        "expected_revision_matches": true
+      }
+    },
+    {
+      "case_id": "pedagogy-control-negative",
+      "dimension": "pedagogy_control",
+      "expected_pass": false,
+      "trace": {
+        "from_phase": "diagnose",
+        "to_phase": "consolidate",
+        "mutation_actor": "model",
+        "confirmed": false,
+        "expected_revision_matches": false
+      }
+    },
+    {
+      "case_id": "recovery-positive",
+      "dimension": "recovery",
+      "expected_pass": true,
+      "context": {"max_attempts": 3},
+      "trace": {
+        "raw_content_retained": false,
+        "error_message_redacted": true,
+        "attempt_count": 2,
+        "learner_action": "retry"
+      }
+    },
+    {
+      "case_id": "recovery-negative",
+      "dimension": "recovery",
+      "expected_pass": false,
+      "context": {"max_attempts": 3},
+      "trace": {
+        "raw_content_retained": true,
+        "error_message_redacted": false,
+        "attempt_count": 6,
+        "learner_action": "none"
+      }
+    }
+  ]
+}

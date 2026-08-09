@@ -5,6 +5,8 @@
   "properties": {
     "session_id": {"type": "string", "pattern": "^[LRSW]-[0-9]{8}-[0-9]{3}$|^[A-Za-z0-9][A-Za-z0-9._-]*$"},
     "module": {"enum": ["listening", "reading", "writing", "speaking"]},
+    "track_id": {"const": "ielts-academic"},
+    "learning_activity_id": {"type": ["string", "null"]},
     "status": {"enum": ["draft", "question_presented", "learner_working", "awaiting_feedback", "awaiting_revision", "completed", "cancelled"]},
     "occurred_at": {"type": ["string", "null"]},
     "source_id": {"type": ["string", "null"]},

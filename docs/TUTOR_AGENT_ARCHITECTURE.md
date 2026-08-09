@@ -47,15 +47,23 @@ persisted assistant message.
 |---|---|---|---|
 | Study Thread and messages | Conversation Runtime | automatic, local | informal dialogue |
 | Thread Learning State | Conversation Runtime | automatic, versioned | soft teaching continuity |
+| Teaching Cycle and events | Learning Agent Kernel | revisioned, Runtime/learner mutations only | current pedagogical phase |
 | Tutor Proposal | Conversation Runtime | pending until learner decision | no formal effect |
-| Session, attempt, score, error, review | Teaching Runtime | validated and idempotent | formal learning record |
-| Learner Memory | learner through confirmation | local and removable | personalisation only |
+| Session, attempt, score and error | Teaching Runtime | validated and idempotent | formal IELTS learning record |
+| Objective, activity, mastery evidence and schedule | Learning Agent Kernel | revisioned or idempotent, local | longitudinal learning state |
+| Learner Memory and revisions | learner through confirmation | versioned, conflict-aware, expirable and removable | personalisation only |
 
 Thread Learning State records the current material, question, learner answer
 and reasoning when explicitly supplied, teaching goal, hint level, answer
 stage, evidence references, unresolved issue and correction status. The model
 does not directly overwrite this object. Runtime derives it from canonical
 context, validated output and recorded tool execution.
+
+An active Teaching Cycle is linked to the thread when dialogue becomes a
+specific learning task. The Tutor may recommend a move, while the Runtime owns
+the explicit diagnose, teach, guided-practice, independent-practice, assess,
+review and consolidate transition graph. Validated Tutor fields can create an
+observation; Tutor prose and hidden reasoning cannot mutate the cycle.
 
 ## Answer integrity
 
@@ -78,13 +86,19 @@ The initial tool registry contains only bounded IELTS operations:
 - locate passage evidence and return anchored quotes;
 - read learner-visible question context without hidden answers;
 - read learner snapshot, due reviews, approved materials, Session status,
-  learning history and learner-managed memories;
+  learning objectives, skill mastery, learning history and learner-managed
+  memories;
 - read teaching policy and compare learner Writing versions;
 - propose Practice, review items, memories or material promotion.
 
 Read tools execute inside the Runtime. Command tools only create proposals.
 After learner confirmation, the Runtime validates and executes the supported
 action.
+
+Only effective learner memories are returned: active, current, non-expired and
+not in an unresolved contradiction. Duplicate confirmations are idempotent.
+Conflicting statements remain local and visible for learner resolution instead
+of being silently selected by the model.
 
 ## Retrieval strategy
 
@@ -99,6 +113,11 @@ Embeddings, a vector database, Docker and a separate RAG service are not
 dependencies of the product core. They require measured retrieval failures and
 a separate product decision rather than being introduced as speculative
 infrastructure.
+
+The learner snapshot is assembled across two explicit authority layers:
+IELTS-specific Sessions, scores, errors and answer state remain in the Teaching
+Runtime; objectives, skill evidence and review timing come from the Learning
+Agent Kernel. See [Learning Agent Kernel](LEARNING_AGENT_KERNEL.md).
 
 ## Speaking boundary
 

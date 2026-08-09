@@ -62,6 +62,10 @@ from .storage import (
 )
 from .story_bank import add_story, list_stories, show_story
 from .study_context import build_study_context
+from .teaching_quality import (
+    list_teaching_quality_evaluations,
+    run_teaching_quality_evaluation,
+)
 from .sync import SKILLS, TARGETS, skills_are_synced, sync_skills
 from .rubrics import list_rubrics, register_rubric
 from .privacy import check_processing_permission
@@ -147,6 +151,28 @@ def evaluation_reliability_command(
     )
 
 
+@evaluation_app.command("teaching-quality")
+def evaluation_teaching_quality_command(
+    cases: Optional[Path] = typer.Option(
+        None,
+        exists=True,
+        readable=True,
+        help="Optional JSON file or directory; defaults to the built-in teaching-policy suite",
+    ),
+    suite: str = typer.Option("teaching-quality-regression"),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """Evaluate teaching policy, memory continuity and recovery controls."""
+    result = run_teaching_quality_evaluation(
+        resolve_home(home),
+        cases,
+        suite_name=suite,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if result["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
 @evaluation_app.command("history")
 def evaluation_history_command(
     limit: int = typer.Option(20, min=1, max=100),
@@ -156,6 +182,21 @@ def evaluation_history_command(
     typer.echo(
         json.dumps(
             list_capability_evaluations(resolve_home(home), limit=limit),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+
+
+@evaluation_app.command("teaching-history")
+def evaluation_teaching_history_command(
+    limit: int = typer.Option(20, min=1, max=100),
+    home: Optional[Path] = typer.Option(None),
+) -> None:
+    """List recent privacy-safe teaching-quality evaluation results."""
+    typer.echo(
+        json.dumps(
+            list_teaching_quality_evaluations(resolve_home(home), limit=limit),
             ensure_ascii=False,
             indent=2,
         )
@@ -175,9 +216,15 @@ def evaluation_release_command(
     sessions: int = typer.Option(10_000, min=1, max=100_000),
     questions: int = typer.Option(100_000, min=1, max=1_000_000),
     repeats: int = typer.Option(5, min=1, max=20),
+    teaching_cases: Optional[Path] = typer.Option(
+        None,
+        exists=True,
+        readable=True,
+        help="Optional teaching-quality JSON file or directory",
+    ),
     home: Optional[Path] = typer.Option(None),
 ) -> None:
-    """Run the deterministic contract and scale gates used before a release."""
+    """Run deterministic contract, teaching-quality and scale release gates."""
     contract_report = run_contract_evaluation(
         resolve_home(home),
         cases,
@@ -188,13 +235,21 @@ def evaluation_release_command(
         question_count=questions,
         repeats=repeats,
     )
+    teaching_report = run_teaching_quality_evaluation(
+        resolve_home(home),
+        teaching_cases,
+        suite_name="release-teaching-quality",
+    )
     result = {
         "status": (
             "passed"
-            if contract_report["status"] == "passed" and scale_report["passed"]
+            if contract_report["status"] == "passed"
+            and teaching_report["status"] == "passed"
+            and scale_report["passed"]
             else "failed"
         ),
         "contract_gate": contract_report,
+        "teaching_quality_gate": teaching_report,
         "scale_gate": scale_report,
         "visual_review": "separate_human_decision_required",
     }

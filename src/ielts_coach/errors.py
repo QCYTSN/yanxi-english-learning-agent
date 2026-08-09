@@ -23,6 +23,16 @@ class SessionRevisionConflictError(CoachError):
     recoverable = True
 
 
+class LearningRevisionConflictError(CoachError):
+    code = "LEARNING_REVISION_CONFLICT"
+    recoverable = True
+
+
+class InvalidTeachingTransitionError(CoachError):
+    code = "INVALID_TEACHING_TRANSITION"
+    recoverable = True
+
+
 class SessionMirrorConflictError(CoachError):
     code = "SESSION_MIRROR_CONFLICT"
     recoverable = True

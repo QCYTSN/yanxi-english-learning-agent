@@ -59,7 +59,11 @@
               "answer_stage",
               "title",
               "action",
-              "statement"
+              "statement",
+              "memory_type",
+              "memory_key",
+              "scope",
+              "expires_at"
             ],
             "properties": {
               "thread_id": {"type": ["string", "null"], "maxLength": 120},
@@ -73,7 +77,11 @@
               "answer_stage": {"type": ["string", "null"], "maxLength": 40},
               "title": {"type": ["string", "null"], "maxLength": 200},
               "action": {"type": ["string", "null"], "maxLength": 1000},
-              "statement": {"type": ["string", "null"], "maxLength": 1000}
+              "statement": {"type": ["string", "null"], "maxLength": 1000},
+              "memory_type": {"type": ["string", "null"], "maxLength": 80},
+              "memory_key": {"type": ["string", "null"], "maxLength": 160},
+              "scope": {"type": ["string", "null"], "maxLength": 80},
+              "expires_at": {"type": ["string", "null"], "maxLength": 80}
             },
             "additionalProperties": false
           }

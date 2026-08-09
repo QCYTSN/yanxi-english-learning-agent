@@ -46,7 +46,7 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
         assert conn.execute("SELECT band,status FROM sessions WHERE session_id='W-OLD'").fetchone() == (6.0, "completed")
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("30",)
+        ).fetchone() == ("32",)
         assert {"assessment_pack_id", "practice_mode", "conformance_status"}.issubset(columns)
         assert conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='listening_items'"
@@ -67,7 +67,12 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
             "study_thread_attachments",
             "study_thread_summaries",
             "learner_memories",
+            "learner_memory_revisions",
+            "learner_memory_conflicts",
             "capability_evaluation_runs",
+            "teaching_quality_evaluation_runs",
+            "teaching_cycles",
+            "teaching_cycle_events",
         }.issubset(tables)
         assert conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='diagnostic_runs'"
@@ -81,7 +86,7 @@ def test_v01_database_is_migrated_without_data_loss(tmp_path: Path):
         assert {"content_import_jobs", "content_import_files", "content_reviews"}.issubset(tables)
     backups = list_backups(home)
     assert len(backups) == 1
-    assert backups[0]["kind"] == "pre-migration-legacy-to-30"
+    assert backups[0]["kind"] == "pre-migration-legacy-to-32"
     assert verify_backup(home, backups[0]["backup_id"])["valid"] is True
 
 
@@ -120,12 +125,12 @@ def test_historical_version_markers_migrate_to_current_schema(
     with sqlite3.connect(path) as conn:
         assert conn.execute(
             "SELECT value FROM schema_meta WHERE key='schema_version'"
-        ).fetchone() == ("30",)
+        ).fetchone() == ("32",)
         assert conn.execute(
             "SELECT session_id FROM sessions WHERE session_id=?", (f"R-{version}",)
         ).fetchone() == (f"R-{version}",)
     backups = list_backups(home)
-    assert backups[0]["kind"] == f"pre-migration-{version}-to-30"
+    assert backups[0]["kind"] == f"pre-migration-{version}-to-32"
     assert verify_backup(home, backups[0]["backup_id"])["valid"] is True
 
 
@@ -168,6 +173,45 @@ def test_schema10_agent_runs_gain_identity_without_losing_runs(tmp_path: Path):
         ).fetchone() == ("run-old", "persisted")
 
 
+def test_v32_backfills_versioned_memory_with_runtime_semantic_key(tmp_path: Path):
+    home = tmp_path / "schema-31-memory"
+    initialise_home(home)
+    path = db_path(home)
+    with sqlite3.connect(path) as conn:
+        conn.row_factory = sqlite3.Row
+        conn.execute(
+            """
+            INSERT INTO learner_memories(
+              memory_id,memory_type,statement,confidence,evidence_refs_json,
+              scope,status,created_at,last_confirmed_at,updated_at
+            ) VALUES(
+              'memory-old-language','feedback_language','Use Chinese.',1,'[]',
+              'teaching_style','active','2026-07-01','2026-07-01','2026-07-01'
+            )
+            """
+        )
+        conn.execute(
+            "UPDATE schema_meta SET value='31' WHERE key='schema_version'"
+        )
+        conn.execute(
+            "DELETE FROM schema_migration_journal WHERE migration_id='v32-memory-pedagogy-quality'"
+        )
+        storage._migrate(conn, "31")
+        row = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id='memory-old-language'"
+        ).fetchone()
+        revision = conn.execute(
+            """
+            SELECT change_reason FROM learner_memory_revisions
+            WHERE memory_id='memory-old-language' AND revision=1
+            """
+        ).fetchone()
+    assert row["memory_key"] == "teaching_style:feedback_language"
+    assert len(row["content_hash"]) == 64
+    assert row["valid_from"] == "2026-07-01"
+    assert revision["change_reason"] == "v32_backfill"
+
+
 def test_interrupted_migration_creates_recoverable_snapshot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -208,7 +252,7 @@ def test_interrupted_migration_creates_recoverable_snapshot(
     with pytest.raises(RuntimeError, match="simulated interruption"):
         initialise_database(home)
     backup = list_backups(home)[0]
-    assert backup["kind"] == "pre-migration-legacy-to-30"
+    assert backup["kind"] == "pre-migration-legacy-to-32"
     assert verify_backup(home, backup["backup_id"])["valid"] is True
 
     monkeypatch.setattr(storage, "_migrate", original_migrate)

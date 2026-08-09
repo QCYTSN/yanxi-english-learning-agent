@@ -9,7 +9,8 @@ import yaml
 from .validation import validate_data
 
 DEFAULT_PROFILE: dict[str, Any] = {
-    "profile_version": 3,
+    "profile_version": 4,
+    "active_learning_track_id": "ielts-academic",
     "onboarding": {"status": "pending", "completed_at": None},
     "exam": {"type": "academic", "test_date": None},
     "target": {"overall": 7.0, "listening": 8.0, "reading": 8.0, "writing": 6.5, "speaking": 6.0},

@@ -44,6 +44,89 @@ def _v30_provider_resilience(_: sqlite3.Connection) -> None:
     return
 
 
+def _v31_learning_agent_kernel(conn: sqlite3.Connection) -> None:
+    for table in (
+        "sessions",
+        "study_threads",
+        "learner_memories",
+        "practice_units",
+        "review_tasks",
+    ):
+        columns = {
+            str(row[1]) for row in conn.execute(f"PRAGMA table_info({table})")
+        }
+        if "track_id" in columns:
+            conn.execute(
+                f"UPDATE {table} SET track_id='ielts-academic' "
+                "WHERE track_id IS NULL OR TRIM(track_id)=''"
+            )
+
+
+def _v32_memory_pedagogy_and_quality(conn: sqlite3.Connection) -> None:
+    now = _now()
+    singleton_memory_types = {
+        "preferred_name",
+        "feedback_language",
+        "interface_language",
+        "target_band",
+        "explanation_order",
+        "timezone",
+    }
+    rows = conn.execute(
+        "SELECT * FROM learner_memories ORDER BY created_at,memory_id"
+    ).fetchall()
+    for row in rows:
+        statement = " ".join(str(row["statement"] or "").strip().split())
+        content_hash = hashlib.sha256(statement.casefold().encode("utf-8")).hexdigest()
+        memory_key = str(row["memory_key"] or "").strip()
+        if not memory_key:
+            if str(row["memory_type"]) in singleton_memory_types:
+                memory_key = f"{row['scope']}:{row['memory_type']}"[:160]
+            else:
+                key_seed = f"{row['scope']}|{row['memory_type']}|{content_hash[:20]}"
+                digest = hashlib.sha256(key_seed.encode("utf-8")).hexdigest()[:32]
+                memory_key = f"memory:{digest}"
+        valid_from = str(row["valid_from"] or row["created_at"] or now)
+        conn.execute(
+            """
+            UPDATE learner_memories
+            SET memory_key=?,content_hash=?,valid_from=?,revision=MAX(1,revision),
+                source_kind=COALESCE(NULLIF(source_kind,''),'learner_confirmed')
+            WHERE memory_id=?
+            """,
+            (memory_key, content_hash, valid_from, row["memory_id"]),
+        )
+        refreshed = conn.execute(
+            "SELECT * FROM learner_memories WHERE memory_id=?",
+            (row["memory_id"],),
+        ).fetchone()
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO learner_memory_revisions(
+              memory_id,revision,statement,content_hash,confidence,
+              evidence_refs_json,memory_key,scope,status,validity_status,
+              source_kind,expires_at,change_reason,changed_at
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                refreshed["memory_id"],
+                int(refreshed["revision"]),
+                refreshed["statement"],
+                refreshed["content_hash"],
+                float(refreshed["confidence"]),
+                refreshed["evidence_refs_json"],
+                refreshed["memory_key"],
+                refreshed["scope"],
+                refreshed["status"],
+                refreshed["validity_status"],
+                refreshed["source_kind"],
+                refreshed["expires_at"],
+                "v32_backfill",
+                refreshed["updated_at"] or now,
+            ),
+        )
+
+
 MIGRATIONS = (
     Migration(
         28,
@@ -62,6 +145,18 @@ MIGRATIONS = (
         "v30-provider-resilience",
         "Persist provider circuit-breaker health and normalized failures.",
         _v30_provider_resilience,
+    ),
+    Migration(
+        31,
+        "v31-learning-agent-kernel",
+        "Add learning tracks, objectives, activities, mastery evidence and review schedules.",
+        _v31_learning_agent_kernel,
+    ),
+    Migration(
+        32,
+        "v32-memory-pedagogy-quality",
+        "Version learner memory and add teaching cycles and teaching-quality evaluations.",
+        _v32_memory_pedagogy_and_quality,
     ),
 )
 

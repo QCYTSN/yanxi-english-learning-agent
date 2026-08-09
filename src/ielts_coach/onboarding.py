@@ -27,7 +27,7 @@ def onboarding_status(home: Path) -> dict[str, Any]:
 
 
 ONBOARDING_FIELDS = {
-    "exam", "target", "minimum_required", "stretch_target", "current",
+    "active_learning_track_id", "exam", "target", "minimum_required", "stretch_target", "current",
     "base_allocation", "allocation_policy", "preferences", "privacy",
 }
 
@@ -59,6 +59,13 @@ def update_profile(
             "IELTS AI Coach currently supports IELTS Academic only; "
             "General Training Reading and Writing tasks are not implemented"
         )
+    requested_track = supplied.get("active_learning_track_id")
+    if requested_track:
+        from .domain_packs import get_domain_pack
+
+        pack = get_domain_pack(str(requested_track))
+        if pack.status != "active":
+            raise ValueError(f"Learning track is not active: {pack.track_id}")
     lock_path = home / "runtime" / "locks" / "profile.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with FileLock(str(lock_path), timeout=30):

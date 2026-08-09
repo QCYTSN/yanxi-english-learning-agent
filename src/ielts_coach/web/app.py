@@ -106,6 +106,11 @@ from ..diagnostics import (
     diagnostic_status,
     start_diagnostic,
 )
+from ..domain_packs import (
+    DEFAULT_TRACK_ID,
+    domain_pack_descriptors,
+    get_domain_pack,
+)
 from ..health import audit_data_home
 from ..locking import runtime_lock
 from ..media import (
@@ -132,11 +137,34 @@ from ..learning_orchestration import (
     start_review_task,
     sync_review_tasks,
 )
+from ..learning_model import (
+    complete_learning_review,
+    create_learning_activity,
+    create_learning_objective,
+    get_learning_model_snapshot,
+    list_learning_activities,
+    list_learning_objectives,
+    list_learning_reviews,
+    list_mastery_evidence,
+    list_skill_nodes,
+    record_mastery_evidence,
+    update_learning_activity,
+    update_learning_objective,
+    update_learning_review_status,
+)
 from ..init_home import initialise_home
 from ..onboarding import complete_onboarding, onboarding_status, update_profile
 from ..paths import resolve_home
 from ..privacy import build_privacy_receipt, check_processing_permission
 from ..performance import RequestPerformanceMonitor, database_performance_status
+from ..pedagogy import (
+    get_teaching_cycle,
+    list_teaching_cycles,
+    recommend_teaching_transition,
+    start_teaching_cycle,
+    transition_teaching_cycle,
+    update_teaching_cycle_status,
+)
 from ..profiles import build_learning_profile
 from ..progress_dashboard import (
     build_progress_dashboard,
@@ -165,6 +193,8 @@ from ..storage import (
     list_agent_runs,
     list_audit_events,
     list_learner_memories,
+    list_learner_memory_conflicts,
+    list_learner_memory_revisions,
     list_coaching_artifacts,
     get_assessment_pack,
     list_error_profile,
@@ -180,6 +210,7 @@ from ..storage import (
     telemetry_summary,
     update_agent_run,
     update_learner_memory,
+    resolve_learner_memory_conflict,
 )
 from ..study_threads import (
     add_user_message,
@@ -205,6 +236,7 @@ from ..tutor_state import (
     list_tutor_proposals,
     resolve_tutor_proposal,
 )
+from ..teaching_quality import list_teaching_quality_evaluations
 from ..uploads import cleanup_staging, cleanup_stale_uploads, stage_uploads
 from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
@@ -248,8 +280,16 @@ from .models import (
     DiagnosticStart,
     DraftSave,
     ListeningAttemptSubmit,
+    LearningActivityCreate,
+    LearningActivityUpdate,
+    LearningObjectiveCreate,
+    LearningObjectiveUpdate,
+    LearningReviewComplete,
+    LearningReviewStatusUpdate,
     LearnerMemoryCreate,
+    LearnerMemoryConflictDecision,
     LearnerMemoryUpdate,
+    MasteryEvidenceCreate,
     ReadingAnswersSubmit,
     ReadingHintSubmit,
     ProfileUpdate,
@@ -264,6 +304,9 @@ from .models import (
     TodayIntent,
     TutorContextRequest,
     TutorProposalDecision,
+    TeachingCycleCreate,
+    TeachingCycleStatusUpdate,
+    TeachingCycleTransition,
     WritingVersionSubmit,
     WritingAssessmentScore,
 )
@@ -565,7 +608,13 @@ def create_app(
 
     @app.exception_handler(CoachError)
     async def coach_error_handler(_: Request, exc: CoachError) -> JSONResponse:
-        status = 409 if exc.code == "SESSION_REVISION_CONFLICT" else 404 if exc.code.endswith("NOT_FOUND") else 422
+        status = (
+            409
+            if exc.code in {"SESSION_REVISION_CONFLICT", "LEARNING_REVISION_CONFLICT"}
+            else 404
+            if exc.code.endswith("NOT_FOUND")
+            else 422
+        )
         return _error_response(status, exc.code, str(exc), **exc.details)
 
     @app.exception_handler(PermissionError)
@@ -643,7 +692,9 @@ def create_app(
                 "active_session": None,
                 "health": {"database": False, "configuration": False},
                 "agents": adapter_descriptors(),
-                "capabilities": capability_descriptors(),
+                "learning_tracks": domain_pack_descriptors(),
+                "active_learning_track_id": DEFAULT_TRACK_ID,
+                "capabilities": capability_descriptors(DEFAULT_TRACK_ID),
                 "execution_profiles": [],
                 "model_providers": [],
                 "external_agents": [],
@@ -655,6 +706,9 @@ def create_app(
                 },
             }
         profile = load_profile(target)
+        active_track_id = str(
+            profile.get("active_learning_track_id") or DEFAULT_TRACK_ID
+        )
         active_row = latest_active_session(target)
         active = dict(active_row) if active_row else None
         model_providers = list_model_providers(target)
@@ -664,6 +718,7 @@ def create_app(
             "setup_required": False,
             "onboarding": onboarding_status(target),
             "profile": {
+                "active_learning_track_id": active_track_id,
                 "exam_type": profile["exam"]["type"],
                 "test_date": profile["exam"].get("test_date"),
                 "target": profile["target"],
@@ -675,7 +730,9 @@ def create_app(
             "active_session": active,
             "health": {"database": True, "configuration": True},
             "agents": adapter_descriptors(),
-            "capabilities": capability_descriptors(),
+            "learning_tracks": domain_pack_descriptors(),
+            "active_learning_track_id": active_track_id,
+            "capabilities": capability_descriptors(active_track_id),
             "execution_profiles": agent_jobs.broker.profiles(
                 include_diagnostics=False
             ),
@@ -827,6 +884,15 @@ def create_app(
         limit: int = Query(default=20, ge=1, le=100),
     ) -> list[dict[str, Any]]:
         return list_capability_evaluations(target, limit=limit)
+
+    @app.get(
+        "/api/v1/system/teaching-evaluations",
+        dependencies=[Depends(require_session)],
+    )
+    def system_teaching_evaluations_endpoint(
+        limit: int = Query(default=20, ge=1, le=100),
+    ) -> list[dict[str, Any]]:
+        return list_teaching_quality_evaluations(target, limit=limit)
 
     @app.get("/api/v1/system/audit", dependencies=[Depends(require_session)])
     def system_audit_endpoint(
@@ -1979,12 +2045,19 @@ def create_app(
     def learner_memories(
         status: str = Query("active", pattern="^(active|dismissed)$"),
         memory_type: str | None = None,
+        validity_status: str | None = Query(
+            "current",
+            pattern="^(current|conflicted|superseded|expired)$",
+        ),
+        include_expired: bool = Query(False),
         limit: int = Query(50, ge=1, le=200),
     ) -> list[dict[str, Any]]:
         return list_learner_memories(
             target,
             status=status,
             memory_type=memory_type,
+            validity_status=validity_status,
+            include_expired=include_expired,
             limit=limit,
         )
 
@@ -1992,6 +2065,7 @@ def create_app(
     def learner_memory_create(payload: LearnerMemoryCreate) -> dict[str, Any]:
         memory = create_learner_memory(
             target,
+            track_id=payload.track_id,
             memory_type=payload.memory_type,
             statement=payload.statement,
             confidence=payload.confidence,
@@ -1999,6 +2073,10 @@ def create_app(
             scope=payload.scope,
             source_thread_id=payload.source_thread_id,
             source_session_id=payload.source_session_id,
+            memory_key=payload.memory_key,
+            expires_at=payload.expires_at,
+            supersedes_memory_id=payload.supersedes_memory_id,
+            conflicts_with=payload.conflicts_with,
         )
         record_audit_event(
             target,
@@ -2007,8 +2085,12 @@ def create_app(
             outcome="succeeded",
             subject_type="learner_memory",
             subject_id=str(memory["memory_id"]),
-            payload={"statement": payload.statement},
-            metadata={"memory_type": payload.memory_type, "scope": payload.scope},
+            metadata={
+                "memory_type": payload.memory_type,
+                "scope": payload.scope,
+                "content_hash": memory["content_hash"],
+                "validity_status": memory["effective_validity_status"],
+            },
         )
         return memory
 
@@ -2027,6 +2109,11 @@ def create_app(
             confidence=payload.confidence,
             status=payload.status,
             scope=payload.scope,
+            memory_key=payload.memory_key,
+            expires_at=payload.expires_at,
+            clear_expiry=payload.clear_expiry,
+            expected_revision=payload.expected_revision,
+            change_reason=payload.change_reason,
         )
         record_audit_event(
             target,
@@ -2035,10 +2122,66 @@ def create_app(
             outcome="succeeded",
             subject_type="learner_memory",
             subject_id=memory_id,
-            payload={"statement": payload.statement} if payload.statement else None,
-            metadata={"status": memory["status"], "scope": memory["scope"]},
+            metadata={
+                "status": memory["status"],
+                "scope": memory["scope"],
+                "revision": memory["revision"],
+                "content_hash": memory["content_hash"],
+                "validity_status": memory["effective_validity_status"],
+            },
         )
         return memory
+
+    @app.get(
+        "/api/v1/learner-memories/{memory_id}/revisions",
+        dependencies=[Depends(require_session)],
+    )
+    def learner_memory_revisions(
+        memory_id: str,
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_learner_memory_revisions(target, memory_id, limit=limit)
+
+    @app.get(
+        "/api/v1/learner-memory-conflicts",
+        dependencies=[Depends(require_session)],
+    )
+    def learner_memory_conflicts(
+        status: str | None = Query("open", pattern="^(open|resolved)$"),
+        track_id: str | None = Query(DEFAULT_TRACK_ID),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_learner_memory_conflicts(
+            target,
+            status=status,
+            track_id=track_id,
+            limit=limit,
+        )
+
+    @app.post(
+        "/api/v1/learner-memory-conflicts/{conflict_id}/resolve",
+        dependencies=[Depends(require_session)],
+    )
+    def learner_memory_conflict_resolve(
+        conflict_id: str,
+        payload: LearnerMemoryConflictDecision,
+    ) -> dict[str, Any]:
+        result = resolve_learner_memory_conflict(
+            target,
+            conflict_id,
+            resolution=payload.resolution,
+            rationale=payload.rationale,
+        )
+        record_audit_event(
+            target,
+            category="learner_memory",
+            action="conflict_resolved",
+            outcome="succeeded",
+            subject_type="learner_memory_conflict",
+            subject_id=conflict_id,
+            metadata={"resolution": payload.resolution},
+        )
+        return result
 
     @app.delete(
         "/api/v1/learner-memories/{memory_id}",
@@ -2071,6 +2214,7 @@ def create_app(
             target,
             title=payload.title,
             module=payload.module,
+            track_id=payload.track_id,
             model_provider_id=payload.model_provider_id,
             source_context=payload.source_context,
         )
@@ -2258,9 +2402,290 @@ def create_app(
     def agents() -> list[dict[str, Any]]:
         return adapter_descriptors()
 
+    @app.get("/api/v1/learning-tracks", dependencies=[Depends(require_session)])
+    def learning_tracks() -> list[dict[str, object]]:
+        return domain_pack_descriptors(include_capabilities=True, include_skills=False)
+
+    @app.get(
+        "/api/v1/learning-tracks/{track_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def learning_track(track_id: str) -> dict[str, object]:
+        return get_domain_pack(track_id).descriptor(
+            include_capabilities=True,
+            include_skills=True,
+        )
+
+    @app.get("/api/v1/learning-model", dependencies=[Depends(require_session)])
+    def learning_model_snapshot(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        dimension_id: str | None = Query(None),
+    ) -> dict[str, Any]:
+        return get_learning_model_snapshot(
+            target,
+            track_id=track_id,
+            dimension_id=dimension_id,
+        )
+
+    @app.get("/api/v1/learning-skills", dependencies=[Depends(require_session)])
+    def learning_skills(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+    ) -> list[dict[str, Any]]:
+        return list_skill_nodes(target, track_id=track_id)
+
+    @app.get("/api/v1/learning-objectives", dependencies=[Depends(require_session)])
+    def learning_objectives(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        dimension_id: str | None = Query(None),
+        status: str | None = Query(None),
+        skill_id: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_learning_objectives(
+            target,
+            track_id=track_id,
+            dimension_id=dimension_id,
+            status=status,
+            skill_id=skill_id,
+            limit=limit,
+        )
+
+    @app.post("/api/v1/learning-objectives", dependencies=[Depends(require_session)])
+    def learning_objective_create(
+        payload: LearningObjectiveCreate,
+    ) -> dict[str, Any]:
+        return create_learning_objective(target, **payload.model_dump())
+
+    @app.patch(
+        "/api/v1/learning-objectives/{objective_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def learning_objective_update(
+        objective_id: str,
+        payload: LearningObjectiveUpdate,
+    ) -> dict[str, Any]:
+        updates = payload.model_dump(
+            exclude_unset=True,
+            exclude={"expected_revision"},
+        )
+        return update_learning_objective(
+            target,
+            objective_id,
+            updates=updates,
+            expected_revision=payload.expected_revision,
+        )
+
+    @app.get("/api/v1/learning-activities", dependencies=[Depends(require_session)])
+    def learning_activities(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        dimension_id: str | None = Query(None),
+        status: str | None = Query(None),
+        objective_id: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_learning_activities(
+            target,
+            track_id=track_id,
+            dimension_id=dimension_id,
+            status=status,
+            objective_id=objective_id,
+            limit=limit,
+        )
+
+    @app.post("/api/v1/learning-activities", dependencies=[Depends(require_session)])
+    def learning_activity_create(
+        payload: LearningActivityCreate,
+    ) -> dict[str, Any]:
+        return create_learning_activity(target, **payload.model_dump())
+
+    @app.patch(
+        "/api/v1/learning-activities/{activity_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def learning_activity_update(
+        activity_id: str,
+        payload: LearningActivityUpdate,
+    ) -> dict[str, Any]:
+        updates = payload.model_dump(
+            exclude_unset=True,
+            exclude={"expected_revision"},
+        )
+        return update_learning_activity(
+            target,
+            activity_id,
+            updates=updates,
+            expected_revision=payload.expected_revision,
+        )
+
+    @app.get("/api/v1/mastery-evidence", dependencies=[Depends(require_session)])
+    def mastery_evidence(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        skill_id: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_mastery_evidence(
+            target,
+            track_id=track_id,
+            skill_id=skill_id,
+            limit=limit,
+        )
+
+    @app.post("/api/v1/mastery-evidence", dependencies=[Depends(require_session)])
+    def mastery_evidence_create(
+        payload: MasteryEvidenceCreate,
+    ) -> dict[str, Any]:
+        return record_mastery_evidence(target, **payload.model_dump())
+
+    @app.get("/api/v1/learning-reviews", dependencies=[Depends(require_session)])
+    def learning_reviews(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        dimension_id: str | None = Query(None),
+        status: str | None = Query("pending"),
+        due_only: bool = Query(False),
+        skill_id: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_learning_reviews(
+            target,
+            track_id=track_id,
+            dimension_id=dimension_id,
+            status=status,
+            due_only=due_only,
+            skill_id=skill_id,
+            limit=limit,
+        )
+
+    @app.post(
+        "/api/v1/learning-reviews/{review_id}/complete",
+        dependencies=[Depends(require_session)],
+    )
+    def learning_review_complete(
+        review_id: str,
+        payload: LearningReviewComplete,
+    ) -> dict[str, Any]:
+        return complete_learning_review(target, review_id, **payload.model_dump())
+
+    @app.patch(
+        "/api/v1/learning-reviews/{review_id}/status",
+        dependencies=[Depends(require_session)],
+    )
+    def learning_review_status_update(
+        review_id: str,
+        payload: LearningReviewStatusUpdate,
+    ) -> dict[str, Any]:
+        return update_learning_review_status(target, review_id, payload.status)
+
+    @app.get("/api/v1/teaching-cycles", dependencies=[Depends(require_session)])
+    def teaching_cycles(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+        status: str | None = Query(None),
+        thread_id: str | None = Query(None),
+        objective_id: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_teaching_cycles(
+            target,
+            track_id=track_id,
+            status=status,
+            thread_id=thread_id,
+            objective_id=objective_id,
+            limit=limit,
+        )
+
+    @app.post("/api/v1/teaching-cycles", dependencies=[Depends(require_session)])
+    def teaching_cycle_create(payload: TeachingCycleCreate) -> dict[str, Any]:
+        cycle = start_teaching_cycle(
+            target,
+            **payload.model_dump(),
+            source_type="learner",
+        )
+        record_audit_event(
+            target,
+            category="teaching_cycle",
+            action="created",
+            outcome="succeeded",
+            subject_type="teaching_cycle",
+            subject_id=str(cycle["cycle_id"]),
+            metadata={"phase": cycle["phase"], "track_id": cycle["track_id"]},
+        )
+        return cycle
+
+    @app.get(
+        "/api/v1/teaching-cycles/{cycle_id}",
+        dependencies=[Depends(require_session)],
+    )
+    def teaching_cycle(cycle_id: str) -> dict[str, Any]:
+        return get_teaching_cycle(target, cycle_id)
+
+    @app.get(
+        "/api/v1/teaching-cycles/{cycle_id}/recommendation",
+        dependencies=[Depends(require_session)],
+    )
+    def teaching_cycle_recommendation(cycle_id: str) -> dict[str, Any]:
+        return recommend_teaching_transition(target, cycle_id)
+
+    @app.post(
+        "/api/v1/teaching-cycles/{cycle_id}/transition",
+        dependencies=[Depends(require_session)],
+    )
+    def teaching_cycle_transition(
+        cycle_id: str,
+        payload: TeachingCycleTransition,
+    ) -> dict[str, Any]:
+        cycle = transition_teaching_cycle(
+            target,
+            cycle_id,
+            to_phase=payload.to_phase,
+            expected_revision=payload.expected_revision,
+            actor="learner",
+            reason_code=payload.reason_code,
+            evidence_refs=payload.evidence_refs,
+            metadata=payload.metadata,
+        )
+        record_audit_event(
+            target,
+            category="teaching_cycle",
+            action="phase_transition",
+            outcome="succeeded",
+            subject_type="teaching_cycle",
+            subject_id=cycle_id,
+            metadata={"phase": cycle["phase"], "revision": cycle["revision"]},
+        )
+        return cycle
+
+    @app.patch(
+        "/api/v1/teaching-cycles/{cycle_id}/status",
+        dependencies=[Depends(require_session)],
+    )
+    def teaching_cycle_status(
+        cycle_id: str,
+        payload: TeachingCycleStatusUpdate,
+    ) -> dict[str, Any]:
+        cycle = update_teaching_cycle_status(
+            target,
+            cycle_id,
+            status=payload.status,
+            expected_revision=payload.expected_revision,
+            actor="learner",
+            reason_code=payload.reason_code,
+        )
+        record_audit_event(
+            target,
+            category="teaching_cycle",
+            action="status_transition",
+            outcome="succeeded",
+            subject_type="teaching_cycle",
+            subject_id=cycle_id,
+            metadata={"status": cycle["status"], "revision": cycle["revision"]},
+        )
+        return cycle
+
     @app.get("/api/v1/capabilities", dependencies=[Depends(require_session)])
-    def capabilities() -> list[dict[str, Any]]:
-        return capability_descriptors()
+    def capabilities(
+        track_id: str = Query(DEFAULT_TRACK_ID),
+    ) -> list[dict[str, Any]]:
+        get_domain_pack(track_id)
+        return capability_descriptors(track_id)
 
     @app.get(
         "/api/v1/model-provider-presets",
@@ -2619,6 +3044,11 @@ def create_app(
         provider_ids = [
             str(item["provider_id"]) for item in prepared.model_route
         ] or [str(profile.get("backend_id") or adapter_id)]
+        authorizable_memories = (
+            list_learner_memories(target, limit=10)
+            if is_study_help
+            else []
+        )
         privacy_receipt = build_privacy_receipt(
             run_id=run_id,
             decision=permission,
@@ -2635,7 +3065,9 @@ def create_app(
                     }
                     for item in media_refs
                 ],
-                "learner_memory_ids": [],
+                "learner_memory_ids": [
+                    str(item["memory_id"]) for item in authorizable_memories
+                ],
                 "history_refs": [],
             },
         )

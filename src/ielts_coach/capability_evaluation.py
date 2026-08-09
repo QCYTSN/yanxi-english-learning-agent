@@ -15,6 +15,7 @@ from .agent_contracts import (
     validate_agent_contract,
 )
 from .storage import connect, initialise_database
+from .teaching_quality import list_teaching_quality_evaluations
 
 
 SUCCESSFUL_RUN_STATUSES = {"persisted", "test_passed"}
@@ -217,10 +218,18 @@ def provider_reliability_report(home: Path, *, days: int = 30) -> dict[str, Any]
 
     evaluations = list_capability_evaluations(home, limit=1)
     latest_evaluation = evaluations[0] if evaluations else None
+    teaching_evaluations = list_teaching_quality_evaluations(home, limit=1)
+    latest_teaching_evaluation = (
+        teaching_evaluations[0] if teaching_evaluations else None
+    )
     runtime_sample_status = "sufficient" if len(terminal_runs) >= 20 else "insufficient"
     if latest_evaluation is None:
         release_status = "evaluation_required"
     elif latest_evaluation["status"] != "passed":
+        release_status = "blocked"
+    elif latest_teaching_evaluation is None:
+        release_status = "teaching_evaluation_required"
+    elif latest_teaching_evaluation["status"] != "passed":
         release_status = "blocked"
     elif runtime_sample_status == "insufficient":
         release_status = "contract_ready_runtime_observation_needed"
@@ -254,9 +263,23 @@ def provider_reliability_report(home: Path, *, days: int = 30) -> dict[str, Any]
             if latest_evaluation
             else None
         ),
+        "latest_teaching_evaluation": (
+            {
+                "evaluation_id": latest_teaching_evaluation["evaluation_id"],
+                "status": latest_teaching_evaluation["status"],
+                "score": latest_teaching_evaluation["score"],
+                "passed_count": latest_teaching_evaluation["passed_count"],
+                "case_count": latest_teaching_evaluation["case_count"],
+                "report_hash": latest_teaching_evaluation["report_hash"],
+                "completed_at": latest_teaching_evaluation["completed_at"],
+            }
+            if latest_teaching_evaluation
+            else None
+        ),
         "release_gate": {
             "status": release_status,
             "contract_suite_required": True,
+            "teaching_quality_suite_required": True,
             "minimum_terminal_runtime_samples": 20,
             "minimum_runtime_success_rate": 0.9,
         },

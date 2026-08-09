@@ -250,6 +250,19 @@ Schema v30 adds persisted Provider health and circuit-breaker state. Remote HTTP
 providers use normalized failures, bounded retry with `Retry-After`, optional
 streaming, primary/fallback routing and cooldown after repeated transient
 failures.
+Schema v31 adds the reusable Learning Agent Kernel and IELTS Academic Domain
+Pack projection. Existing Sessions, Study Threads, learner memories,
+PracticeUnits and ReviewTasks gain a backward-compatible track identifier;
+objectives, learning activities, skill evidence, mastery aggregates and review
+schedules live in dedicated local tables. Validated IELTS Sessions project
+idempotently into this model without changing IELTS scoring authority.
+Schema v32 adds revisioned, expirable learner memory with deterministic
+duplicate and contradiction handling; Runtime-owned Teaching Cycles with an
+append-only transition event stream; and privacy-safe teaching-policy
+evaluation history. Models may propose pedagogy and memory actions, but only
+the learner or Runtime can confirm and persist them. The release gate now
+requires both output-contract conformance and teaching-policy regression before
+provider runtime samples can be treated as meaningful reliability evidence.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -331,11 +344,15 @@ The architecture is accepted when:
 - provider output must pass validation before persistence;
 - Tutor orchestration can use only registered domain tools and cannot mutate
   formal state without a learner-confirmed Runtime command;
-- learner soft memories are visible, editable and deletable and never affect
-  formal scores or answer authority;
-- schema v30 migrates historical homes with a recoverable snapshot and an
+- learner soft memories are visible, revisioned, expirable, conflict-aware and
+  deletable and never affect formal scores or answer authority;
+- teaching phases can change only through the Runtime/learner transition graph,
+  with revision checks and append-only source events;
+- schema v32 migrates historical homes with a recoverable snapshot and an
   immutable migration journal;
 - every teaching contract has both an accepted and a rejected regression case;
+- every teaching-quality dimension has deterministic positive and negative
+  controls without retaining raw case content;
 - release reports keep contract correctness, runtime reliability and scale as
   separate gates rather than collapsing them into one score;
 - normal learning works without exposing provider configuration;

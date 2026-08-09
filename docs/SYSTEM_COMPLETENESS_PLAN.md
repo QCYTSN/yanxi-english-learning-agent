@@ -311,7 +311,7 @@ Runner 交付物：
 
 ## 7. V1.0：AI 学习闭环与发布
 
-实施状态：已完成 V1.4 本地工程实现并升级到 Schema v30。统一 ScoreResult 准入、
+实施状态：已完成当前本地工程实现并升级到 Schema v32。统一 ScoreResult 准入、
 九类 Agent 输出契约、持久化后台任务、Claude/OpenCode 本地进程边界、
 Writing 双任务复评、Task 1 受控图片附件、Listening 播放租约、Speaking 同运行复评、
 Runtime 驱动的 Today、`PracticeUnit / AssessmentRun / ReviewTask`、统一待复习队列、
@@ -514,6 +514,7 @@ unit、integration 和 UI API，不再让兼容矩阵重复承担完整回归成
 8. 10k Session / 100k Question 性能基准；
 9. SQLite FTS5 历史检索、预算化 Context Engine 与来源追踪；
 10. Provider 重试、流式响应、健康状态、熔断、进程隔离和脱敏诊断包。
+11. Learning Agent Kernel、版本化记忆、教学状态机和教学质量发布门。
 
 下一批按以下顺序推进：
 

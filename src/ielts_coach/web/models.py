@@ -86,6 +86,12 @@ class TodayIntent(BaseModel):
 class StudyThreadCreate(BaseModel):
     title: str = Field(default="新的 IELTS 学习对话", min_length=1, max_length=120)
     module: Literal["listening", "reading", "writing", "speaking", "mixed"] = "mixed"
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
     model_provider_id: str | None = Field(default=None, max_length=120)
     source_context: dict[str, Any] = Field(default_factory=dict)
 
@@ -95,6 +101,12 @@ class StudyThreadUpdate(BaseModel):
 
 
 class LearnerMemoryCreate(BaseModel):
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
     memory_type: str = Field(min_length=1, max_length=80)
     statement: str = Field(min_length=1, max_length=2000)
     confidence: float = Field(default=1.0, ge=0, le=1)
@@ -102,6 +114,10 @@ class LearnerMemoryCreate(BaseModel):
     scope: str = Field(default="teaching_style", min_length=1, max_length=80)
     source_thread_id: str | None = Field(default=None, max_length=120)
     source_session_id: str | None = Field(default=None, max_length=120)
+    memory_key: str | None = Field(default=None, max_length=160)
+    expires_at: str | None = Field(default=None, max_length=80)
+    supersedes_memory_id: str | None = Field(default=None, max_length=120)
+    conflicts_with: list[str] = Field(default_factory=list, max_length=20)
 
 
 class LearnerMemoryUpdate(BaseModel):
@@ -109,6 +125,159 @@ class LearnerMemoryUpdate(BaseModel):
     confidence: float | None = Field(default=None, ge=0, le=1)
     status: Literal["active", "dismissed"] | None = None
     scope: str | None = Field(default=None, min_length=1, max_length=80)
+    memory_key: str | None = Field(default=None, min_length=1, max_length=160)
+    expires_at: str | None = Field(default=None, max_length=80)
+    clear_expiry: bool = False
+    expected_revision: int | None = Field(default=None, ge=1)
+    change_reason: str = Field(default="learner_update", min_length=1, max_length=120)
+
+
+class LearnerMemoryConflictDecision(BaseModel):
+    resolution: Literal["keep_left", "keep_right", "keep_both", "dismiss_both"]
+    rationale: str | None = Field(default=None, max_length=1000)
+
+
+class LearningObjectiveCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
+    dimension_id: str = Field(min_length=1, max_length=120)
+    skill_id: str | None = Field(default=None, max_length=160)
+    description: str | None = Field(default=None, max_length=4000)
+    status: Literal["planned", "active", "achieved", "paused", "archived"] = "active"
+    priority: int = Field(default=50, ge=0, le=100)
+    target_value: float | None = Field(default=None, ge=0, le=1)
+    target_label: str | None = Field(default=None, max_length=120)
+    due_at: str | None = Field(default=None, max_length=80)
+    source_type: str = Field(default="learner", min_length=1, max_length=80)
+    source_id: str | None = Field(default=None, max_length=240)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class LearningObjectiveUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    status: Literal["planned", "active", "achieved", "paused", "archived"] | None = None
+    priority: int | None = Field(default=None, ge=0, le=100)
+    target_value: float | None = Field(default=None, ge=0, le=1)
+    target_label: str | None = Field(default=None, max_length=120)
+    due_at: str | None = Field(default=None, max_length=80)
+    metadata: dict[str, Any] | None = None
+    expected_revision: int | None = Field(default=None, ge=0)
+
+
+class LearningActivityCreate(BaseModel):
+    activity_type: str = Field(min_length=1, max_length=100)
+    title: str = Field(min_length=1, max_length=200)
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
+    dimension_id: str | None = Field(default=None, max_length=120)
+    objective_id: str | None = Field(default=None, max_length=120)
+    source_type: str = Field(default="runtime", min_length=1, max_length=80)
+    source_id: str | None = Field(default=None, max_length=240)
+    session_id: str | None = Field(default=None, max_length=120)
+    thread_id: str | None = Field(default=None, max_length=120)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    status: Literal["planned", "in_progress", "completed", "cancelled"] = "planned"
+
+
+class LearningActivityUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    status: Literal["planned", "in_progress", "completed", "cancelled"] | None = None
+    payload: dict[str, Any] | None = None
+    expected_revision: int | None = Field(default=None, ge=0)
+
+
+class MasteryEvidenceCreate(BaseModel):
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
+    skill_id: str = Field(min_length=1, max_length=160)
+    score: float = Field(ge=0, le=1)
+    confidence: float = Field(ge=0, le=1)
+    evidence_kind: Literal[
+        "attempt", "assessment", "review", "tutor_observation", "self_report"
+    ]
+    source_type: str = Field(min_length=1, max_length=80)
+    source_id: str = Field(min_length=1, max_length=240)
+    objective_id: str | None = Field(default=None, max_length=120)
+    activity_id: str | None = Field(default=None, max_length=120)
+    session_id: str | None = Field(default=None, max_length=120)
+    thread_id: str | None = Field(default=None, max_length=120)
+    rationale: str | None = Field(default=None, max_length=2000)
+    payload: dict[str, Any] = Field(default_factory=dict)
+    observed_at: str | None = Field(default=None, max_length=80)
+    schedule_review: bool = True
+
+
+class LearningReviewComplete(BaseModel):
+    score: float = Field(ge=0, le=1)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+    rationale: str | None = Field(default=None, max_length=2000)
+    continue_review: bool = True
+
+
+class LearningReviewStatusUpdate(BaseModel):
+    status: Literal["pending", "in_progress", "dismissed"]
+
+
+class TeachingCycleCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    track_id: str = Field(
+        default="ielts-academic",
+        min_length=1,
+        max_length=120,
+        pattern=r"^[a-z0-9][a-z0-9-]*$",
+    )
+    phase: Literal[
+        "diagnose",
+        "teach",
+        "guided_practice",
+        "independent_practice",
+        "assess",
+        "review",
+        "consolidate",
+    ] = "diagnose"
+    dimension_id: str | None = Field(default=None, max_length=120)
+    skill_id: str | None = Field(default=None, max_length=160)
+    objective_id: str | None = Field(default=None, max_length=120)
+    activity_id: str | None = Field(default=None, max_length=120)
+    thread_id: str | None = Field(default=None, max_length=120)
+    session_id: str | None = Field(default=None, max_length=120)
+    context: dict[str, Any] = Field(default_factory=dict)
+
+
+class TeachingCycleTransition(BaseModel):
+    to_phase: Literal[
+        "diagnose",
+        "teach",
+        "guided_practice",
+        "independent_practice",
+        "assess",
+        "review",
+        "consolidate",
+    ]
+    expected_revision: int = Field(ge=0)
+    reason_code: str = Field(default="learner_transition", min_length=1, max_length=120)
+    evidence_refs: list[str] = Field(default_factory=list, max_length=50)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class TeachingCycleStatusUpdate(BaseModel):
+    status: Literal["active", "paused", "completed", "cancelled"]
+    expected_revision: int = Field(ge=0)
+    reason_code: str | None = Field(default=None, max_length=120)
 
 
 class TutorContextRequest(BaseModel):

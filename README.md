@@ -13,6 +13,11 @@ explain and evaluate work, but they cannot directly write authoritative
 learning records. Results pass Schema and semantic validation before the local
 Runtime stores them.
 
+The current product remains IELTS Academic. Internally, a reusable Learning
+Agent Kernel now owns objectives, activities, skill evidence, mastery estimates
+and review scheduling, while an IELTS Domain Pack owns the exam-specific
+curriculum and policies.
+
 > This independent project is not endorsed by IELTS, Cambridge University
 > Press & Assessment, the British Council or IDP Education.
 
@@ -25,6 +30,8 @@ Runtime stores them.
 - ChatGPT login bridge, OpenAI-compatible API and local HTTP model providers;
 - bounded long-conversation context, indexed local history and resumable
   background OCR/content jobs;
+- versioned learner memory with expiry and explicit contradiction resolution;
+- Runtime-owned teaching cycles and privacy-safe teaching-policy regression;
 - optional external CLI Agents for advanced material workflows;
 - Windows desktop installer and Python package for technical users.
 
@@ -46,6 +53,10 @@ Browser learning UI
 Conversation Runtime ──> bounded Tutor Agent ──> allowlisted IELTS tools
         │
         └──────────────> Formal Teaching Runtime ──> Practice / Assessment
+                                      │
+                         IELTS Academic Domain Pack
+                                      ↓
+                   Learning Agent Kernel / authoritative local data
                                       ↓
                          SQLite / Session / Corpus / Media
 ```
@@ -58,7 +69,31 @@ Model providers and external Agents are separate concepts:
 - **Teaching Runtime** owns IELTS rules, privacy, validation and persistence.
 
 See [Architecture V2](docs/ARCHITECTURE_V2.md) and the
-[Tutor Agent architecture](docs/TUTOR_AGENT_ARCHITECTURE.md).
+[Tutor Agent architecture](docs/TUTOR_AGENT_ARCHITECTURE.md). The reusable
+learning-state boundary is defined in the
+[Learning Agent Kernel](docs/LEARNING_AGENT_KERNEL.md).
+
+### Learning Agent kernel
+
+The internal learning layer is deliberately narrower than a general autonomous
+Agent:
+
+- the IELTS Academic Domain Pack defines the four-module skill graph,
+  evidence mappings, assessment scale and teaching policies;
+- the Runtime derives objectives, activities, mastery evidence and review
+  timing from validated learning records;
+- learner memory is local, revisioned, expirable and withheld from the Tutor
+  whenever statements conflict;
+- teaching cycles move through explicit diagnose, teach, guided-practice,
+  independent-practice, assess, review and consolidate stages;
+- models may recommend actions, but only the learner or Runtime may change
+  formal learning state;
+- release checks cover both structured-output contracts and positive/negative
+  teaching-policy controls without retaining raw learner content.
+
+This architecture can support future English-learning tracks, but the public
+product currently exposes only IELTS Academic. New tracks require their own
+curriculum, Skills, contracts and evaluation set.
 
 ## Install on Windows
 
@@ -138,6 +173,9 @@ Before publishing:
 python scripts/verify_release.py --source-only
 ielts-coach evaluation release --cases tests/fixtures/agent_contracts
 ```
+
+The release command runs contract conformance, the built-in positive/negative
+teaching-quality suite and the configured local scale-performance gate.
 
 Windows release builds are produced with:
 
