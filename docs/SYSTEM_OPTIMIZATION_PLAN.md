@@ -1,6 +1,6 @@
 # IELTS AI Coach 系统优化与扩展计划
 
-更新日期：2026-07-24
+更新日期：2026-08-09
 
 本文是产品完整性、运行流畅度和技术演进的执行基线。视觉方案不在本文范围内。
 
@@ -11,9 +11,11 @@ React + TypeScript UI
         ↓ HTTP / SSE
 FastAPI Local App Service
         ↓
-Python IELTS Runtime ── Agent Gateway
-        ↓                    ↓
-SQLite / Session / Corpus    CLI / Manual Adapter
+Python Teaching Runtime ── Internal Tutor / Model Providers
+        ↓                         ↓
+SQLite / Session / Corpus   OAuth / API / Local HTTP
+        \
+         └─ optional External Agent Gateway (non-teaching work only)
 ```
 
 - SQLite、Session Markdown、Corpus 和 Media Registry 是数据真源。
@@ -40,7 +42,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 
 ## 3. 当前已完成的性能底座
 
-- Schema v27；
+- Schema v30 与带校验和的版本化迁移日志；
 - SQLite WAL、10 秒 busy timeout、NORMAL synchronous、32 MiB page cache；
 - `sessions`、`errors`、Media owner 等增长路径索引；
 - 修复 Python `sqlite3.Connection` 上下文只提交不关闭的句柄泄漏；
@@ -55,6 +57,14 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - Agent 契约正反例回归会保存哈希和结果，不保存学习内容；
 - Provider 可靠性报告按 30 天窗口统计成功率、失败阶段、回退与延迟；
 - `ielts-coach evaluation release` 将契约门和 10k/100k 合成性能门组合为可执行发布门。
+- 上传文件按 1 MiB 分块落入暂存区，经过大小、后缀、哈希和配额检查后原子登记；
+- OCR、内容准备和审核草稿使用 SQLite 持久化队列与隔离子进程，重任务不再占用 Web 请求进程；
+- Agent 推理也在可终止的隔离子进程中运行，崩溃、超时、取消和服务重启都有明确终态；
+- 已终结 Agent Run 会压缩私有请求正文，只保留契约、引用、哈希和必要审计字段；
+- 学习历史使用 SQLite FTS5（优先 trigram）检索，长对话上下文由确定性的 Context Engine 按预算装配；
+- Provider 支持限流/网络错误重试、`Retry-After`、健康状态、熔断和可选流式响应；
+- 本地资料默认有 25 GiB 管理配额和 512 MiB 磁盘安全余量；
+- 支持生成不含对话正文、作文、题目、凭据和私有路径的诊断包。
 
 ## 3.1 发布评测边界
 
@@ -103,7 +113,7 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - 错误收件箱合并科目、标签、状态与出现次数，不再只显示状态总数；
 - “下一步”根据到期复习、摸底状态、目标差距和 70/30 分配生成，并幂等创建正式 PracticeUnit。
 
-## 8. 仍需完成的产品工作
+## 8. 已完成的产品工程工作
 
 ### V1.4 已完成的执行架构
 
@@ -115,21 +125,28 @@ SQLite / Session / Corpus    CLI / Manual Adapter
 - Schema v18 为 Agent Run 增加能力和执行来源追踪；
 - SQLite WAL 继续作为本地正式数据库，Docker/WSL 只作为未来可选 worker/CI 边界。
 
-### P1：从工具集合升级为学习系统
+### P1：从工具集合升级为学习系统（已完成）
 
 1. Learner Library 与 Content Studio 分离；
 2. Content Studio 增加 PDF 预览、结构化进度、校验错误定位和人工审核工作台；
 3. 所有长列表改为游标分页，前端使用虚拟列表或窗口化渲染；
 4. 大型导入、PDF 解析、备份和媒体分析进入可恢复后台任务队列。
 
-### P2：规模化和桌面体验
+### P2：规模化和桌面体验（工程项已完成）
 
 1. 建立 10k Session / 100k Question 合成数据基准；
 2. 增加 SQLite 查询计划回归测试和慢查询阈值；
 3. 前端路由分包、懒加载、资源预算和长任务监控；
 4. 增量备份、数据库维护建议与存储配额；
 5. 快捷方式启动器显示服务、Agent、模型和代理状态；
-6. 视觉设计系统和最终交互优化。
+6. 视觉设计系统和最终交互优化持续迭代，不改变本文件的运行边界。
+
+### 后续只按证据触发的工作
+
+- 真实 Provider 至少积累 20 个终态样本后，再评价连接稳定率和回退策略；
+- 只有真实 OCR、长音频或百万级题库越过既定性能预算，才评估原生 worker 或新语言；
+- 高质量四科内容仍属于内容授权与人工审核工作，不在公开代码包中预装；
+- Windows 安装包仍需在独立干净虚拟机完成最终人工验收，不能由单元测试替代。
 
 ## 9. 是否新增 Rust、Go 或其他语言
 

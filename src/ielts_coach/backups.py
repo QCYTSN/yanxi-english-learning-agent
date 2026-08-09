@@ -25,6 +25,7 @@ MANAGED_ROOTS = (
     "config",
     "corpus",
     "sessions",
+    "study-threads",
     "story-bank",
     "reports",
     "calibration",

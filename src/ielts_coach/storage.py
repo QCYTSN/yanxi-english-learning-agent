@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 import threading
 import uuid
@@ -14,7 +15,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 27
+SCHEMA_VERSION = 30
 
 _CACHE_LOCK = threading.RLock()
 _DB_FILENAME_CACHE: dict[Path, tuple[tuple[int, int] | None, str]] = {}
@@ -505,6 +506,7 @@ CREATE TABLE IF NOT EXISTS external_agent_profiles (
 CREATE TABLE IF NOT EXISTS agent_runs (
     run_id TEXT PRIMARY KEY,
     study_session_id TEXT,
+    study_thread_id TEXT,
     adapter_id TEXT NOT NULL,
     capability_id TEXT,
     execution_profile_id TEXT,
@@ -546,7 +548,9 @@ CREATE TABLE IF NOT EXISTS agent_runs (
     resume_count INTEGER NOT NULL DEFAULT 0,
     persistence_json TEXT NOT NULL DEFAULT '{}',
     orchestration_json TEXT NOT NULL DEFAULT '{}',
+    request_compacted_at TEXT,
     FOREIGN KEY(study_session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+    FOREIGN KEY(study_thread_id) REFERENCES study_threads(thread_id) ON DELETE CASCADE,
     FOREIGN KEY(execution_profile_id) REFERENCES execution_profiles(profile_id) ON DELETE SET NULL,
     FOREIGN KEY(model_provider_id) REFERENCES model_providers(provider_id) ON DELETE SET NULL
 );
@@ -973,6 +977,49 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS schema_migration_journal (
+    migration_id TEXT PRIMARY KEY,
+    from_version INTEGER NOT NULL,
+    to_version INTEGER NOT NULL,
+    checksum TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('started','completed','failed')),
+    started_at TEXT NOT NULL,
+    completed_at TEXT,
+    error_message TEXT
+);
+
+CREATE TABLE IF NOT EXISTS local_background_jobs (
+    job_id TEXT PRIMARY KEY,
+    job_kind TEXT NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 50,
+    status TEXT NOT NULL CHECK(status IN ('queued','running','completed','failed','cancelled')),
+    dedupe_key TEXT,
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    pid INTEGER,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    heartbeat_at TEXT,
+    error_code TEXT,
+    error_message TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_local_background_jobs_queue
+ON local_background_jobs(status,priority,created_at);
+CREATE INDEX IF NOT EXISTS idx_local_background_jobs_dedupe
+ON local_background_jobs(dedupe_key,status);
+
+CREATE TABLE IF NOT EXISTS provider_health (
+    provider_id TEXT PRIMARY KEY,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    circuit_open_until TEXT,
+    last_success_at TEXT,
+    last_failure_at TEXT,
+    last_error_code TEXT,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY(provider_id) REFERENCES model_providers(provider_id) ON DELETE CASCADE
+);
 """
 
 
@@ -1018,6 +1065,7 @@ def connect(home: Path) -> sqlite3.Connection:
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 10000")
     conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA secure_delete = FAST")
     conn.execute("PRAGMA temp_store = MEMORY")
     conn.execute("PRAGMA cache_size = -32768")
     return conn
@@ -1135,6 +1183,7 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
             conn.execute(f"ALTER TABLE speaking_reports ADD COLUMN {name} {declaration}")
     agent_columns = _columns(conn, "agent_runs")
     agent_additions = {
+        "study_thread_id": "TEXT",
         "capability_id": "TEXT",
         "execution_profile_id": "TEXT",
         "model_provider_id": "TEXT",
@@ -1163,10 +1212,15 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
         "resume_count": "INTEGER NOT NULL DEFAULT 0",
         "persistence_json": "TEXT NOT NULL DEFAULT '{}'",
         "orchestration_json": "TEXT NOT NULL DEFAULT '{}'",
+        "request_compacted_at": "TEXT",
     }
     for name, declaration in agent_additions.items():
         if name not in agent_columns:
             conn.execute(f"ALTER TABLE agent_runs ADD COLUMN {name} {declaration}")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_agent_runs_thread "
+        "ON agent_runs(study_thread_id,created_at DESC)"
+    )
     event_columns = _columns(conn, "agent_run_events")
     event_additions = {
         "stage": "TEXT NOT NULL DEFAULT 'unknown'",
@@ -1265,6 +1319,9 @@ def _migrate(conn: sqlite3.Connection, previous_version: str | None = None) -> N
                         row[key],
                     ),
                 )
+    from .migrations import apply_versioned_migrations
+
+    apply_versioned_migrations(conn, previous_version, SCHEMA_VERSION)
     conn.execute(
         f"INSERT INTO schema_meta(key,value) VALUES('schema_version','{SCHEMA_VERSION}') "
         "ON CONFLICT(key) DO UPDATE SET value=excluded.value"
@@ -2799,52 +2856,55 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
         "manual": "manual",
         "codex-managed": "managed_runtime",
     }.get(str(run["adapter_id"]), "external_agent")
+    columns = (
+        "run_id", "study_session_id", "study_thread_id", "adapter_id",
+        "capability_id", "execution_profile_id", "model_provider_id",
+        "backend_kind", "transport", "auth_mode", "agent_provider",
+        "agent_version", "model_id", "model_display_name", "agent_session_id",
+        "launcher_kind", "capabilities_json", "calibration_status", "action",
+        "output_contract", "base_revision", "status", "error_code",
+        "request_json", "result_json", "usage_json", "created_at", "started_at",
+        "completed_at", "timeout_seconds", "attempt_count", "cancel_requested",
+        "heartbeat_at", "recovery_action", "execution_ref", "skill_hash",
+        "inference_route_json", "checkpoint", "input_hash", "lease_owner",
+        "lease_expires_at", "resume_count", "persistence_json",
+        "request_compacted_at",
+    )
+    values = (
+        run["run_id"], run.get("study_session_id"), run.get("study_thread_id"),
+        run["adapter_id"], run.get("capability_id"),
+        run.get("execution_profile_id"), run.get("model_provider_id"),
+        run.get("backend_kind", inferred_backend_kind), run.get("transport"),
+        run.get("auth_mode"), run.get("agent_provider"), run.get("agent_version"),
+        run.get("model_id"), run.get("model_display_name"),
+        run.get("agent_session_id"), run.get("launcher_kind", "unknown"),
+        json.dumps(run.get("capabilities") or {}, ensure_ascii=False),
+        run.get("calibration_status", "unknown"), run["action"],
+        run["output_contract"], run.get("base_revision"), run["status"],
+        run.get("error_code"),
+        json.dumps(run.get("request") or {}, ensure_ascii=False),
+        json.dumps(run.get("result"), ensure_ascii=False)
+        if run.get("result") is not None else None,
+        json.dumps(run.get("usage") or {}, ensure_ascii=False),
+        run.get("created_at") or _now(), run.get("started_at"),
+        run.get("completed_at"), int(run.get("timeout_seconds") or 120),
+        int(run.get("attempt_count") or 1),
+        int(bool(run.get("cancel_requested", False))), run.get("heartbeat_at"),
+        run.get("recovery_action"), run.get("execution_ref"),
+        run.get("skill_hash"),
+        json.dumps(run.get("inference_route") or [], ensure_ascii=False),
+        run.get("checkpoint", "queued"),
+        run.get("input_hash") or json_payload_hash(run.get("request") or {}),
+        run.get("lease_owner"), run.get("lease_expires_at"),
+        int(run.get("resume_count") or 0),
+        json.dumps(run.get("persistence") or {}, ensure_ascii=False),
+        run.get("request_compacted_at"),
+    )
     with connect(home) as conn:
         conn.execute(
-            """
-            INSERT INTO agent_runs(
-              run_id,study_session_id,adapter_id,capability_id,execution_profile_id,
-              model_provider_id,backend_kind,transport,auth_mode,agent_provider,agent_version,model_id,
-              model_display_name,agent_session_id,launcher_kind,capabilities_json,
-              calibration_status,action,output_contract,
-              base_revision,status,error_code,request_json,result_json,usage_json,
-              created_at,started_at,completed_at,timeout_seconds,attempt_count,
-              cancel_requested,heartbeat_at,recovery_action,execution_ref,skill_hash,
-              inference_route_json,checkpoint,input_hash,lease_owner,
-              lease_expires_at,resume_count,persistence_json
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """,
-            (
-                run["run_id"], run.get("study_session_id"), run["adapter_id"],
-                run.get("capability_id"), run.get("execution_profile_id"),
-                run.get("model_provider_id"),
-                run.get("backend_kind", inferred_backend_kind), run.get("transport"),
-                run.get("auth_mode"),
-                run.get("agent_provider"), run.get("agent_version"), run.get("model_id"),
-                run.get("model_display_name"), run.get("agent_session_id"),
-                run.get("launcher_kind", "unknown"),
-                json.dumps(run.get("capabilities") or {}, ensure_ascii=False),
-                run.get("calibration_status", "unknown"),
-                run["action"], run["output_contract"],
-                run.get("base_revision"), run["status"], run.get("error_code"),
-                json.dumps(run.get("request") or {}, ensure_ascii=False),
-                json.dumps(run.get("result"), ensure_ascii=False) if run.get("result") is not None else None,
-                json.dumps(run.get("usage") or {}, ensure_ascii=False),
-                run.get("created_at") or _now(), run.get("started_at"), run.get("completed_at"),
-                int(run.get("timeout_seconds") or 120),
-                int(run.get("attempt_count") or 1),
-                int(bool(run.get("cancel_requested", False))),
-                run.get("heartbeat_at"), run.get("recovery_action"),
-                run.get("execution_ref"),
-                run.get("skill_hash"),
-                json.dumps(run.get("inference_route") or [], ensure_ascii=False),
-                run.get("checkpoint", "queued"),
-                run.get("input_hash") or json_payload_hash(run.get("request") or {}),
-                run.get("lease_owner"),
-                run.get("lease_expires_at"),
-                int(run.get("resume_count") or 0),
-                json.dumps(run.get("persistence") or {}, ensure_ascii=False),
-            ),
+            f"INSERT INTO agent_runs({','.join(columns)}) "
+            f"VALUES({','.join('?' for _ in columns)})",
+            values,
         )
         receipt = run.get("privacy_receipt")
         if receipt:
@@ -2878,6 +2938,7 @@ def create_agent_run(home: Path, run: dict[str, Any]) -> dict[str, Any]:
 
 def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
     allowed = {
+        "study_thread_id",
         "capability_id", "execution_profile_id", "model_provider_id",
         "backend_kind", "transport",
         "auth_mode",
@@ -2889,6 +2950,7 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
         "base_revision", "skill_hash", "inference_route_json",
         "checkpoint", "input_hash", "lease_owner", "lease_expires_at",
         "resume_count", "persistence_json", "orchestration_json",
+        "request_json", "request_compacted_at",
     }
     columns: list[str] = []
     values: list[Any] = []
@@ -2910,6 +2972,10 @@ def update_agent_run(home: Path, run_id: str, **changes: Any) -> dict[str, Any]:
             )
         elif key == "orchestration":
             column, value = "orchestration_json", json.dumps(
+                value or {}, ensure_ascii=False
+            )
+        elif key == "request":
+            column, value = "request_json", json.dumps(
                 value or {}, ensure_ascii=False
             )
         if column not in allowed:
@@ -2942,6 +3008,7 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
     return {
         "run_id": row["run_id"],
         "study_session_id": row["study_session_id"],
+        "study_thread_id": row["study_thread_id"],
         "adapter_id": row["adapter_id"],
         "capability_id": row["capability_id"],
         "execution_profile_id": row["execution_profile_id"],
@@ -2983,7 +3050,50 @@ def _agent_run_row(row: sqlite3.Row) -> dict[str, Any]:
         "resume_count": int(row["resume_count"]),
         "persistence": json.loads(row["persistence_json"]),
         "orchestration": json.loads(row["orchestration_json"]),
+        "request_compacted_at": row["request_compacted_at"],
     }
+
+
+def compact_agent_run_request(home: Path, run_id: str) -> dict[str, Any]:
+    """Discard replay-only private context after an authoritative result exists."""
+    run = get_agent_run(home, run_id)
+    if not run:
+        raise ValueError("Agent run not found")
+    if run["status"] not in {"persisted", "test_passed"}:
+        return run
+    request = dict(run.get("request") or {})
+    compact = {
+        "request_version": request.get("request_version"),
+        "request_id": request.get("request_id") or run_id,
+        "study_session_id": request.get("study_session_id"),
+        "study_thread_id": request.get("study_thread_id"),
+        "user_message_id": request.get("user_message_id"),
+        "capability_id": request.get("capability_id"),
+        "skill": request.get("skill"),
+        "action": request.get("action"),
+        "context_ref": request.get("context_ref"),
+        "payload_refs": request.get("payload_refs") or [],
+        "output_contract": request.get("output_contract"),
+        "privacy_receipt_id": (
+            (request.get("privacy_decision") or {}).get("receipt_id")
+        ),
+        "media_refs": [
+            {
+                "media_id": item.get("media_id"),
+                "content_hash": item.get("content_hash"),
+            }
+            for item in request.get("media_refs") or []
+            if isinstance(item, dict)
+        ],
+        "compacted": True,
+        "input_hash": run.get("input_hash"),
+    }
+    return update_agent_run(
+        home,
+        run_id,
+        request=compact,
+        request_compacted_at=_now(),
+    )
 
 
 def _privacy_receipt_row(row: sqlite3.Row) -> dict[str, Any]:
@@ -3710,6 +3820,32 @@ def search_learning_history(
     pattern = f"%{escaped}%"
     bounded = max(1, min(int(limit), 50))
     with connect(home) as conn:
+        tokenizer_row = conn.execute(
+            "SELECT value FROM schema_meta WHERE key='learning_history_tokenizer'"
+        ).fetchone()
+        tokenizer = str(tokenizer_row["value"]) if tokenizer_row else "unavailable"
+        if tokenizer != "unavailable" and (tokenizer != "trigram" or len(clean) >= 3):
+            phrase = _learning_history_match_expression(clean, tokenizer)
+            try:
+                indexed_rows = conn.execute(
+                    """
+                    SELECT source_type,source_id,title,content,created_at
+                    FROM learning_history_fts
+                    WHERE learning_history_fts MATCH ?
+                    ORDER BY rank,created_at DESC LIMIT ?
+                    """,
+                    (phrase, bounded),
+                ).fetchall()
+            except sqlite3.OperationalError:
+                indexed_rows = []
+            if indexed_rows:
+                return [
+                    {
+                        **dict(row),
+                        "content": str(row["content"] or "")[:1200],
+                    }
+                    for row in indexed_rows
+                ]
         message_rows = conn.execute(
             """
             SELECT 'study_message' source_type,m.message_id source_id,
@@ -3752,6 +3888,27 @@ def search_learning_history(
         }
         for item in combined[:bounded]
     ]
+
+
+def _learning_history_match_expression(clean: str, tokenizer: str) -> str:
+    terms: list[str] = []
+    for word in re.findall(r"[A-Za-z0-9_']{3,}", clean):
+        lowered = word.casefold()
+        if lowered not in terms:
+            terms.append(lowered)
+    if tokenizer == "trigram":
+        for sequence in re.findall(r"[\u3400-\u9fff]{3,}", clean):
+            for index in range(0, len(sequence) - 2, max(1, len(sequence) // 6)):
+                trigram = sequence[index : index + 3]
+                if trigram not in terms:
+                    terms.append(trigram)
+                if len(terms) >= 10:
+                    break
+    if not terms:
+        terms = [clean]
+    return " OR ".join(
+        '"' + term.replace('"', '""') + '"' for term in terms[:10]
+    )
 
 
 def create_provider_attempt(

@@ -4,11 +4,14 @@ import hashlib
 import io
 import uuid
 import wave
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from .errors import MediaError, MediaNotFoundError
 from .storage import get_media_asset, register_media_asset
+from .storage_quota import assert_local_storage_capacity, invalidate_storage_usage
+from .uploads import StagedUpload, copy_file_atomic, hash_file
 
 
 MAX_MEDIA_BYTES = 15 * 1024 * 1024
@@ -61,7 +64,9 @@ def import_image_bytes(
     folder.mkdir(parents=True, exist_ok=True)
     target = folder / f"{digest}{suffix}"
     if not target.exists():
+        assert_local_storage_capacity(home, len(content))
         target.write_bytes(content)
+        invalidate_storage_usage(home)
     return register_media_asset(
         home,
         {
@@ -89,10 +94,24 @@ def resolve_media_file(home: Path, media_id: str) -> tuple[dict[str, Any], Path]
     path = Path(str(asset["local_path"])).resolve()
     if root not in path.parents or not path.is_file():
         raise MediaNotFoundError("Registered media file is unavailable")
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    stat = path.stat()
+    digest = _verified_file_hash(
+        str(path), int(stat.st_size), int(stat.st_mtime_ns), str(asset["content_hash"])
+    )
     if digest != asset["content_hash"]:
         raise MediaError("Registered media hash no longer matches the file")
     return asset, path
+
+
+@lru_cache(maxsize=1024)
+def _verified_file_hash(
+    path: str,
+    size_bytes: int,
+    modified_ns: int,
+    expected_hash: str,
+) -> str:
+    del size_bytes, modified_ns, expected_hash
+    return hash_file(Path(path))
 
 
 def import_audio_bytes(
@@ -137,7 +156,9 @@ def import_audio_bytes(
     folder.mkdir(parents=True, exist_ok=True)
     target = folder / f"{digest}{suffix}"
     if not target.exists():
+        assert_local_storage_capacity(home, len(content))
         target.write_bytes(content)
+        invalidate_storage_usage(home)
     return register_media_asset(
         home,
         {
@@ -153,6 +174,70 @@ def import_audio_bytes(
             "metadata": {
                 "original_name": filename,
                 "size_bytes": len(content),
+                "duration_seconds": round(float(detected_duration), 3),
+                "transcript": transcript,
+                "timestamps": clean_timestamps,
+                "allow_agent_processing": bool(allow_agent_processing),
+            },
+        },
+    )
+
+
+def import_audio_file(
+    home: Path,
+    upload: StagedUpload,
+    *,
+    duration_seconds: float | None = None,
+    transcript: str | None = None,
+    timestamps: list[dict[str, Any]] | None = None,
+    owner_type: str | None = None,
+    owner_id: str | None = None,
+    privacy_status: str = "local_only",
+    allow_agent_processing: bool = False,
+) -> dict[str, Any]:
+    if upload.size_bytes <= 0 or upload.size_bytes > MAX_AUDIO_BYTES:
+        raise MediaError(f"Audio must be between 1 byte and {MAX_AUDIO_BYTES} bytes")
+    normalised_mime = str(upload.mime_type or "").split(";", 1)[0].strip().casefold()
+    suffix = ALLOWED_AUDIO_TYPES.get(normalised_mime)
+    if not suffix:
+        raise MediaError("Only MP3, WAV, M4A and OGG audio is supported")
+    detected_duration = duration_seconds
+    if suffix == ".wav":
+        try:
+            with wave.open(str(upload.path), "rb") as stream:
+                rate = stream.getframerate()
+                detected_duration = stream.getnframes() / rate if rate else None
+        except (wave.Error, EOFError) as exc:
+            raise MediaError("The uploaded WAV file is unreadable") from exc
+    if detected_duration is None or float(detected_duration) <= 0:
+        raise MediaError("Audio duration_seconds is required when it cannot be read locally")
+    clean_timestamps = timestamps or []
+    for item in clean_timestamps:
+        start = float(item.get("start_seconds", -1))
+        end = float(item.get("end_seconds", -1))
+        if start < 0 or end < start or end > float(detected_duration):
+            raise MediaError("Transcript timestamps must fall within the audio duration")
+    folder = (home / "media" / upload.sha256[:2]).resolve()
+    target = folder / f"{upload.sha256}{suffix}"
+    if not target.exists():
+        assert_local_storage_capacity(home, upload.size_bytes)
+        copy_file_atomic(upload.path, target)
+        invalidate_storage_usage(home)
+    return register_media_asset(
+        home,
+        {
+            "media_id": f"audio_{uuid.uuid4().hex}",
+            "owner_type": owner_type,
+            "owner_id": owner_id,
+            "media_type": "audio",
+            "mime_type": normalised_mime,
+            "local_path": str(target),
+            "content_hash": upload.sha256,
+            "alt_text": upload.original_name.strip() or "IELTS Listening audio",
+            "privacy_status": privacy_status,
+            "metadata": {
+                "original_name": upload.original_name,
+                "size_bytes": upload.size_bytes,
                 "duration_seconds": round(float(detected_duration), 3),
                 "transcript": transcript,
                 "timestamps": clean_timestamps,

@@ -120,7 +120,8 @@ It starts one local Python process that:
 2. creates a random launch token;
 3. serves the compiled frontend assets;
 4. exposes the deterministic local API;
-5. owns the Agent run supervisor;
+5. owns the lightweight supervisors that launch disposable Agent and content
+   worker processes;
 6. reuses the healthy single instance or starts it in the background;
 7. opens a browser unless `--no-open` is supplied;
 8. shuts down after `ielts-coach ui stop`.
@@ -164,23 +165,27 @@ conversation interface to the page.
 
 ### Study Thread and content workbench boundary
 
-User-supplied screenshots, PDFs, Word documents and text files first belong to
-a local Study Thread. Images are registered through Media Registry; documents
-are stored under the thread attachment directory. A bounded recent
-conversation, initial source material and current-message attachments are
-compiled for each model request. The browser chat history is never the data
-source.
+User-supplied screenshots, clipboard images, PDFs, Word documents and text files
+first belong to a local Study Thread. Images are registered through Media
+Registry; documents are stored under the thread attachment directory. A
+versioned Context Engine compiles bounded recent conversation, rolling summary,
+learning state, relevant local-history matches and current-message attachments
+for each model request. Its trace records source IDs, omissions and a
+fingerprint. The browser chat history is never the data source.
 
 Only an explicit "整理成练习" action copies thread attachments into the content
 inbox. The resulting import is prepared in the background and remains
 unreviewed until OCR, page roles, question structure and local review are
 complete.
 
-Raw PDF, image and audio uploads are copied only into
+Raw PDF, image and audio uploads are streamed into a bounded staging directory
+and copied only into
 `IELTS_HOME/corpus/inbox/<import_id>` and recorded with a hash. PDF preparation
 is a persisted background job: it records page count and metadata, extracts a
 short page text preview when possible, marks image-only pages as OCR-required,
-and lets a reviewer assign page roles. The original file is served only through
+and lets a reviewer assign page roles. OCR, content preparation and review-draft
+generation run through the durable local background queue in isolated child
+processes. The original file is served only through
 an authenticated import-specific route. Preparation never claims the pages are
 questions and never indexes them automatically.
 
@@ -188,8 +193,9 @@ A prepared `manifest.yaml` plus referenced JSONL can still be validated and
 indexed. Indexed questions can then be selected into an Assessment Pack; the
 Runtime derives its structure, and a reviewed full pack is blocked until all
 referenced items are independently verified. OCR execution and page-plan to
-question-draft conversion remain explicit later stages. Screenshots are treated
-as one-page documents and can use the same local OCR and page-role review flow.
+question-draft conversion are explicit, isolated review stages rather than
+automatic publication. Screenshots are treated as one-page documents and can
+use the same local OCR and page-role review flow.
 
 ### Packaging
 
@@ -237,6 +243,12 @@ ielts-ai-coach/
    │  ├─ manual.py
    │  └─ mock.py
    ├─ media.py            # registered media only
+   ├─ uploads.py          # bounded streaming upload staging
+   ├─ background_jobs.py  # durable local heavy-job queue
+   ├─ local_worker.py     # disposable Agent/OCR worker entry point
+   ├─ context_engine.py   # deterministic Tutor context budgets and trace
+   ├─ data_lifecycle.py   # deletion, media GC and privacy maintenance
+   ├─ support_diagnostics.py # content-free support bundle
    ├─ text_anchor.py      # exact evidence locations
    ├─ locking.py          # cross-process Session locks
    └─ existing Core modules remain authoritative

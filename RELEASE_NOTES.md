@@ -13,6 +13,16 @@
 - compact passage/section result summaries for full Reading and Listening mocks
 - responsive content-review deep links, actionable feedback empty states and
   rendering containment for long conversations and large local libraries
+- deterministic context budgets, rolling summaries and FTS5 learning-history
+  retrieval for long-running Tutor conversations
+- streaming uploads, managed-storage quotas and full deletion of thread-owned
+  runs, artifacts, media bindings and unreferenced files
+- durable isolated worker processes for OCR, content preparation and model
+  execution, including restart recovery and hard cancellation
+- provider retry, `Retry-After`, persisted health, circuit breaking and optional
+  streaming for OpenAI-compatible connections
+- versioned Schema v28-v30 migration journal and content-free support bundles
+  downloadable from System settings
 
 ### Release and privacy changes
 

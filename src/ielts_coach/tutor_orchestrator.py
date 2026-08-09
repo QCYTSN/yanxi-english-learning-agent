@@ -18,7 +18,7 @@ from .storage import (
     search_learning_history,
 )
 from .study_context import build_study_context
-from .study_threads import get_study_thread
+from .study_threads import get_study_thread_overview, list_study_attachments
 from .text_anchor import create_text_anchor
 from .tutor_state import get_thread_learning_state
 from .validation import load_schema
@@ -174,9 +174,9 @@ class DomainToolRegistry:
         query: str | None = None,
         limit: int = 5,
     ) -> list[dict[str, Any]]:
-        thread = get_study_thread(self.home, thread_id)
+        attachments = list_study_attachments(self.home, thread_id)
         results = []
-        for item in reversed(thread["attachments"]):
+        for item in reversed(attachments):
             if attachment_id and item["attachment_id"] != attachment_id:
                 continue
             text = str(item.get("extracted_text") or "")
@@ -219,8 +219,7 @@ class DomainToolRegistry:
                         "text": str(passage.get("body") or ""),
                     }
                 )
-        thread = get_study_thread(self.home, thread_id)
-        for item in thread["attachments"]:
+        for item in list_study_attachments(self.home, thread_id):
             if attachment_id and item["attachment_id"] != attachment_id:
                 continue
             text = str(item.get("extracted_text") or "")
@@ -261,7 +260,7 @@ class DomainToolRegistry:
         question_id: str | None = None,
         passage_id: str | None = None,
     ) -> dict[str, Any]:
-        thread = get_study_thread(self.home, thread_id)
+        thread = get_study_thread_overview(self.home, thread_id)
         source = thread.get("source_context") or {}
         question_id = question_id or source.get("question_id")
         passage_id = passage_id or source.get("passage_id")

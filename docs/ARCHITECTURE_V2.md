@@ -158,9 +158,10 @@ IELTS_HOME/private/credentials.json
 ```
 
 On Windows they are protected with DPAPI and tied to the current user and
-machine. Other platforms use a private owner-only file fallback. Credential
-values are never returned by the HTTP API, written into Agent runs or included
-in learning backups.
+machine. On other platforms the Runtime uses the operating-system keyring when
+a usable backend exists, with a private owner-only file as the explicit
+fallback. Credential values are never returned by the HTTP API, written into
+Agent runs or included in learning backups.
 
 The managed Codex runtime uses isolated locations:
 
@@ -238,6 +239,17 @@ Schema v27 adds versioned Tutor thread state, confirmation-gated Tutor
 proposals and idempotent Tutor turn commits. These records preserve teaching
 continuity without allowing conversation state to become formal Session,
 answer-key or score authority.
+Schema v28 links inference runs to persistent Study Threads and permits terminal
+request envelopes to be compacted after their auditable references and hashes
+have been recorded. Deleting a conversation now removes its runs, artifacts,
+bindings and unreferenced files as one lifecycle operation.
+Schema v29 adds a durable local background-job queue and FTS5 learning-history
+search. OCR and content preparation execute in disposable child processes;
+startup recovery converts interrupted jobs to explicit recoverable failures.
+Schema v30 adds persisted Provider health and circuit-breaker state. Remote HTTP
+providers use normalized failures, bounded retry with `Retry-After`, optional
+streaming, primary/fallback routing and cooldown after repeated transient
+failures.
 Migrations retain pre-migration snapshots and remain compatible with V0.1 user
 data.
 
@@ -298,6 +310,12 @@ Scale work should first use:
 - registered media streaming instead of eager loading;
 - measured slow-route and database telemetry.
 
+These foundations are now implemented. In addition, uploads stream through a
+bounded staging area, managed material has a configurable local quota, the
+Context Engine records a content hash and exact selected/omitted references,
+and the System page can export a content-free support bundle. The Web process
+coordinates work but does not perform OCR or model inference in-process.
+
 Rust, Go, a vector database or a separate service must be introduced only for
 a measured bottleneck or a separately approved product capability.
 
@@ -315,7 +333,8 @@ The architecture is accepted when:
   formal state without a learner-confirmed Runtime command;
 - learner soft memories are visible, editable and deletable and never affect
   formal scores or answer authority;
-- schema v27 migrates historical homes with a recoverable snapshot;
+- schema v30 migrates historical homes with a recoverable snapshot and an
+  immutable migration journal;
 - every teaching contract has both an accepted and a rejected regression case;
 - release reports keep contract correctness, runtime reliability and scale as
   separate gates rather than collapsing them into one score;

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from ielts_coach.init_home import initialise_home
 from ielts_coach.storage import (
+    connect,
     create_learner_memory,
     delete_learner_memory,
     list_learner_memories,
@@ -80,6 +81,82 @@ def test_long_threads_use_a_bounded_summary_and_local_search(tmp_path: Path) -> 
     matches = search_learning_history(home, "环境保护", limit=3)
     assert len(matches) == 3
     assert all(item["source_type"] == "study_message" for item in matches)
+
+
+def test_context_pack_keeps_the_original_goal_after_many_turns(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Long-term goal", module="reading")
+    thread_id = thread["thread_id"]
+    with connect(home) as conn:
+        conn.executemany(
+            """
+            INSERT INTO study_messages(
+              message_id,thread_id,role,content,status,context_json,created_at
+            ) VALUES(?,?, 'user',?,'complete','{}',?)
+            """,
+            [
+                (
+                    f"message-{index:03d}",
+                    thread_id,
+                    (
+                        "Original goal: learn to justify every reading answer with passage evidence."
+                        if index == 0
+                        else f"Follow-up turn {index} about the current passage."
+                    ),
+                    "2026-01-01T00:00:00+00:00",
+                )
+                for index in range(50)
+            ],
+        )
+
+    context = study_thread_agent_context(
+        home,
+        thread_id=thread_id,
+        message_id="message-049",
+    )
+
+    assert context["context_version"] == 3
+    assert len(context["conversation"]) == 10
+    assert context["conversation_summary"]["message_count"] == 40
+    assert "Original goal" in context["conversation_summary"]["summary"]
+    assert context["thread_memory"]["rolling_summary"] == context["conversation_summary"]
+    assert context["context_budget"]["attachment_chars_used"] == 0
+
+
+def test_context_pack_bounds_recent_long_answers(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Long answers", module="writing")
+    thread_id = thread["thread_id"]
+    with connect(home) as conn:
+        conn.executemany(
+            """
+            INSERT INTO study_messages(
+              message_id,thread_id,role,content,status,context_json,created_at
+            ) VALUES(?,?,?,?,'complete','{}',?)
+            """,
+            [
+                (
+                    f"message-{index:03d}",
+                    thread_id,
+                    "user" if index % 2 == 0 else "assistant",
+                    f"Turn {index}: " + ("x" * 7_000),
+                    "2026-01-01T00:00:00+00:00",
+                )
+                for index in range(21)
+            ],
+        )
+
+    context = study_thread_agent_context(
+        home,
+        thread_id=thread_id,
+        message_id="message-020",
+    )
+
+    assert context["context_budget"]["recent_chars_used"] <= 32_000
+    assert context["conversation"][-1]["content"].startswith("Turn 20")
+    assert len(context["conversation"]) < 10
 
 
 def test_tutor_orchestrator_only_uses_allowlisted_domain_tools(tmp_path: Path) -> None:

@@ -22,6 +22,8 @@ from .storage import (
     list_content_import_jobs,
     update_content_import_job,
 )
+from .uploads import StagedUpload, copy_file_atomic
+from .storage_quota import assert_local_storage_capacity, invalidate_storage_usage
 
 
 ALLOWED_SUFFIXES = {
@@ -74,13 +76,70 @@ def create_import(
     rights_status: str,
     files: list[tuple[str, bytes, str | None]],
 ) -> dict[str, Any]:
+    prepared = [
+        (
+            original_name,
+            data,
+            mime_type,
+            len(data),
+            hashlib.sha256(data).hexdigest(),
+        )
+        for original_name, data, mime_type in files
+    ]
+    return _create_import_sources(
+        home,
+        title=title,
+        source_type=source_type,
+        authenticity=authenticity,
+        rights_status=rights_status,
+        files=prepared,
+    )
+
+
+def create_import_from_staged(
+    home: Path,
+    *,
+    title: str,
+    source_type: str,
+    authenticity: str,
+    rights_status: str,
+    files: list[StagedUpload],
+) -> dict[str, Any]:
+    return _create_import_sources(
+        home,
+        title=title,
+        source_type=source_type,
+        authenticity=authenticity,
+        rights_status=rights_status,
+        files=[
+            (
+                item.original_name,
+                item.path,
+                item.mime_type,
+                item.size_bytes,
+                item.sha256,
+            )
+            for item in files
+        ],
+    )
+
+
+def _create_import_sources(
+    home: Path,
+    *,
+    title: str,
+    source_type: str,
+    authenticity: str,
+    rights_status: str,
+    files: list[tuple[str, bytes | Path, str | None, int, str]],
+) -> dict[str, Any]:
     if not files:
         raise ValueError("At least one content file is required")
     if source_type not in {"official_external", "licensed_private", "seasonal_reported", "personal", "synthetic", "project_original"}:
         raise ValueError("Unsupported source_type")
     if rights_status not in {"redistributable", "external_reference", "local_private"}:
         raise ValueError("Unsupported rights_status")
-    total = sum(len(data) for _, data, _ in files)
+    total = sum(size for _, _, _, size, _ in files)
     if total > MAX_TOTAL_BYTES:
         raise ValueError("Import exceeds the 500 MB total limit")
     storage = content_storage_status(home)
@@ -88,6 +147,7 @@ def create_import(
         raise ValueError(
             "The local content inbox does not have enough quota for this upload"
         )
+    assert_local_storage_capacity(home, total)
 
     import_id = f"IMP-{secrets.token_hex(6).upper()}"
     target = home / "corpus" / "inbox" / import_id
@@ -95,8 +155,8 @@ def create_import(
     stored: list[dict[str, Any]] = []
     used_names: set[str] = set()
     try:
-        for original_name, data, mime_type in files:
-            if len(data) > MAX_FILE_BYTES:
+        for original_name, source, mime_type, size_bytes, sha256 in files:
+            if size_bytes > MAX_FILE_BYTES:
                 raise ValueError(f"File exceeds the 150 MB limit: {original_name}")
             clean = _safe_name(original_name)
             suffix = Path(clean).suffix.casefold()
@@ -105,14 +165,17 @@ def create_import(
             clean = _unique_name(clean, used_names)
             used_names.add(clean.casefold())
             path = target / clean
-            path.write_bytes(data)
+            if isinstance(source, Path):
+                copy_file_atomic(source, path)
+            else:
+                path.write_bytes(source)
             stored.append({
                 "original_name": original_name,
                 "stored_name": clean,
                 "file_kind": "structured" if suffix in STRUCTURED_SUFFIXES else _raw_kind(suffix),
                 "mime_type": mime_type,
-                "size_bytes": len(data),
-                "sha256": hashlib.sha256(data).hexdigest(),
+                "size_bytes": size_bytes,
+                "sha256": sha256,
             })
         manifest = next((item for item in stored if item["stored_name"].casefold() in {"manifest.yaml", "manifest.yml"}), None)
         raw_count = sum(item["file_kind"] != "structured" for item in stored)
@@ -127,11 +190,13 @@ def create_import(
             "status": status,
             "summary": summary,
         }, stored)
+        invalidate_storage_usage(home)
     except Exception:
         for path in target.glob("*"):
             if path.is_file():
                 path.unlink(missing_ok=True)
         target.rmdir()
+        invalidate_storage_usage(home)
         raise
     return get_content_import_job(home, import_id) or {}
 
@@ -1252,6 +1317,7 @@ def delete_import(
         staging.replace(target)
         raise
     shutil.rmtree(staging)
+    invalidate_storage_usage(home)
     return {
         "import_id": import_id,
         "deleted": True,

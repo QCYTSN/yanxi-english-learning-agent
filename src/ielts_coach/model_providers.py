@@ -4,10 +4,14 @@ import base64
 import hashlib
 import json
 import mimetypes
+import random
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from dataclasses import asdict
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any, Callable
 
@@ -93,9 +97,20 @@ PROVIDER_PRESETS: tuple[dict[str, Any], ...] = (
 
 
 class ModelProviderError(ValueError):
-    def __init__(self, message: str, *, code: str = "MODEL_PROVIDER_ERROR"):
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str = "MODEL_PROVIDER_ERROR",
+        status_code: int | None = None,
+        retry_after_seconds: float | None = None,
+        retryable: bool = False,
+    ):
         super().__init__(message)
         self.code = code
+        self.status_code = status_code
+        self.retry_after_seconds = retry_after_seconds
+        self.retryable = retryable
 
 
 def _now() -> str:
@@ -192,7 +207,9 @@ def list_model_providers(
         provider["credential_configured"] = has_credential(
             home, provider.get("credential_ref")
         )
-        provider["credential_protection"] = credential_protection()
+        provider["credential_protection"] = credential_protection(
+            home, provider.get("credential_ref")
+        )
         provider["available"] = provider_available(home, provider)
         if diagnostics:
             provider["diagnostics"] = provider_diagnostics(home, provider)
@@ -213,7 +230,9 @@ def get_model_provider(home: Path, provider_id: str) -> dict[str, Any] | None:
     provider["credential_configured"] = has_credential(
         home, provider.get("credential_ref")
     )
-    provider["credential_protection"] = credential_protection()
+    provider["credential_protection"] = credential_protection(
+        home, provider.get("credential_ref")
+    )
     provider["available"] = provider_available(home, provider)
     return provider
 
@@ -483,9 +502,14 @@ def provider_available(home: Path, provider: dict[str, Any]) -> bool:
 
 def provider_diagnostics(home: Path, provider: dict[str, Any]) -> dict[str, Any]:
     if provider["provider_kind"] == "codex_oauth_bridge":
-        return get_adapter("codex-managed").diagnostics(
+        result = get_adapter("codex-managed").diagnostics(
             home, _codex_profile(provider)
         )
+        return {
+            **result,
+            "capabilities": asdict(_provider_capabilities(provider)),
+            "health": provider_health_status(home, str(provider["provider_id"])),
+        }
     return {
         "available": provider_available(home, provider),
         "base_url": provider.get("base_url"),
@@ -493,11 +517,47 @@ def provider_diagnostics(home: Path, provider: dict[str, Any]) -> dict[str, Any]
         "credential_configured": has_credential(
             home, provider.get("credential_ref")
         ),
-        "credential_protection": credential_protection(),
+        "credential_protection": credential_protection(
+            home, provider.get("credential_ref")
+        ),
+        "capabilities": asdict(_provider_capabilities(provider)),
+        "health": provider_health_status(home, str(provider["provider_id"])),
         "boundary": (
             "This is a configuration check only. Use Test connection for a "
             "live provider request."
         ),
+    }
+
+
+def provider_health_status(home: Path, provider_id: str) -> dict[str, Any]:
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM provider_health WHERE provider_id=?", (provider_id,)
+        ).fetchone()
+    if row is None:
+        return {
+            "status": "unknown",
+            "consecutive_failures": 0,
+            "circuit_open_until": None,
+        }
+    open_until = row["circuit_open_until"]
+    status = "healthy" if int(row["consecutive_failures"]) == 0 else "degraded"
+    if open_until:
+        try:
+            parsed = datetime.fromisoformat(str(open_until))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            if parsed > datetime.now(timezone.utc):
+                status = "circuit_open"
+        except ValueError:
+            pass
+    return {
+        "status": status,
+        "consecutive_failures": int(row["consecutive_failures"]),
+        "circuit_open_until": open_until,
+        "last_success_at": row["last_success_at"],
+        "last_failure_at": row["last_failure_at"],
+        "last_error_code": row["last_error_code"],
     }
 
 
@@ -604,7 +664,7 @@ class ModelProviderChainAdapter:
     ) -> dict[str, Any]:
         execution_ref = str(request["request_id"])
         contract = str(request.get("output_contract") or "")
-        failures: list[dict[str, str]] = []
+        failures: list[dict[str, Any]] = []
         for index, provider in enumerate(self.route):
             if emit and index > 0:
                 emit(
@@ -744,6 +804,8 @@ class ModelProviderChainAdapter:
                         "code": code,
                         "stage": failure_stage,
                         "message": str(exc)[-500:],
+                        "status_code": getattr(exc, "status_code", None),
+                        "retryable": bool(getattr(exc, "retryable", False)),
                     }
                 )
                 update_provider_attempt(
@@ -781,6 +843,10 @@ class ModelProviderChainAdapter:
                             "provider_attempt_id": attempt["attempt_id"],
                             "failure_stage": failure_stage,
                             "code": code,
+                            "retryable": bool(getattr(exc, "retryable", False)),
+                            "retry_after_seconds": getattr(
+                                exc, "retry_after_seconds", None
+                            ),
                             "will_try_fallback": index + 1 < len(self.route),
                         }
                     )
@@ -792,6 +858,8 @@ class ModelProviderChainAdapter:
         raise ModelProviderError(
             f"Every configured model provider failed. {detail}",
             code="MODEL_ROUTE_FAILED",
+            retryable=bool(failures)
+            and all(bool(item.get("retryable")) for item in failures),
         )
 
     def stream(self, home: Path, execution_ref: str) -> list[dict[str, Any]]:
@@ -857,13 +925,13 @@ def _provider_capabilities(provider: dict[str, Any]) -> AgentCapabilities:
     config = provider.get("config") or {}
     return AgentCapabilities(
         structured_output=True,
-        streaming=False,
+        streaming=bool(config.get("streaming", False)),
         session_resume=False,
         image_input=bool(config.get("image_input", False)),
         audio_input=False,
         tool_execution=False,
         remote_processing=provider["provider_kind"] != "local_http",
-        cancellation=False,
+        cancellation=bool(config.get("streaming", False)),
         timeout_control=True,
     )
 
@@ -912,13 +980,14 @@ def _http_invoke(
     schema = provider_output_schema(
         dict((request.get("skill_envelope") or {}).get("output_schema") or {})
     )
+    use_streaming = bool(provider.get("config", {}).get("streaming", False))
     payload: dict[str, Any] = {
         "model": provider["model_id"],
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user_content},
         ],
-        "stream": False,
+        "stream": use_streaming,
         "response_format": {
             "type": "json_schema",
             "json_schema": {
@@ -932,26 +1001,29 @@ def _http_invoke(
         payload["temperature"] = provider["config"]["temperature"]
     if emit:
         emit({"stage": "generating", "label": "Model is producing feedback"})
+    invoke = _http_stream_completion if use_streaming else _http_json
     try:
-        response = _http_json(
+        response = invoke(
             home,
             provider,
             method="POST",
             endpoint="chat/completions",
             payload=payload,
             timeout=int(provider.get("config", {}).get("timeout_seconds", 300)),
+            **({"emit": emit} if use_streaming else {}),
         )
     except ModelProviderError as exc:
         if exc.code != "MODEL_PROVIDER_BAD_REQUEST":
             raise
         payload["response_format"] = {"type": "json_object"}
-        response = _http_json(
+        response = invoke(
             home,
             provider,
             method="POST",
             endpoint="chat/completions",
             payload=payload,
             timeout=int(provider.get("config", {}).get("timeout_seconds", 300)),
+            **({"emit": emit} if use_streaming else {}),
         )
     choices = response.get("choices") or []
     if not choices:
@@ -995,6 +1067,181 @@ def _http_json(
     payload: dict[str, Any] | None,
     timeout: int,
 ) -> dict[str, Any]:
+    response = _open_provider_response(
+        home,
+        provider,
+        method=method,
+        endpoint=endpoint,
+        payload=payload,
+        timeout=timeout,
+    )
+    try:
+        with response:
+            body = response.read().decode("utf-8", errors="replace")
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        _record_provider_failure(
+            home,
+            str(provider["provider_id"]),
+            "MODEL_PROVIDER_CONNECTION_FAILED",
+            retryable=True,
+        )
+        raise ModelProviderError(
+            f"Model provider connection was interrupted: {exc}",
+            code="MODEL_PROVIDER_CONNECTION_FAILED",
+            retryable=True,
+        ) from exc
+    try:
+        result = json.loads(body)
+    except json.JSONDecodeError as exc:
+        _record_provider_failure(
+            home,
+            str(provider["provider_id"]),
+            "MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        )
+        raise ModelProviderError(
+            "The provider returned a non-JSON response",
+            code="MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        ) from exc
+    if not isinstance(result, dict):
+        _record_provider_failure(
+            home,
+            str(provider["provider_id"]),
+            "MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        )
+        raise ModelProviderError(
+            "The provider returned an invalid response object",
+            code="MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        )
+    _record_provider_success(home, str(provider["provider_id"]))
+    return result
+
+
+def _http_stream_completion(
+    home: Path,
+    provider: dict[str, Any],
+    *,
+    method: str,
+    endpoint: str,
+    payload: dict[str, Any] | None,
+    timeout: int,
+    emit: ProviderEvent | None,
+) -> dict[str, Any]:
+    response = _open_provider_response(
+        home,
+        provider,
+        method=method,
+        endpoint=endpoint,
+        payload=payload,
+        timeout=timeout,
+    )
+    content_parts: list[str] = []
+    usage: dict[str, Any] = {}
+    model_id = provider.get("model_id")
+    last_emitted_chars = 0
+    last_emit_at = time.monotonic()
+    try:
+        with response:
+            for raw_line in response:
+                line = raw_line.decode("utf-8", errors="replace").strip()
+                if not line or line.startswith(":"):
+                    continue
+                if line.startswith("data:"):
+                    line = line[5:].strip()
+                if line == "[DONE]":
+                    break
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(event, dict):
+                    continue
+                if isinstance(event.get("usage"), dict):
+                    usage = dict(event["usage"])
+                if event.get("model"):
+                    model_id = event["model"]
+                choices = event.get("choices") or []
+                if choices and isinstance(choices[0], dict):
+                    choice = choices[0]
+                    delta = choice.get("delta") or {}
+                    value = delta.get("content") if isinstance(delta, dict) else None
+                    if value is None:
+                        message = choice.get("message") or {}
+                        value = (
+                            message.get("content")
+                            if isinstance(message, dict)
+                            else None
+                        )
+                    if isinstance(value, str):
+                        content_parts.append(value)
+                    elif isinstance(value, list):
+                        content_parts.extend(
+                            str(item.get("text") or "")
+                            for item in value
+                            if isinstance(item, dict)
+                        )
+                char_count = sum(len(part) for part in content_parts)
+                now = time.monotonic()
+                if emit and (
+                    char_count - last_emitted_chars >= 320
+                    or now - last_emit_at >= 1.0
+                ):
+                    emit(
+                        {
+                            "stage": "streaming",
+                            "label": "Model is drafting the response",
+                            "characters_received": char_count,
+                        }
+                    )
+                    last_emitted_chars = char_count
+                    last_emit_at = now
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        _record_provider_failure(
+            home,
+            str(provider["provider_id"]),
+            "MODEL_PROVIDER_STREAM_INTERRUPTED",
+            retryable=True,
+        )
+        raise ModelProviderError(
+            f"The streaming model response was interrupted: {exc}",
+            code="MODEL_PROVIDER_STREAM_INTERRUPTED",
+            retryable=True,
+        ) from exc
+    content = "".join(content_parts)
+    if not content:
+        _record_provider_failure(
+            home,
+            str(provider["provider_id"]),
+            "MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        )
+        raise ModelProviderError(
+            "The streaming provider returned no completion text",
+            code="MODEL_PROVIDER_INVALID_RESPONSE",
+            retryable=True,
+        )
+    _record_provider_success(home, str(provider["provider_id"]))
+    return {
+        "model": model_id,
+        "choices": [{"message": {"role": "assistant", "content": content}}],
+        "usage": usage,
+    }
+
+
+def _open_provider_response(
+    home: Path,
+    provider: dict[str, Any],
+    *,
+    method: str,
+    endpoint: str,
+    payload: dict[str, Any] | None,
+    timeout: int,
+) -> Any:
+    provider_id = str(provider["provider_id"])
+    _guard_provider_circuit(home, provider_id)
     base_url = str(provider["base_url"]).rstrip("/") + "/"
     url = urllib.parse.urljoin(base_url, endpoint)
     headers = {"Accept": "application/json"}
@@ -1010,46 +1257,167 @@ def _http_json(
                 code="MODEL_PROVIDER_AUTH_REQUIRED",
             )
         headers["Authorization"] = f"Bearer {api_key}"
-    request = urllib.request.Request(
-        url,
-        data=data,
-        headers=headers,
-        method=method,
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=max(1, timeout)) as response:
-            body = response.read().decode("utf-8", errors="replace")
-    except urllib.error.HTTPError as exc:
-        message = exc.read().decode("utf-8", errors="replace")[-1200:]
-        code = (
-            "MODEL_PROVIDER_AUTH_FAILED"
-            if exc.code in {401, 403}
-            else "MODEL_PROVIDER_BAD_REQUEST"
-            if exc.code in {400, 404, 405, 422}
-            else "MODEL_PROVIDER_HTTP_ERROR"
+    retries = int(provider.get("config", {}).get("max_retries", 2))
+    retries = max(0, min(retries, 3))
+    last_error: ModelProviderError | None = None
+    for attempt in range(retries + 1):
+        request = urllib.request.Request(
+            url,
+            data=data,
+            headers=headers,
+            method=method,
         )
-        raise ModelProviderError(
-            f"Provider HTTP {exc.code}: {message}",
-            code=code,
-        ) from exc
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise ModelProviderError(
-            f"Cannot connect to model provider: {exc}",
-            code="MODEL_PROVIDER_CONNECTION_FAILED",
-        ) from exc
-    try:
-        result = json.loads(body)
-    except json.JSONDecodeError as exc:
-        raise ModelProviderError(
-            "The provider returned a non-JSON response",
-            code="MODEL_PROVIDER_INVALID_RESPONSE",
-        ) from exc
-    if not isinstance(result, dict):
-        raise ModelProviderError(
-            "The provider returned an invalid response object",
-            code="MODEL_PROVIDER_INVALID_RESPONSE",
+        try:
+            return urllib.request.urlopen(request, timeout=max(1, timeout))
+        except urllib.error.HTTPError as exc:
+            message = exc.read().decode("utf-8", errors="replace")[-1200:]
+            if provider["auth_mode"] == "api_key":
+                message = message.replace(str(api_key), "[redacted]")
+            retry_after = _retry_after_seconds(exc.headers.get("Retry-After"))
+            retryable = exc.code in {408, 429, 500, 502, 503, 504}
+            code = (
+                "MODEL_PROVIDER_AUTH_FAILED"
+                if exc.code in {401, 403}
+                else "MODEL_PROVIDER_RATE_LIMITED"
+                if exc.code == 429
+                else "MODEL_PROVIDER_BAD_REQUEST"
+                if exc.code in {400, 404, 405, 422}
+                else "MODEL_PROVIDER_UNAVAILABLE"
+                if retryable
+                else "MODEL_PROVIDER_HTTP_ERROR"
+            )
+            last_error = ModelProviderError(
+                f"Provider HTTP {exc.code}: {message}",
+                code=code,
+                status_code=int(exc.code),
+                retry_after_seconds=retry_after,
+                retryable=retryable,
+            )
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            last_error = ModelProviderError(
+                f"Cannot connect to model provider: {exc}",
+                code="MODEL_PROVIDER_CONNECTION_FAILED",
+                retryable=True,
+            )
+        if last_error.retryable and attempt < retries:
+            delay = (
+                last_error.retry_after_seconds
+                if last_error.retry_after_seconds is not None
+                else 0.5 * (2**attempt) + random.uniform(0.0, 0.25)
+            )
+            time.sleep(max(0.0, min(float(delay), 30.0)))
+            continue
+        _record_provider_failure(
+            home,
+            provider_id,
+            last_error.code,
+            retryable=last_error.retryable,
+            retry_after_seconds=last_error.retry_after_seconds,
         )
-    return result
+        raise last_error
+    raise RuntimeError("Unreachable provider retry state")  # pragma: no cover
+
+
+def _guard_provider_circuit(home: Path, provider_id: str) -> None:
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT circuit_open_until FROM provider_health WHERE provider_id=?",
+            (provider_id,),
+        ).fetchone()
+    if not row or not row["circuit_open_until"]:
+        return
+    try:
+        open_until = datetime.fromisoformat(str(row["circuit_open_until"]))
+        if open_until.tzinfo is None:
+            open_until = open_until.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return
+    now = datetime.now(timezone.utc)
+    if open_until > now:
+        raise ModelProviderError(
+            "The model provider circuit is temporarily open after repeated failures.",
+            code="MODEL_PROVIDER_CIRCUIT_OPEN",
+            retry_after_seconds=(open_until - now).total_seconds(),
+            retryable=True,
+        )
+
+
+def _record_provider_success(home: Path, provider_id: str) -> None:
+    now = _now()
+    with connect(home) as conn:
+        conn.execute(
+            """
+            INSERT INTO provider_health(
+              provider_id,consecutive_failures,circuit_open_until,last_success_at,
+              last_failure_at,last_error_code,updated_at
+            ) VALUES(?,0,NULL,?,NULL,NULL,?)
+            ON CONFLICT(provider_id) DO UPDATE SET
+              consecutive_failures=0,circuit_open_until=NULL,
+              last_success_at=excluded.last_success_at,last_error_code=NULL,
+              updated_at=excluded.updated_at
+            """,
+            (provider_id, now, now),
+        )
+
+
+def _record_provider_failure(
+    home: Path,
+    provider_id: str,
+    error_code: str,
+    *,
+    retryable: bool,
+    retry_after_seconds: float | None = None,
+) -> None:
+    now_value = datetime.now(timezone.utc)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT consecutive_failures FROM provider_health WHERE provider_id=?",
+            (provider_id,),
+        ).fetchone()
+        previous = int(row["consecutive_failures"]) if row else 0
+        failures = previous + 1 if retryable else previous
+        open_until = None
+        if retryable and failures >= 3:
+            cooldown = max(60.0, float(retry_after_seconds or 0.0))
+            open_until = (now_value + timedelta(seconds=min(cooldown, 900))).isoformat()
+        conn.execute(
+            """
+            INSERT INTO provider_health(
+              provider_id,consecutive_failures,circuit_open_until,last_success_at,
+              last_failure_at,last_error_code,updated_at
+            ) VALUES(?,?,?,?,?,?,?)
+            ON CONFLICT(provider_id) DO UPDATE SET
+              consecutive_failures=excluded.consecutive_failures,
+              circuit_open_until=excluded.circuit_open_until,
+              last_failure_at=excluded.last_failure_at,
+              last_error_code=excluded.last_error_code,
+              updated_at=excluded.updated_at
+            """,
+            (
+                provider_id,
+                failures,
+                open_until,
+                None,
+                now_value.isoformat(),
+                error_code,
+                now_value.isoformat(),
+            ),
+        )
+
+
+def _retry_after_seconds(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        return max(0.0, float(value))
+    except ValueError:
+        try:
+            when = parsedate_to_datetime(value)
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=timezone.utc)
+            return max(0.0, (when - datetime.now(timezone.utc)).total_seconds())
+        except (TypeError, ValueError, OverflowError):
+            return None
 
 
 def _codex_profile(provider: dict[str, Any]) -> dict[str, Any]:
@@ -1088,6 +1456,8 @@ def _clean_config(config: dict[str, Any]) -> dict[str, Any]:
         "image_input",
         "temperature",
         "timeout_seconds",
+        "max_retries",
+        "streaming",
         "executable_path",
     }
     unknown = set(config) - allowed
@@ -1102,6 +1472,10 @@ def _clean_config(config: dict[str, Any]) -> dict[str, Any]:
         clean["temperature"] = max(0.0, min(float(clean["temperature"]), 2.0))
     if "image_input" in clean:
         clean["image_input"] = bool(clean["image_input"])
+    if "streaming" in clean:
+        clean["streaming"] = bool(clean["streaming"])
+    if "max_retries" in clean:
+        clean["max_retries"] = max(0, min(int(clean["max_retries"]), 3))
     return clean
 
 

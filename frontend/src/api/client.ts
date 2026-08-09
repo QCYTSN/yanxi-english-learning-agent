@@ -135,7 +135,7 @@ export type ModelProvider = {
   fallback_order: number | null
   is_enabled: boolean
   credential_configured: boolean
-  credential_protection: 'windows_dpapi' | 'owner_only_file'
+  credential_protection: 'windows_dpapi' | 'system_keyring' | 'owner_only_file'
   config: {
     executable_path?: string
     image_input?: boolean
@@ -234,7 +234,7 @@ export type StudyAttachment = {
   size_bytes: number
   sha256: string
   media_id: string | null
-  extracted_text: string
+  extracted_text?: string
   extraction_status: string
   created_at: string
 }
@@ -318,6 +318,12 @@ export type StudyThread = {
   last_message_preview: string
   learning_state: ThreadLearningState
   proposals: TutorProposal[]
+}
+
+export type StudyMessagePage = {
+  items: StudyMessage[]
+  next_cursor: string | null
+  has_more: boolean
 }
 
 export type TodayPlanTask = {
@@ -575,15 +581,7 @@ export type AssessmentRun = {
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers)
-  const method = (init.method ?? 'GET').toUpperCase()
-  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
-  }
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !headers.has('X-IELTS-CSRF')) {
-    const csrfToken = readCookie('ielts_ui_csrf')
-    if (csrfToken) headers.set('X-IELTS-CSRF', csrfToken)
-  }
+  const headers = requestHeaders(init)
   const response = await fetch(path, { ...init, headers, credentials: 'same-origin' })
   const contentType = response.headers.get('content-type') ?? ''
   if (!contentType.includes('application/json')) {
@@ -601,6 +599,50 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const payload = (await response.json()) as T & ApiErrorPayload
   if (!response.ok) throw new ApiError(response.status, payload)
   return payload
+}
+
+export async function downloadApi(path: string, init: RequestInit = {}): Promise<string> {
+  const headers = requestHeaders(init)
+  const response = await fetch(path, { ...init, headers, credentials: 'same-origin' })
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type') ?? ''
+    const payload = contentType.includes('application/json')
+      ? await response.json().catch(() => ({})) as ApiErrorPayload
+      : {}
+    throw new ApiError(response.status, payload)
+  }
+  const blob = await response.blob()
+  const disposition = response.headers.get('content-disposition') ?? ''
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1]
+  const filename = encodedName
+    ? decodeURIComponent(encodedName)
+    : plainName || 'ielts-study-desk-support.zip'
+  const objectUrl = URL.createObjectURL(blob)
+  try {
+    const anchor = document.createElement('a')
+    anchor.href = objectUrl
+    anchor.download = filename
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
+  return filename
+}
+
+function requestHeaders(init: RequestInit): Headers {
+  const headers = new Headers(init.headers)
+  const method = (init.method ?? 'GET').toUpperCase()
+  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !headers.has('X-IELTS-CSRF')) {
+    const csrfToken = readCookie('ielts_ui_csrf')
+    if (csrfToken) headers.set('X-IELTS-CSRF', csrfToken)
+  }
+  return headers
 }
 
 function readCookie(name: string): string | null {

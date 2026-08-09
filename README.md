@@ -23,6 +23,8 @@ Runtime stores them.
 - Reading, Writing, Speaking and Listening learning workflows;
 - local SQLite learning records, Sessions, Corpus and Media Registry;
 - ChatGPT login bridge, OpenAI-compatible API and local HTTP model providers;
+- bounded long-conversation context, indexed local history and resumable
+  background OCR/content jobs;
 - optional external CLI Agents for advanced material workflows;
 - Windows desktop installer and Python package for technical users.
 
@@ -160,7 +162,8 @@ See [Release checklist](docs/RELEASE_CHECKLIST.md).
 - Application code and Skills: MIT License.
 - Project-original documentation and test fixtures: CC BY 4.0 unless stated otherwise.
 - User material and third-party content remain owned by their respective rights holders.
-- Credentials are stored outside SQLite and use Windows DPAPI where available.
+- Credentials are stored outside SQLite and use Windows DPAPI or the operating
+  system keyring where available, with an owner-only local fallback.
 - The local service listens only on `127.0.0.1` and uses a random launch token.
 
 See [Data license](DATA_LICENSE.md), [Third-party notices](THIRD_PARTY_NOTICES.md)

@@ -21,6 +21,7 @@ from .. import __version__
 from ..agent_contracts import persist_agent_contract
 from ..agent_gateway import adapter_descriptors, adapter_diagnostics
 from ..agent_jobs import AgentJobManager
+from ..background_jobs import LocalBackgroundJobManager, list_background_jobs
 from ..capabilities import capability_descriptors, capability_for_contract
 from ..capability_evaluation import (
     list_capability_evaluations,
@@ -49,9 +50,12 @@ from ..backups import create_backup, list_backups, restore_backup, verify_backup
 from ..config import load_profile
 from ..conformance import standard_profile
 from ..content_imports import (
+    ALLOWED_SUFFIXES as CONTENT_IMPORT_SUFFIXES,
+    MAX_FILE_BYTES as CONTENT_IMPORT_MAX_FILE_BYTES,
+    MAX_TOTAL_BYTES as CONTENT_IMPORT_MAX_TOTAL_BYTES,
     build_import_review_draft,
     content_storage_status,
-    create_import,
+    create_import_from_staged,
     delete_imports,
     get_content_import_job,
     import_file_path,
@@ -76,6 +80,7 @@ from ..content_reviews import (
     list_review_queue,
     record_content_review,
 )
+from ..data_lifecycle import cleanup_deleted_thread_storage
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
 from ..execution_profiles import update_execution_profile
 from ..external_agents import list_external_agent_profiles
@@ -103,7 +108,13 @@ from ..diagnostics import (
 )
 from ..health import audit_data_home
 from ..locking import runtime_lock
-from ..media import import_audio_bytes, import_image_bytes, resolve_media_file
+from ..media import (
+    MAX_AUDIO_BYTES,
+    MAX_MEDIA_BYTES,
+    import_audio_file,
+    import_image_bytes,
+    resolve_media_file,
+)
 from ..listening_corpus import (
     browse_listening_items,
     listening_categories,
@@ -174,7 +185,10 @@ from ..study_threads import (
     add_user_message,
     create_study_thread,
     delete_study_thread,
+    get_study_attachment,
     get_study_thread,
+    get_study_thread_overview,
+    list_study_messages_page,
     list_study_threads,
     promote_study_thread,
     rename_study_thread,
@@ -182,6 +196,8 @@ from ..study_threads import (
     study_thread_agent_context,
     thread_media_ids,
 )
+from ..storage_quota import local_storage_status
+from ..support_diagnostics import create_support_bundle
 from ..study_context import build_study_context
 from ..tutor_orchestrator import TutorOrchestrator
 from ..tutor_state import (
@@ -189,6 +205,7 @@ from ..tutor_state import (
     list_tutor_proposals,
     resolve_tutor_proposal,
 )
+from ..uploads import cleanup_staging, cleanup_stale_uploads, stage_uploads
 from ..skill_policy import compile_skill_envelope
 from ..study_runtime import (
     reconcile_session,
@@ -504,7 +521,8 @@ def create_app(
     control_token: str | None = None,
 ) -> FastAPI:
     target = resolve_home(home)
-    agent_jobs = AgentJobManager(target)
+    agent_jobs = AgentJobManager(target, process_isolation=not test_mode)
+    local_jobs = None if test_mode else LocalBackgroundJobManager(target, workers=2)
     tutor_orchestrator = TutorOrchestrator(target)
 
     @asynccontextmanager
@@ -512,12 +530,18 @@ def create_app(
         # A native first launch can enter the server process directly. Ensure
         # schema and runtime resources exist before any recovery query.
         initialise_home(target)
+        cleanup_stale_uploads(target)
+        cleanup_deleted_thread_storage(target)
         agent_jobs.recover()
         recover_interrupted_imports(target)
         recover_ocr_runtime_install(target)
+        if local_jobs is not None:
+            local_jobs.recover()
         try:
             yield
         finally:
+            if local_jobs is not None:
+                local_jobs.shutdown()
             agent_jobs.shutdown()
 
     app = FastAPI(
@@ -532,6 +556,7 @@ def create_app(
     app.state.control_token = control_token
     app.state.server = None
     app.state.agent_jobs = agent_jobs
+    app.state.local_jobs = local_jobs
     app.state.tutor_orchestrator = tutor_orchestrator
     app.state.performance = RequestPerformanceMonitor()
     app.add_middleware(
@@ -760,13 +785,36 @@ def create_app(
         return {
             "requests": app.state.performance.summary(),
             "database": database_performance_status(target),
+            "storage": local_storage_status(target),
             "architecture": {
                 "api": "FastAPI local process",
                 "runtime": "Python",
                 "frontend": "React + TypeScript",
-                "heavy_jobs": "bounded background workers",
+                "heavy_jobs": "isolated local worker processes",
             },
         }
+
+    @app.get(
+        "/api/v1/system/background-jobs",
+        dependencies=[Depends(require_session)],
+    )
+    def system_background_jobs_endpoint(
+        limit: int = Query(default=50, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_background_jobs(target, limit=limit)
+
+    @app.post(
+        "/api/v1/system/diagnostic-bundle",
+        dependencies=[Depends(require_session)],
+    )
+    def system_diagnostic_bundle_endpoint() -> FileResponse:
+        bundle = create_support_bundle(target)
+        return FileResponse(
+            bundle,
+            media_type="application/zip",
+            filename=bundle.name,
+            headers={"Cache-Control": "private, no-store"},
+        )
 
     @app.get("/api/v1/system/reliability", dependencies=[Depends(require_session)])
     def system_reliability_endpoint(
@@ -926,7 +974,15 @@ def create_app(
     ) -> dict[str, Any]:
         status = queue_ocr_runtime_install(target)
         if status["status"] == "queued":
-            background_tasks.add_task(install_ocr_runtime, target)
+            if local_jobs is not None:
+                local_jobs.submit(
+                    "ocr_install",
+                    {},
+                    priority=80,
+                    dedupe_key="ocr-runtime-install",
+                )
+            else:
+                background_tasks.add_task(install_ocr_runtime, target)
         return status
 
     @app.post("/api/v1/content/imports", dependencies=[Depends(require_session)])
@@ -937,18 +993,24 @@ def create_app(
         authenticity: str = Form(default="unreviewed", max_length=100),
         rights_status: str = Form(default="local_private"),
     ) -> dict[str, Any]:
-        payloads: list[tuple[str, bytes, str | None]] = []
-        for item in files:
-            payloads.append((item.filename or "unnamed", await item.read(), item.content_type))
-            await item.close()
-        return create_import(
+        stage, staged = await stage_uploads(
             target,
-            title=title,
-            source_type=source_type,
-            authenticity=authenticity,
-            rights_status=rights_status,
-            files=payloads,
+            files,
+            max_file_bytes=CONTENT_IMPORT_MAX_FILE_BYTES,
+            max_total_bytes=CONTENT_IMPORT_MAX_TOTAL_BYTES,
+            allowed_suffixes=CONTENT_IMPORT_SUFFIXES,
         )
+        try:
+            return create_import_from_staged(
+                target,
+                title=title,
+                source_type=source_type,
+                authenticity=authenticity,
+                rights_status=rights_status,
+                files=staged,
+            )
+        finally:
+            cleanup_staging(stage)
 
     @app.post("/api/v1/content/imports/{import_id}/process", dependencies=[Depends(require_session)])
     def process_content_import_endpoint(import_id: str) -> dict[str, Any]:
@@ -968,7 +1030,15 @@ def create_app(
     ) -> dict[str, Any]:
         job = queue_import_preparation(target, import_id)
         if job["status"] == "queued":
-            background_tasks.add_task(prepare_import, target, import_id)
+            if local_jobs is not None:
+                local_jobs.submit(
+                    "content_prepare",
+                    {"import_id": import_id},
+                    priority=60,
+                    dedupe_key=f"content-prepare:{import_id}",
+                )
+            else:
+                background_tasks.add_task(prepare_import, target, import_id)
         return job
 
     @app.patch("/api/v1/content/imports/{import_id}/page-plan", dependencies=[Depends(require_session)])
@@ -999,13 +1069,28 @@ def create_app(
             pages=payload.pages,
         )
         if job["status"] == "ocr_queued":
-            background_tasks.add_task(
-                run_import_ocr,
-                target,
-                import_id,
-                stored_name=payload.stored_name,
-                pages=payload.pages,
-            )
+            if local_jobs is not None:
+                local_jobs.submit(
+                    "content_ocr",
+                    {
+                        "import_id": import_id,
+                        "stored_name": payload.stored_name,
+                        "pages": payload.pages,
+                    },
+                    priority=70,
+                    dedupe_key=(
+                        f"content-ocr:{import_id}:{payload.stored_name}:"
+                        + ",".join(str(page) for page in sorted(payload.pages))
+                    ),
+                )
+            else:
+                background_tasks.add_task(
+                    run_import_ocr,
+                    target,
+                    import_id,
+                    stored_name=payload.stored_name,
+                    pages=payload.pages,
+                )
         return job
 
     @app.post(
@@ -1020,7 +1105,15 @@ def create_app(
         if not job:
             raise HTTPException(status_code=404, detail="Content import not found")
         if job["status"] != "draft_building":
-            background_tasks.add_task(build_import_review_draft, target, import_id)
+            if local_jobs is not None:
+                local_jobs.submit(
+                    "content_review_draft",
+                    {"import_id": import_id},
+                    priority=65,
+                    dedupe_key=f"content-review-draft:{import_id}",
+                )
+            else:
+                background_tasks.add_task(build_import_review_draft, target, import_id)
         return job
 
     @app.get(
@@ -1746,14 +1839,25 @@ def create_app(
         owner_type: str | None = Form(None),
         owner_id: str | None = Form(None),
     ) -> dict[str, Any]:
-        asset = import_image_bytes(
+        stage, staged = await stage_uploads(
             target,
-            await image.read(),
-            alt_text=alt_text,
-            owner_type=owner_type,
-            owner_id=owner_id,
+            [image],
+            max_file_bytes=MAX_MEDIA_BYTES,
+            max_total_bytes=MAX_MEDIA_BYTES,
+            max_files=1,
+            allowed_suffixes={".png", ".jpg", ".jpeg", ".webp"},
         )
-        return _public_media(asset)
+        try:
+            asset = import_image_bytes(
+                target,
+                staged[0].path.read_bytes(),
+                alt_text=alt_text,
+                owner_type=owner_type,
+                owner_id=owner_id,
+            )
+            return _public_media(asset)
+        finally:
+            cleanup_staging(stage)
 
     @app.post("/api/v1/media/audio", dependencies=[Depends(require_session)])
     async def audio_upload(
@@ -1772,20 +1876,29 @@ def create_app(
             raise ValueError("timestamps_json must be valid JSON") from exc
         if not isinstance(timestamps, list):
             raise ValueError("timestamps_json must contain a list")
-        asset = import_audio_bytes(
+        stage, staged = await stage_uploads(
             target,
-            await audio.read(),
-            filename=audio.filename or "listening-audio",
-            mime_type=audio.content_type or "application/octet-stream",
-            duration_seconds=duration_seconds,
-            transcript=transcript,
-            timestamps=timestamps,
-            owner_type=owner_type,
-            owner_id=owner_id,
-            privacy_status=privacy_status,
-            allow_agent_processing=allow_agent_processing,
+            [audio],
+            max_file_bytes=MAX_AUDIO_BYTES,
+            max_total_bytes=MAX_AUDIO_BYTES,
+            max_files=1,
+            allowed_suffixes={".mp3", ".wav", ".m4a", ".ogg"},
         )
-        return _public_media(asset)
+        try:
+            asset = import_audio_file(
+                target,
+                staged[0],
+                duration_seconds=duration_seconds,
+                transcript=transcript,
+                timestamps=timestamps,
+                owner_type=owner_type,
+                owner_id=owner_id,
+                privacy_status=privacy_status,
+                allow_agent_processing=allow_agent_processing,
+            )
+            return _public_media(asset)
+        finally:
+            cleanup_staging(stage)
 
     @app.get("/api/v1/media", dependencies=[Depends(require_session)])
     def media_list() -> list[dict[str, Any]]:
@@ -1970,6 +2083,26 @@ def create_app(
         return get_study_thread(target, thread_id)
 
     @app.get(
+        "/api/v1/study-threads/{thread_id}/overview",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_overview_endpoint(thread_id: str) -> dict[str, Any]:
+        return get_study_thread_overview(target, thread_id)
+
+    @app.get(
+        "/api/v1/study-threads/{thread_id}/messages",
+        dependencies=[Depends(require_session)],
+    )
+    def study_thread_messages_endpoint(
+        thread_id: str,
+        limit: int = Query(30, ge=1, le=100),
+        before: str | None = Query(None),
+    ) -> dict[str, Any]:
+        return list_study_messages_page(
+            target, thread_id, limit=limit, before=before
+        )
+
+    @app.get(
         "/api/v1/study-threads/{thread_id}/learning-state",
         dependencies=[Depends(require_session)],
     )
@@ -2029,6 +2162,7 @@ def create_app(
         dependencies=[Depends(require_session)],
     )
     def study_thread_delete_endpoint(thread_id: str) -> dict[str, Any]:
+        agent_jobs.cancel_for_study_thread(thread_id)
         return delete_study_thread(target, thread_id)
 
     @app.post(
@@ -2047,23 +2181,35 @@ def create_app(
             raise ValueError("context_json must be valid JSON") from exc
         if not isinstance(context, dict):
             raise ValueError("context_json must contain an object")
-        payloads: list[tuple[str, bytes, str | None]] = []
-        for item in files or []:
-            payloads.append(
-                (
-                    item.filename or "attachment",
-                    await item.read(),
-                    item.content_type,
-                )
+        uploads = files or []
+        if not uploads:
+            return add_user_message(
+                target,
+                thread_id,
+                content=content,
+                files=[],
+                context=context,
             )
-            await item.close()
-        return add_user_message(
+        stage, staged = await stage_uploads(
             target,
-            thread_id,
-            content=content,
-            files=payloads,
-            context=context,
+            uploads,
+            max_file_bytes=25 * 1024 * 1024,
+            max_total_bytes=60 * 1024 * 1024,
+            max_files=8,
+            allowed_suffixes={
+                ".png", ".jpg", ".jpeg", ".webp", ".pdf", ".txt", ".md", ".docx"
+            },
         )
+        try:
+            return add_user_message(
+                target,
+                thread_id,
+                content=content,
+                files=staged,
+                context=context,
+            )
+        finally:
+            cleanup_staging(stage)
 
     @app.get(
         "/api/v1/study-threads/{thread_id}/attachments/{attachment_id}/content",
@@ -2073,15 +2219,7 @@ def create_app(
         thread_id: str,
         attachment_id: str,
     ) -> FileResponse:
-        thread = get_study_thread(target, thread_id)
-        attachment = next(
-            (
-                item
-                for item in thread["attachments"]
-                if item["attachment_id"] == attachment_id
-            ),
-            None,
-        )
+        attachment = get_study_attachment(target, thread_id, attachment_id)
         if not attachment:
             raise HTTPException(status_code=404, detail="Attachment not found")
         path = resolve_study_attachment(target, attachment)
@@ -2103,9 +2241,17 @@ def create_app(
         created = promote_study_thread(target, thread_id)
         queued = queue_import_preparation(target, str(created["import_id"]))
         if queued["status"] == "queued":
-            background_tasks.add_task(
-                prepare_import, target, str(created["import_id"])
-            )
+            if local_jobs is not None:
+                local_jobs.submit(
+                    "content_prepare",
+                    {"import_id": str(created["import_id"])},
+                    priority=60,
+                    dedupe_key=f"content-prepare:{created['import_id']}",
+                )
+            else:
+                background_tasks.add_task(
+                    prepare_import, target, str(created["import_id"])
+                )
         return queued
 
     @app.get("/api/v1/agents", dependencies=[Depends(require_session)])
@@ -2569,6 +2715,7 @@ def create_app(
             {
                 "run_id": run_id,
                 "study_session_id": payload.study_session_id,
+                "study_thread_id": payload.study_thread_id,
                 "adapter_id": adapter_id,
                 "capability_id": capability.capability_id,
                 "execution_profile_id": (

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   BookOpenCheck,
@@ -22,6 +22,7 @@ import {
   type AgentRunEvent,
   type ModelProvider,
   type StudyHelpResult,
+  type StudyMessagePage,
   type StudyThread,
   type TutorProposal,
 } from '../api/client'
@@ -45,12 +46,26 @@ export function StudyThreadPage() {
   const queryClient = useQueryClient()
   const messageStreamRef = useRef<HTMLDivElement>(null)
   const shouldFollowRef = useRef(true)
+  const prependScrollRef = useRef<{ height: number; top: number } | null>(null)
   const [activeRunId, setActiveRunId] = useState(searchParams.get('run') ?? '')
   const [runEvent, setRunEvent] = useState<AgentRunEvent | null>(null)
   const thread = useQuery({
     queryKey: ['study-thread', threadId],
-    queryFn: () => api<StudyThread>(`/api/v1/study-threads/${threadId}`),
+    queryFn: () => api<StudyThread>(`/api/v1/study-threads/${threadId}/overview`),
   })
+  const messages = useInfiniteQuery({
+    queryKey: ['study-thread-messages', threadId],
+    queryFn: ({ pageParam }) => api<StudyMessagePage>(
+      `/api/v1/study-threads/${threadId}/messages?limit=30${pageParam ? `&before=${encodeURIComponent(pageParam)}` : ''}`,
+    ),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+  })
+  const loadedMessageCount = messages.data?.pages.reduce(
+    (total, page) => total + page.items.length,
+    0,
+  ) ?? 0
+  const loadedPageCount = messages.data?.pages.length ?? 0
   const providers = useQuery({
     queryKey: ['model-providers'],
     queryFn: () => api<ModelProvider[]>('/api/v1/model-providers'),
@@ -84,6 +99,7 @@ export function StudyThreadPage() {
       setSearchParams({ run: nextRun.run_id }, { replace: true })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['study-thread', threadId] }),
+        queryClient.resetQueries({ queryKey: ['study-thread-messages', threadId], exact: true }),
         queryClient.invalidateQueries({ queryKey: ['study-threads'] }),
       ])
     },
@@ -149,26 +165,38 @@ export function StudyThreadPage() {
     if (!run.data || !terminalRunStates.has(run.data.status)) return
     void Promise.all([
       queryClient.invalidateQueries({ queryKey: ['study-thread', threadId] }),
+      queryClient.resetQueries({ queryKey: ['study-thread-messages', threadId], exact: true }),
       queryClient.invalidateQueries({ queryKey: ['study-threads'] }),
     ])
   }, [queryClient, run.data, threadId])
 
   useEffect(() => {
     const stream = messageStreamRef.current
+    const prepend = prependScrollRef.current
+    if (stream && prepend) {
+      const frame = window.requestAnimationFrame(() => {
+        stream.scrollTop = prepend.top + (stream.scrollHeight - prepend.height)
+        prependScrollRef.current = null
+      })
+      return () => window.cancelAnimationFrame(frame)
+    }
     if (!stream || !shouldFollowRef.current) return
     const frame = window.requestAnimationFrame(() => {
       stream.scrollTop = stream.scrollHeight
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [thread.data?.messages.length, run.data?.status])
+  }, [loadedMessageCount, loadedPageCount, run.data?.status])
 
-  if (thread.isPending) return <LoadingState label="正在打开学习对话" />
-  if (thread.isError) return <ErrorState error={thread.error} />
+  if (thread.isPending || messages.isPending) return <LoadingState label="正在打开学习对话" />
+  if (thread.isError || messages.isError) return <ErrorState error={thread.error ?? messages.error} />
 
   const activeRun = run.data
   const running = Boolean(
     activeRun && !terminalRunStates.has(activeRun.status),
   )
+  const visibleMessages = [...messages.data.pages]
+    .reverse()
+    .flatMap((page) => page.items)
 
   return (
     <div className="study-thread-page">
@@ -176,7 +204,7 @@ export function StudyThreadPage() {
         <Link className="thread-back" to="/today"><ArrowLeft size={16} />今天</Link>
         <h1>{thread.data.title}</h1>
         <div className="thread-header-actions">
-          {thread.data.attachments.length > 0 && (
+          {thread.data.attachment_count > 0 && (
             <button
               className="thread-promote-action"
               type="button"
@@ -206,7 +234,26 @@ export function StudyThreadPage() {
               )
             }}
           >
-            {thread.data.messages.map((message) => (
+            {messages.hasNextPage && (
+              <button
+                className="thread-load-earlier"
+                type="button"
+                disabled={messages.isFetchingNextPage}
+                onClick={() => {
+                  const stream = messageStreamRef.current
+                  if (stream) {
+                    prependScrollRef.current = {
+                      height: stream.scrollHeight,
+                      top: stream.scrollTop,
+                    }
+                  }
+                  void messages.fetchNextPage()
+                }}
+              >
+                {messages.isFetchingNextPage ? '正在加载…' : '加载更早消息'}
+              </button>
+            )}
+            {visibleMessages.map((message) => (
               <article
                 className={`study-message ${message.role}`}
                 key={message.message_id}

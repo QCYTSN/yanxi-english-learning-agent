@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import hashlib
 import json
 import os
 import platform
@@ -65,6 +66,14 @@ def set_credential(home: Path, credential_ref: str, secret: str) -> None:
     if not clean:
         raise ValueError("Credential cannot be empty")
     payload = _load(home)
+    if os.name != "nt" and _set_keyring_credential(home, credential_ref, clean):
+        payload["items"][credential_ref] = {
+            "ciphertext": "",
+            "protection": "system_keyring",
+            "updated_at": _now(),
+        }
+        _save(home, payload)
+        return
     encrypted, protection = _protect(home, clean.encode("utf-8"))
     payload["items"][credential_ref] = {
         "ciphertext": base64.b64encode(encrypted).decode("ascii"),
@@ -80,6 +89,13 @@ def get_credential(home: Path, credential_ref: str | None) -> str | None:
     item = _load(home).get("items", {}).get(credential_ref)
     if not item:
         return None
+    if item.get("protection") == "system_keyring":
+        value = _get_keyring_credential(home, credential_ref)
+        if value is None:
+            raise ValueError(
+                f"Credential {credential_ref!r} is missing from the system keyring"
+            )
+        return value
     try:
         ciphertext = base64.b64decode(item["ciphertext"])
         clear = _unprotect(home, ciphertext, str(item["protection"]))
@@ -93,19 +109,83 @@ def get_credential(home: Path, credential_ref: str | None) -> str | None:
 def has_credential(home: Path, credential_ref: str | None) -> bool:
     if not credential_ref:
         return False
-    return credential_ref in _load(home).get("items", {})
+    item = _load(home).get("items", {}).get(credential_ref)
+    if not item:
+        return False
+    if item.get("protection") == "system_keyring":
+        return _get_keyring_credential(home, credential_ref) is not None
+    return True
 
 
 def delete_credential(home: Path, credential_ref: str | None) -> None:
     if not credential_ref:
         return
     payload = _load(home)
-    if payload.get("items", {}).pop(credential_ref, None) is not None:
+    removed = payload.get("items", {}).pop(credential_ref, None)
+    if removed and removed.get("protection") == "system_keyring":
+        _delete_keyring_credential(home, credential_ref)
+    if removed is not None:
         _save(home, payload)
 
 
-def credential_protection() -> str:
-    return "windows_dpapi" if os.name == "nt" else "owner_only_file"
+def credential_protection(
+    home: Path | None = None, credential_ref: str | None = None
+) -> str:
+    if home is not None and credential_ref:
+        item = _load(home).get("items", {}).get(credential_ref)
+        if item and item.get("protection"):
+            return str(item["protection"])
+    if os.name == "nt":
+        return "windows_dpapi"
+    return "system_keyring" if _keyring_module() is not None else "owner_only_file"
+
+
+def _keyring_module() -> Any | None:
+    try:
+        import keyring  # type: ignore[import-not-found]
+
+        backend = keyring.get_keyring()
+        if float(getattr(backend, "priority", 0) or 0) <= 0:
+            return None
+        return keyring
+    except (ImportError, RuntimeError, ValueError):
+        return None
+
+
+def _keyring_service(home: Path) -> str:
+    digest = hashlib.sha256(str(home.resolve()).encode("utf-8")).hexdigest()[:20]
+    return f"ielts-ai-coach:{digest}"
+
+
+def _set_keyring_credential(home: Path, credential_ref: str, secret: str) -> bool:
+    keyring = _keyring_module()
+    if keyring is None:
+        return False
+    try:
+        keyring.set_password(_keyring_service(home), credential_ref, secret)
+        return True
+    except Exception:
+        return False
+
+
+def _get_keyring_credential(home: Path, credential_ref: str) -> str | None:
+    keyring = _keyring_module()
+    if keyring is None:
+        return None
+    try:
+        return keyring.get_password(_keyring_service(home), credential_ref)
+    except Exception:
+        return None
+
+
+def _delete_keyring_credential(home: Path, credential_ref: str) -> None:
+    keyring = _keyring_module()
+    if keyring is None:
+        return
+    try:
+        keyring.delete_password(_keyring_service(home), credential_ref)
+    except Exception:
+        return
 
 
 class _DataBlob(ctypes.Structure):

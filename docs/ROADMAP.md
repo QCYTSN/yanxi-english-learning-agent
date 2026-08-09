@@ -104,6 +104,10 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
   reporting and a combined contract plus 10k/100k release gate
 - schema v27 versioned Tutor thread state, confirmation-gated proposals and
   idempotent Tutor turn commits
+- schema v28 Study Thread inference links, compacted terminal request envelopes
+  and lifecycle-safe conversation deletion
+- schema v29 durable background jobs plus SQLite FTS5 learning-history search
+- schema v30 persistent Provider health, retry and circuit-breaker state
 - first-class Model Providers with one primary and optional ordered fallbacks
 - complete Skill Envelope compilation from `skills-source`
 - encrypted credential storage outside SQLite
@@ -119,6 +123,12 @@ targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
 - learner-facing Library separated from the local Content Studio
 - persistent, retryable PDF preparation with protected preview, page-level text
   summaries, OCR-needed detection and page-role planning
+- isolated OCR and review-draft conversion, local audio waveform/Transcript
+  review, streaming uploads, storage quotas and restart-safe batch work
+- bounded Context Engine assembly with source trace, omission reporting and
+  deterministic request fingerprints
+- content-free support bundles, secure credential backends and isolated Agent
+  worker processes
 - real Chromium packaged-app smoke tests with one-time launch-token bootstrap
 - dynamic wheel smoke installation and separated compatibility/full-regression CI
 

@@ -78,6 +78,12 @@ def test_material_dialogue_keeps_attachments_out_of_formal_sessions(
         )
         assert message.status_code == 200
         assert len(message.json()["attachments"]) == 2
+        page = client.get(
+            f"/api/v1/study-threads/{thread_id}/messages?limit=30"
+        )
+        assert page.status_code == 200
+        assert len(page.json()["items"]) == 1
+        assert "extracted_text" not in page.json()["items"][0]["attachments"][1]
         recent = client.get("/api/v1/study-threads?limit=5")
         assert recent.status_code == 200
         summary = recent.json()[0]
@@ -230,6 +236,58 @@ def test_study_thread_can_be_renamed_and_deleted(tmp_path: Path):
             "SELECT COUNT(*) FROM study_thread_attachments WHERE thread_id=?",
             (thread_id,),
         ).fetchone()[0] == 0
+
+
+def test_study_messages_use_stable_keyset_pages(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    with _client(home) as client:
+        thread = client.post(
+            "/api/v1/study-threads",
+            json={"title": "Long reading review", "module": "reading"},
+        ).json()
+        thread_id = thread["thread_id"]
+        with connect(home) as conn:
+            conn.executemany(
+                """
+                INSERT INTO study_messages(
+                  message_id,thread_id,role,content,status,context_json,created_at
+                ) VALUES(?,?,?,?,'complete','{}',?)
+                """,
+                [
+                    (
+                        f"message-{index:03d}",
+                        thread_id,
+                        "user" if index % 2 == 0 else "assistant",
+                        f"Turn {index}",
+                        "2026-01-01T00:00:00+00:00",
+                    )
+                    for index in range(65)
+                ],
+            )
+
+        overview = client.get(
+            f"/api/v1/study-threads/{thread_id}/overview"
+        ).json()
+        assert overview["message_count"] == 65
+        assert overview["messages"] == []
+
+        collected: list[str] = []
+        cursor = None
+        while True:
+            suffix = f"&before={cursor}" if cursor else ""
+            response = client.get(
+                f"/api/v1/study-threads/{thread_id}/messages?limit=30{suffix}"
+            )
+            assert response.status_code == 200
+            payload = response.json()
+            collected = [item["message_id"] for item in payload["items"]] + collected
+            cursor = payload["next_cursor"]
+            if not payload["has_more"]:
+                break
+
+        assert collected == [f"message-{index:03d}" for index in range(65)]
+        assert len(collected) == len(set(collected))
 
 
 def test_study_help_semantics_preserve_reading_answer_integrity() -> None:

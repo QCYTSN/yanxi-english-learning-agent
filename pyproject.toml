@@ -15,7 +15,8 @@ dependencies = [
   "PyYAML>=6.0",
   "typer>=0.12",
   "jsonschema>=4.22",
-  "filelock>=3.15"
+  "filelock>=3.15",
+  "keyring>=25,<26"
 ]
 
 [project.optional-dependencies]

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Database,
+  Download,
   HardDrive,
   Laptop,
   Plus,
@@ -21,6 +22,7 @@ import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { useState } from 'react'
 import {
   api,
+  downloadApi,
   jsonBody,
   type Bootstrap,
   type ExternalAgentProfile,
@@ -44,6 +46,13 @@ type Health = {
   checks: Record<string, unknown>
   errors: string[]
   warnings: string[]
+}
+type BackgroundJob = {
+  job_id: string
+  job_kind: string
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
+  created_at: string
+  error_code?: string | null
 }
 type Rubric = {
   rubric_id: string
@@ -321,7 +330,19 @@ function SystemSection({ bootstrap }: { bootstrap: Bootstrap }) {
     queryFn: () => api<PerformanceResponse>('/api/v1/system/performance'),
     refetchInterval: 30_000,
   })
+  const backgroundJobs = useQuery({
+    queryKey: ['system-background-jobs'],
+    queryFn: () => api<BackgroundJob[]>('/api/v1/system/background-jobs?limit=50'),
+    refetchInterval: 5_000,
+  })
+  const diagnostics = useMutation({
+    mutationFn: () => downloadApi('/api/v1/system/diagnostic-bundle', { method: 'POST' }),
+  })
   const snapshot = normalisePerformance(performance.data)
+  const jobs = Array.isArray(backgroundJobs.data) ? backgroundJobs.data : []
+  const queuedJobs = jobs.filter((item) => item.status === 'queued').length
+  const runningJobs = jobs.filter((item) => item.status === 'running').length
+  const failedJobs = jobs.filter((item) => item.status === 'failed').length
   return (
     <div className="settings-detail-stack">
       <section className="settings-panel">
@@ -341,9 +362,32 @@ function SystemSection({ bootstrap }: { bootstrap: Bootstrap }) {
           <div><span>请求样本</span><strong>{snapshot.sampleCount}</strong></div>
           <div><span>中位延迟</span><strong>{snapshot.p50Ms} ms</strong></div>
           <div><span>p95 延迟</span><strong>{snapshot.p95Ms} ms</strong></div>
-          <div><span>数据库</span><strong>{formatBytes(snapshot.databaseSizeBytes)}</strong></div>
+          <div><span>本地资料</span><strong>{formatBytes(snapshot.storageUsedBytes)}</strong></div>
         </div>}
+        {performance.data && <p className="settings-footnote">
+          数据库 {formatBytes(snapshot.databaseSizeBytes)} · 本地资料上限 {formatBytes(snapshot.storageQuotaBytes)} · 可写入 {formatBytes(snapshot.storageWritableBytes)}
+        </p>}
         {performance.error && <ErrorState error={performance.error} />}
+      </section>
+      <section className="settings-panel">
+        <div className="section-heading">
+          <div><h2>后台任务与支持</h2><p>OCR、材料解析等重任务在独立进程运行；诊断包不包含学习原文、对话正文或密钥。</p></div>
+          <ServerCog size={20} />
+        </div>
+        {backgroundJobs.isPending && <LoadingState label="正在读取后台任务" />}
+        {!backgroundJobs.isPending && <div className="system-metrics compact-metrics">
+          <div><span>正在运行</span><strong>{runningJobs}</strong></div>
+          <div><span>等待处理</span><strong>{queuedJobs}</strong></div>
+          <div><span>近期失败</span><strong>{failedJobs}</strong></div>
+        </div>}
+        <div className="settings-support-actions">
+          <button className="button secondary" type="button" onClick={() => diagnostics.mutate()} disabled={diagnostics.isPending}>
+            <Download size={16} />{diagnostics.isPending ? '正在生成' : '导出支持诊断包'}
+          </button>
+          {diagnostics.isSuccess && <p className="inline-success"><CheckCircle2 size={16} />已下载 {diagnostics.data}</p>}
+        </div>
+        {backgroundJobs.error && <ErrorState error={backgroundJobs.error} />}
+        {diagnostics.error && <ErrorState error={diagnostics.error} />}
       </section>
     </div>
   )

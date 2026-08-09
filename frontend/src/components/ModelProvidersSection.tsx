@@ -155,6 +155,44 @@ export function ModelProvidersSection() {
             </article>
           ))}
         </div>
+        {providerItems.some((item) => item.transport === 'http') && (
+          <details className="provider-runtime-controls">
+            <summary>连接稳定性</summary>
+            <p>流式传输能更早显示进度；短暂断网或限流时最多自动重试三次。</p>
+            <div>
+              {providerItems.filter((item) => item.transport === 'http').map((provider) => (
+                <article key={provider.provider_id}>
+                  <strong>{provider.display_name}</strong>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(provider.config.streaming)}
+                      onChange={(event) => update.mutate({
+                        providerId: provider.provider_id,
+                        values: { config: { streaming: event.target.checked } },
+                      })}
+                    />
+                    流式传输
+                  </label>
+                  <label>自动重试
+                    <select
+                      value={Number(provider.config.max_retries ?? 2)}
+                      onChange={(event) => update.mutate({
+                        providerId: provider.provider_id,
+                        values: { config: { max_retries: Number(event.target.value) } },
+                      })}
+                    >
+                      <option value={0}>不重试</option>
+                      <option value={1}>1 次</option>
+                      <option value={2}>2 次</option>
+                      <option value={3}>3 次</option>
+                    </select>
+                  </label>
+                </article>
+              ))}
+            </div>
+          </details>
+        )}
         {test.isSuccess && <p className="inline-success"><Check size={16} />连接测试通过。</p>}
       </section>
 
@@ -310,6 +348,8 @@ function CustomProviderForm({ presets, hasPrimary, refresh }: {
   const [baseUrl, setBaseUrl] = useState('')
   const [modelId, setModelId] = useState('')
   const [apiKey, setApiKey] = useState('')
+  const [streaming, setStreaming] = useState(true)
+  const [maxRetries, setMaxRetries] = useState(2)
   const create = useMutation({
     mutationFn: () => api<ModelProvider>('/api/v1/model-providers', {
       method: 'POST',
@@ -322,7 +362,7 @@ function CustomProviderForm({ presets, hasPrimary, refresh }: {
         auth_mode: 'api_key',
         api_key: apiKey,
         role: hasPrimary ? 'fallback' : 'primary',
-        config: {},
+        config: { streaming, max_retries: maxRetries },
       }),
     }),
     onSuccess: async () => {
@@ -358,6 +398,18 @@ function CustomProviderForm({ presets, hasPrimary, refresh }: {
         <label className="wide-field">Base URL<input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://api.example.com/v1" /></label>
         <label>Model ID<input value={modelId} onChange={(event) => setModelId(event.target.value)} placeholder="provider-model-id" /></label>
         <label>API Key<input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} /></label>
+        <label>自动重试
+          <select value={maxRetries} onChange={(event) => setMaxRetries(Number(event.target.value))}>
+            <option value={0}>不重试</option>
+            <option value={1}>1 次</option>
+            <option value={2}>2 次（推荐）</option>
+            <option value={3}>3 次</option>
+          </select>
+        </label>
+        <label className="provider-checkbox">
+          <input type="checkbox" checked={streaming} onChange={(event) => setStreaming(event.target.checked)} />
+          流式传输响应
+        </label>
       </div>
       <button className="button secondary" onClick={() => create.mutate()} disabled={!baseUrl || !modelId || !apiKey || create.isPending}>
         <Plus size={16} />保存为{hasPrimary ? '备用模型' : '主模型'}

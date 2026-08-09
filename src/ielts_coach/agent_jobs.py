@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import os
 import queue
+import signal
+import subprocess
+import sys
 import threading
 import uuid
 from datetime import datetime, timezone
@@ -21,6 +25,7 @@ from .storage import (
     claim_agent_run,
     claim_agent_run_recovery,
     close_open_provider_attempts,
+    compact_agent_run_request,
     connect,
     get_agent_run,
     json_payload_hash,
@@ -54,6 +59,7 @@ class AgentJobManager:
         workers: int = 2,
         lease_seconds: int = 30,
         heartbeat_seconds: int = 5,
+        process_isolation: bool = False,
     ) -> None:
         self.home = home
         self.instance_id = f"job-manager:{uuid.uuid4().hex}"
@@ -68,6 +74,8 @@ class AgentJobManager:
         self._closed = False
         self._sweeper_stop = threading.Event()
         self._sweeper: threading.Thread | None = None
+        self.process_isolation = bool(process_isolation)
+        self._worker_processes: dict[str, subprocess.Popen[bytes]] = {}
         self.broker = InferenceBroker(home)
         self.tutor = TutorOrchestrator(home)
 
@@ -206,7 +214,11 @@ class AgentJobManager:
                 return
             self._scheduled.add(run_id)
         threading.Thread(
-            target=self._execute_safely,
+            target=(
+                self._execute_process_safely
+                if self.process_isolation
+                else self._execute_safely
+            ),
             args=(run_id,),
             name=f"ielts-agent-{run_id[-8:]}",
             daemon=True,
@@ -225,6 +237,8 @@ class AgentJobManager:
             recovery_action=None,
         )
         execution_ref = run.get("execution_ref") or run_id
+        if self.process_isolation:
+            self._terminate_worker(run_id)
         try:
             self.broker.for_run(run).adapter.cancel(
                 self.home, str(execution_ref)
@@ -255,6 +269,28 @@ class AgentJobManager:
             {"recovery_action": "retry"},
         )
         return updated
+
+    def cancel_for_study_thread(self, thread_id: str) -> list[str]:
+        """Stop every active inference process owned by a conversation."""
+        with connect(self.home) as conn:
+            rows = conn.execute(
+                """
+                SELECT run_id FROM agent_runs
+                WHERE study_thread_id=?
+                  AND status NOT IN ('persisted','test_passed','failed','cancelled','invalid_output')
+                ORDER BY created_at
+                """,
+                (thread_id,),
+            ).fetchall()
+        cancelled: list[str] = []
+        for row in rows:
+            run_id = str(row["run_id"])
+            try:
+                self.cancel(run_id)
+                cancelled.append(run_id)
+            except ValueError:
+                continue
+        return cancelled
 
     def retry(self, run_id: str) -> dict[str, Any]:
         run = get_agent_run(self.home, run_id)
@@ -316,7 +352,89 @@ class AgentJobManager:
         self._sweeper_stop.set()
         if self._sweeper and self._sweeper.is_alive():
             self._sweeper.join(timeout=1)
+        with self._lock:
+            processes = list(self._worker_processes.values())
+            self._worker_processes.clear()
+        for process in processes:
+            _terminate_process_tree(process)
         self.broker.shutdown()
+
+    def execute_now(self, run_id: str) -> None:
+        """Execute one claimed job in the current process (worker entrypoint)."""
+        self._execute_safely(run_id)
+
+    def _execute_process_safely(self, run_id: str) -> None:
+        with self._slots:
+            try:
+                run = get_agent_run(self.home, run_id)
+                if not run or run["status"] in TERMINAL_STATES:
+                    return
+                command = [
+                    sys.executable,
+                    "-m",
+                    "ielts_coach.local_worker",
+                    "agent-run",
+                    str(self.home.resolve()),
+                    run_id,
+                ]
+                creationflags = 0
+                if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                    creationflags |= subprocess.CREATE_NO_WINDOW
+                if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
+                    creationflags |= subprocess.CREATE_NEW_PROCESS_GROUP
+                process = subprocess.Popen(
+                    command,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    creationflags=creationflags,
+                    start_new_session=os.name != "nt",
+                )
+                with self._lock:
+                    self._worker_processes[run_id] = process
+                try:
+                    process.wait(
+                        timeout=max(90, int(run.get("timeout_seconds") or 120) + 60)
+                    )
+                except subprocess.TimeoutExpired:
+                    _terminate_process_tree(process)
+                    self._fail(
+                        run_id,
+                        "AGENT_WORKER_TIMEOUT",
+                        "The isolated local worker exceeded its hard deadline.",
+                        "retry",
+                    )
+                    return
+                current = get_agent_run(self.home, run_id)
+                if (
+                    process.returncode != 0
+                    and current
+                    and current["status"] in ACTIVE_STATES
+                ):
+                    self._fail(
+                        run_id,
+                        "AGENT_WORKER_CRASHED",
+                        f"The isolated local worker exited with code {process.returncode}.",
+                        "retry",
+                    )
+            except Exception as exc:
+                current = get_agent_run(self.home, run_id)
+                if current and current["status"] in ACTIVE_STATES:
+                    self._fail(
+                        run_id,
+                        "AGENT_WORKER_START_FAILED",
+                        str(exc),
+                        "restart_service_then_retry",
+                    )
+            finally:
+                with self._lock:
+                    self._worker_processes.pop(run_id, None)
+                    self._scheduled.discard(run_id)
+
+    def _terminate_worker(self, run_id: str) -> bool:
+        with self._lock:
+            process = self._worker_processes.get(run_id)
+        return _terminate_process_tree(process) if process else False
 
     def _execute_safely(self, run_id: str) -> None:
         with self._slots:
@@ -536,6 +654,7 @@ class AgentJobManager:
                         "model_called": False,
                     },
                 )
+                compact_agent_run_request(self.home, run_id)
                 return
             run = update_agent_run(
                 self.home,
@@ -579,6 +698,7 @@ class AgentJobManager:
                     "revision": canonical.get("revision"),
                 },
             )
+            compact_agent_run_request(self.home, run_id)
         except TimeoutError as exc:
             recovery = (
                 "check_primary_model_then_retry"
@@ -793,4 +913,33 @@ def _lease_is_active(value: Any) -> bool:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         return expires_at > datetime.now(timezone.utc)
     except ValueError:
+        return False
+
+
+def _terminate_process_tree(process: subprocess.Popen[bytes] | None) -> bool:
+    if process is None or process.poll() is not None:
+        return False
+    try:
+        if sys.platform == "win32":
+            completed = subprocess.run(
+                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+                creationflags=(
+                    subprocess.CREATE_NO_WINDOW
+                    if hasattr(subprocess, "CREATE_NO_WINDOW")
+                    else 0
+                ),
+            )
+            return completed.returncode == 0
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+        return True
+    except (OSError, ProcessLookupError, subprocess.SubprocessError):
         return False

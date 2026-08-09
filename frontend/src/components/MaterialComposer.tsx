@@ -5,9 +5,14 @@ import {
   useMemo,
   useRef,
   useState,
+  type ClipboardEvent as ReactClipboardEvent,
   type FormEvent,
   type ReactNode,
 } from 'react'
+
+const MAX_FILES = 8
+const MAX_FILE_BYTES = 25 * 1024 * 1024
+const MAX_MESSAGE_BYTES = 60 * 1024 * 1024
 
 export function MaterialComposer({
   onSend,
@@ -31,6 +36,7 @@ export function MaterialComposer({
   const textArea = useRef<HTMLTextAreaElement>(null)
   const [content, setContent] = useState('')
   const [files, setFiles] = useState<File[]>([])
+  const [fileError, setFileError] = useState('')
   const previews = useMemo(
     () => files.map((file) => ({
       file,
@@ -56,6 +62,40 @@ export function MaterialComposer({
     if (fileInput.current) fileInput.current.value = ''
   }
 
+  function appendFiles(nextFiles: File[]) {
+    if (nextFiles.length === 0) return
+    setFiles((current) => {
+      const combined = [...current, ...nextFiles]
+      if (combined.length > MAX_FILES) {
+        setFileError(`每条消息最多添加 ${MAX_FILES} 个材料`)
+        return current
+      }
+      const oversized = nextFiles.find((file) => file.size > MAX_FILE_BYTES)
+      if (oversized) {
+        setFileError(`${oversized.name} 超过 25 MB`)
+        return current
+      }
+      const totalBytes = combined.reduce((total, file) => total + file.size, 0)
+      if (totalBytes > MAX_MESSAGE_BYTES) {
+        setFileError('本条消息的材料总大小不能超过 60 MB')
+        return current
+      }
+      setFileError('')
+      return combined
+    })
+  }
+
+  function pasteImages(event: ReactClipboardEvent<HTMLTextAreaElement>) {
+    const clipboardImages = Array.from(event.clipboardData.items)
+      .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file))
+      .map(normaliseClipboardImage)
+    if (clipboardImages.length === 0) return
+    event.preventDefault()
+    appendFiles(clipboardImages)
+  }
+
   return (
     <form className={`material-composer${compact ? ' compact' : ''}`} onSubmit={submit}>
       <label className="sr-only" htmlFor={inputId}>向 IELTS 教师提问</label>
@@ -74,6 +114,7 @@ export function MaterialComposer({
         autoFocus={autoFocus}
         rows={compact ? 1 : 3}
         title="Enter 发送，Shift+Enter 换行"
+        onPaste={pasteImages}
         onKeyDown={(event) => {
           if (
             event.key === 'Enter'
@@ -104,6 +145,7 @@ export function MaterialComposer({
           ))}
         </div>
       )}
+      {fileError && <p className="composer-file-error" role="alert">{fileError}</p>}
       <div className="composer-toolbar">
         <div className="composer-tools">
           <input
@@ -114,7 +156,8 @@ export function MaterialComposer({
             accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.md,.docx"
             onChange={(event) => {
               const next = Array.from(event.target.files ?? [])
-              setFiles((current) => [...current, ...next].slice(0, 8))
+              appendFiles(next)
+              event.currentTarget.value = ''
             }}
           />
           <button
@@ -128,7 +171,7 @@ export function MaterialComposer({
             <Paperclip size={18} />
             <span>添加材料</span>
           </button>
-          <small>图片、PDF、Word、TXT · 最多 8 个</small>
+          <small>可直接粘贴截图 · 最多 8 个</small>
         </div>
         {footer}
         <button
@@ -142,6 +185,19 @@ export function MaterialComposer({
       </div>
     </form>
   )
+}
+
+function normaliseClipboardImage(file: File) {
+  if (file.name && !/^(image|clipboard)(\.\w+)?$/i.test(file.name)) return file
+  const extension = ({
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
+  } as Record<string, string>)[file.type] ?? 'png'
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+  return new File([file], `screenshot-${timestamp}.${extension}`, {
+    type: file.type || `image/${extension}`,
+    lastModified: file.lastModified || Date.now(),
+  })
 }
 
 function formatBytes(value: number) {

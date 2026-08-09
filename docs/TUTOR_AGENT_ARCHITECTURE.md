@@ -88,10 +88,17 @@ action.
 
 ## Retrieval strategy
 
-The first implementation uses direct multimodal context, structured tables,
-bounded summaries and local search. SQLite FTS5 may be added after real failure
-cases justify it. Embeddings, a vector database, Docker and a separate RAG
-service are not dependencies of the product core.
+The implementation uses direct multimodal context, structured tables, bounded
+rolling summaries and SQLite FTS5 history search. A deterministic Context
+Engine applies separate budgets to recent messages, attachments, summary,
+learning state, proposals and retrieved history. Every request records selected
+and omitted source IDs plus a context fingerprint, so a long conversation can
+be reproduced without resending its entire transcript.
+
+Embeddings, a vector database, Docker and a separate RAG service are not
+dependencies of the product core. They require measured retrieval failures and
+a separate product decision rather than being introduced as speculative
+infrastructure.
 
 ## Speaking boundary
 
