@@ -21,7 +21,6 @@ from .storage import (
 )
 from .config import load_settings
 from .conformance import assess_pack, assess_reading_set, enrich_question_conformance
-from .content_reviews import refresh_target_status
 from .validation import validate_data
 
 
@@ -128,8 +127,6 @@ def import_question_files(
                     counts["assessment_packs"] += 1
             else:
                 raise ValueError(f"Unsupported corpus file kind: {kind}")
-    for target_type, target_id in review_targets:
-        refresh_target_status(home, target_type, target_id)
     return counts
 
 

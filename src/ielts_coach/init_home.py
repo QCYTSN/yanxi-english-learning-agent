@@ -15,7 +15,6 @@ from .rubrics import ensure_default_rubrics
 from .listening_corpus import install_starter_listening
 from .learning_model import ensure_learning_model
 from .domain_packs import domain_pack_descriptors
-from .content_reviews import ensure_bundled_content_reviews
 from .execution_profiles import ensure_builtin_execution_profiles
 from .model_providers import ensure_builtin_model_providers
 
@@ -86,8 +85,6 @@ def initialise_home(
             force=force,
             refresh_reviews=False,
         )
-    if manifest_path.exists():
-        ensure_bundled_content_reviews(home, corpus_id="ielts-ai-coach-starter")
     original_changed = install_original_mock_corpus(home, force=force)
     original_manifest = home / "corpus" / "original-mocks" / "manifest.yaml"
     if original_manifest.exists() and (
@@ -101,9 +98,4 @@ def initialise_home(
             index=True,
             force=force,
             refresh_reviews=False,
-        )
-    if original_manifest.exists():
-        ensure_bundled_content_reviews(
-            home,
-            corpus_id="ielts-ai-coach-original-mocks",
         )

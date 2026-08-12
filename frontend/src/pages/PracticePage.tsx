@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowRight, BookOpen, Headphones, Mic2, PenLine } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { api, idempotencyKey, jsonBody, type AssessmentPack, type AssessmentRun, type Question, type SessionSummary } from '../api/client'
+import { api, idempotencyKey, jsonBody, type Question, type SessionSummary } from '../api/client'
 import { ConformanceBadge, EmptyState, ErrorState, LoadingState, PageHeader } from '../components/Common'
 import {
   PRACTICE_FILTERS,
@@ -30,18 +30,6 @@ export function PracticePage() {
   const questions = useQuery({
     queryKey: ['questions', module],
     queryFn: () => api<Question[]>(`/api/v1/questions?module=${module}&limit=500`),
-  })
-  const packs = useQuery({
-    queryKey: ['assessment-packs', module],
-    queryFn: () => api<AssessmentPack[]>(`/api/v1/assessment-packs?module=${module}&practice_mode=full_mock&conformance_status=verified&limit=24`),
-  })
-  const startMock = useMutation({
-    mutationFn: (packId: string) => api<AssessmentRun>('/api/v1/assessment-runs', {
-      method: 'POST',
-      headers: { 'Idempotency-Key': idempotencyKey() },
-      body: jsonBody({ pack_id: packId, practice_unit_id: practiceUnitId }),
-    }),
-    onSuccess: (run) => navigate(`/assessment/${run.run_id}`),
   })
   const create = useMutation({
     mutationFn: async ({ question, mode }: { question: Question; mode?: string }) => api<SessionSummary>('/api/v1/sessions', {
@@ -119,9 +107,6 @@ export function PracticePage() {
             <div><p>{moduleMeta.name}</p><h2>{moduleMeta.label}</h2><span>{moduleMeta.summary}</span></div>
           </header>
 
-          <FullMockPacks packs={packs.data ?? []} pending={packs.isPending} startMock={(packId) => startMock.mutate(packId)} starting={startMock.isPending} />
-          {packs.isError && <ErrorState error={packs.error} />}
-          {startMock.isError && <ErrorState error={startMock.error} />}
 
           {module === 'listening' ? (
             <section className="workspace-entry">
@@ -236,26 +221,6 @@ export function PracticePage() {
       </section>
     </div>
   )
-}
-
-function FullMockPacks({ packs, pending, startMock, starting }: { packs: AssessmentPack[]; pending: boolean; startMock: (packId: string) => void; starting: boolean }) {
-  const approved = packs.filter((pack) => pack.local_review_status === 'approved')
-  if (!pending && approved.length === 0) return null
-  return <section className="mock-pack-section">
-    <div className="section-heading">
-      <div><p className="eyebrow">整套练习</p><h2>经审核的考试流程</h2></div>
-      <p>只有结构合规并通过本地审核的套题才能启动；题目、计时和作答会冻结在同一次运行中。</p>
-    </div>
-    {pending && <LoadingState label="正在检查可用套题" />}
-    <div className="mock-pack-grid">
-      {approved.map((pack) => <article key={pack.pack_id} className="mock-pack-card">
-        <div><span className="status-dot" />正式运行</div>
-        <h3>{pack.title}</h3>
-        <p>{MODULES[pack.module]?.name ?? 'IELTS'} · 内容已审核</p>
-        <button className="button primary" disabled={starting} onClick={() => startMock(pack.pack_id)}>启动完整模考</button>
-      </article>)}
-    </div>
-  </section>
 }
 
 function ModuleTabs({ module, setModule }: { module: string; setModule: (module: string) => void }) {

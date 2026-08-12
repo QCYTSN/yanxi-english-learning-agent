@@ -177,16 +177,6 @@ IELTS_CAPABILITIES = (
         media_types=("image",),
     ),
     CapabilitySpec(
-        capability_id="writing_mock_review",
-        title="Writing full mock review",
-        module="writing",
-        output_contract="writing-mock-review@1",
-        skill="ielts-writing",
-        privacy_scope="private_material",
-        media_types=("image",),
-        default_timeout_seconds=600,
-    ),
-    CapabilitySpec(
         capability_id="reading_explanation",
         title="Reading wrong-answer explanation",
         module="reading",

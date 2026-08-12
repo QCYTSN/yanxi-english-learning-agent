@@ -65,7 +65,7 @@ def test_ielts_is_registered_as_the_first_domain_pack() -> None:
         "speaking",
     }
     assert len(pack.skills) == 21
-    assert len(pack.capabilities) == 9
+    assert len(pack.capabilities) == 8
 
     general = get_domain_pack("general-english")
     assert {item.dimension_id for item in general.dimensions} == {

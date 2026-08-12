@@ -39,24 +39,6 @@ from ..capability_evaluation import (
     list_capability_evaluations,
     provider_reliability_report,
 )
-from ..assessment_builder import assemble_assessment_pack
-from ..assessment_runtime import (
-    create_speaking_handoff as create_assessment_speaking_handoff,
-    get_assessment_run,
-    list_assessment_runs,
-    pause_assessment_run,
-    record_writing_score,
-    register_speaking_source_report,
-    renew_audio_playback_lease,
-    resume_assessment_run,
-    save_navigation,
-    save_response,
-    start_assessment_run,
-    start_audio_playback,
-    submit_assessment_run,
-    update_audio_playback,
-    validate_audio_playback_lease,
-)
 from ..allocation import recommend_allocation
 from ..backups import create_backup, list_backups, restore_backup, verify_backup
 from ..config import load_profile
@@ -84,14 +66,6 @@ from ..content_imports import (
     update_import_review_segment,
 )
 from ..content_audio import read_audio_review, update_audio_review
-from ..content_inventory import build_content_readiness, content_requirements
-from ..content_reviews import (
-    get_target_review,
-    get_target_review_statuses,
-    list_content_reviews,
-    list_review_queue,
-    record_content_review,
-)
 from ..data_lifecycle import cleanup_deleted_thread_storage
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
 from ..execution_profiles import update_execution_profile
@@ -256,8 +230,6 @@ from ..study_runtime import (
     submit_reading_answers,
     submit_writing_version,
 )
-from ..speaking_handoff import create_speaking_handoff, speaking_questions
-from ..speaking_io import import_speaking_report_data
 from ..story_bank import list_stories, save_story
 from .auth import (
     AuthState,
@@ -972,14 +944,6 @@ def create_app(
     def ielts_standard_endpoint() -> dict[str, Any]:
         return standard_profile()
 
-    @app.get("/api/v1/content/requirements", dependencies=[Depends(require_session)])
-    def content_requirements_endpoint() -> dict[str, Any]:
-        return content_requirements()
-
-    @app.get("/api/v1/content/readiness", dependencies=[Depends(require_session)])
-    def content_readiness_endpoint() -> dict[str, Any]:
-        return build_content_readiness(target)
-
     @app.get("/api/v1/backups", dependencies=[Depends(require_session)])
     def backups_endpoint() -> list[dict[str, Any]]:
         return list_backups(target)
@@ -1277,305 +1241,6 @@ def create_app(
             },
         )
 
-    @app.get("/api/v1/content-reviews", dependencies=[Depends(require_session)])
-    def content_reviews_endpoint(
-        target_type: str | None = None,
-        target_id: str | None = None,
-        limit: int = Query(100, ge=1, le=500),
-    ) -> list[dict[str, Any]]:
-        return list_content_reviews(
-            target,
-            target_type=target_type,
-            target_id=target_id,
-            limit=limit,
-        )
-
-    @app.get("/api/v1/content-reviews/queue", dependencies=[Depends(require_session)])
-    def content_review_queue_endpoint(
-        target_type: str | None = None,
-        limit: int = Query(100, ge=1, le=500),
-    ) -> list[dict[str, Any]]:
-        return list_review_queue(target, target_type=target_type, limit=limit)
-
-    @app.get(
-        "/api/v1/content-reviews/targets/{target_type}/{target_id}",
-        dependencies=[Depends(require_session)],
-    )
-    def content_review_target_endpoint(target_type: str, target_id: str) -> dict[str, Any]:
-        return get_target_review(target, target_type, target_id)
-
-    @app.post(
-        "/api/v1/content-reviews/targets/{target_type}/{target_id}",
-        dependencies=[Depends(require_session)],
-    )
-    def create_content_review_endpoint(
-        target_type: str,
-        target_id: str,
-        payload: ContentReviewCreate,
-    ) -> dict[str, Any]:
-        return record_content_review(
-            target,
-            target_type=target_type,
-            target_id=target_id,
-            reviewer=payload.reviewer,
-            decision=payload.decision,
-            checklist=payload.checklist,
-            notes=payload.notes,
-        )
-
-    @app.get("/api/v1/assessment-packs", dependencies=[Depends(require_session)])
-    def assessment_packs_endpoint(
-        module: str | None = None,
-        practice_mode: str | None = None,
-        conformance_status: str | None = None,
-        review_mode: bool = False,
-        limit: int = Query(100, ge=1, le=500),
-        offset: int = Query(0, ge=0),
-    ) -> list[dict[str, Any]]:
-        items = list_assessment_packs(
-            target,
-            module=module,
-            practice_mode=practice_mode,
-            conformance_status=conformance_status,
-            learner_ready=not review_mode,
-            limit=limit,
-            offset=offset,
-        )
-        statuses = get_target_review_statuses(
-            target,
-            "assessment_pack",
-            [str(item["pack_id"]) for item in items],
-        )
-        for item in items:
-            item["local_review_status"] = statuses.get(
-                str(item["pack_id"]), "unreviewed"
-            )
-        return items
-
-    @app.post("/api/v1/assessment-packs", dependencies=[Depends(require_session)])
-    def create_assessment_pack_endpoint(payload: AssessmentPackCreate) -> dict[str, Any]:
-        return assemble_assessment_pack(
-            target,
-            module=payload.module,
-            title=payload.title,
-            question_ids=payload.question_ids,
-        )
-
-    @app.get("/api/v1/assessment-packs/{pack_id}", dependencies=[Depends(require_session)])
-    def assessment_pack_endpoint(pack_id: str) -> dict[str, Any]:
-        item = get_assessment_pack(target, pack_id)
-        if not item:
-            raise HTTPException(status_code=404, detail="Assessment pack not found")
-        item["local_review_status"] = get_target_review(
-            target,
-            "assessment_pack",
-            pack_id,
-            include_material=False,
-        )["local_review_status"]
-        return item
-
-    @app.get("/api/v1/assessment-runs", dependencies=[Depends(require_session)])
-    def assessment_runs_endpoint(
-        status: str | None = None,
-        limit: int = Query(100, ge=1, le=500),
-    ) -> list[dict[str, Any]]:
-        return list_assessment_runs(target, status=status, limit=limit)
-
-    @app.post("/api/v1/assessment-runs", dependencies=[Depends(require_session)])
-    def assessment_run_start_endpoint(
-        payload: AssessmentRunCreate,
-        idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
-    ) -> dict[str, Any]:
-        run = start_assessment_run(
-            target,
-            payload.pack_id,
-            idempotency_key=_idempotency_key(idempotency),
-        )
-        if payload.practice_unit_id:
-            bind_practice_unit(
-                target,
-                payload.practice_unit_id,
-                assessment_run_id=str(run["run_id"]),
-            )
-            run = get_assessment_run(target, str(run["run_id"]))
-        return run
-
-    @app.get(
-        "/api/v1/assessment-runs/{run_id}",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_run_endpoint(run_id: str) -> dict[str, Any]:
-        return get_assessment_run(target, run_id)
-
-    @app.put(
-        "/api/v1/assessment-runs/{run_id}/responses/{question_id}",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_response_endpoint(
-        run_id: str,
-        question_id: str,
-        payload: AssessmentResponseSave,
-        idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
-    ) -> dict[str, Any]:
-        return save_response(
-            target,
-            run_id,
-            question_id,
-            payload.response,
-            section_key=payload.section_key,
-            expected_revision=payload.expected_revision,
-            flagged=payload.flagged,
-            idempotency_key=_idempotency_key(idempotency),
-        )
-
-    @app.put(
-        "/api/v1/assessment-runs/{run_id}/navigation",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_navigation_endpoint(
-        run_id: str,
-        payload: AssessmentNavigationSave,
-    ) -> dict[str, Any]:
-        return save_navigation(
-            target,
-            run_id,
-            payload.navigation,
-            expected_revision=payload.expected_revision,
-        )
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/pause",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_pause_endpoint(run_id: str) -> dict[str, Any]:
-        return pause_assessment_run(target, run_id)
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/resume",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_resume_endpoint(run_id: str) -> dict[str, Any]:
-        return resume_assessment_run(target, run_id)
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/submit",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_submit_endpoint(
-        run_id: str,
-        idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
-    ) -> dict[str, Any]:
-        result = submit_assessment_run(
-            target,
-            run_id,
-            idempotency_key=_idempotency_key(idempotency),
-        )
-        complete_practice_unit(target, assessment_run_id=run_id)
-        return result
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/audio/{media_id}/start",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_audio_start_endpoint(run_id: str, media_id: str) -> dict[str, Any]:
-        return start_audio_playback(target, run_id, media_id)
-
-    @app.put(
-        "/api/v1/assessment-runs/{run_id}/audio/{media_id}",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_audio_update_endpoint(
-        run_id: str,
-        media_id: str,
-        payload: AudioPlaybackUpdate,
-    ) -> dict[str, Any]:
-        return update_audio_playback(
-            target,
-            run_id,
-            media_id,
-            position_seconds=payload.position_seconds,
-            completed=payload.completed,
-        )
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/audio/{media_id}/lease",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_audio_lease_endpoint(
-        run_id: str, media_id: str
-    ) -> dict[str, Any]:
-        return renew_audio_playback_lease(target, run_id, media_id)
-
-    @app.get(
-        "/api/v1/assessment-runs/{run_id}/audio/{media_id}/content",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_audio_content_endpoint(
-        run_id: str,
-        media_id: str,
-        lease: str = Query(min_length=20, max_length=512),
-    ) -> FileResponse:
-        validate_audio_playback_lease(target, run_id, media_id, lease)
-        asset, path = resolve_media_file(target, media_id)
-        if asset["media_type"] != "audio":
-            raise ValueError("Requested media is not audio")
-        return FileResponse(path, media_type=asset["mime_type"], filename=path.name)
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/writing-score",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_writing_score_endpoint(
-        run_id: str,
-        payload: WritingAssessmentScore,
-    ) -> dict[str, Any]:
-        return record_writing_score(
-            target,
-            run_id,
-            task1=payload.task1,
-            task2=payload.task2,
-        )
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/speaking-handoff",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_speaking_handoff_endpoint(
-        run_id: str,
-        payload: SpeakingHandoffCreate,
-    ) -> dict[str, Any]:
-        return create_assessment_speaking_handoff(
-            target,
-            run_id,
-            provider=payload.provider,
-        )
-
-    @app.post(
-        "/api/v1/assessment-runs/{run_id}/speaking-report",
-        dependencies=[Depends(require_session)],
-    )
-    def assessment_speaking_report_endpoint(
-        run_id: str,
-        payload: SpeakingReportImport,
-        idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
-    ) -> dict[str, Any]:
-        run = get_assessment_run(target, run_id)
-        if run["module"] != "speaking":
-            raise ValueError("Speaking report requires a Speaking AssessmentRun")
-        raw_report = dict(payload.report or {})
-        if payload.transcript:
-            raw_report.setdefault("transcript", payload.transcript)
-        raw_report.setdefault("provider", payload.provider)
-        raw_report.setdefault("mode", payload.mode)
-        imported = import_speaking_report_data(
-            target,
-            raw_report,
-            session_id=str(run["session_id"]),
-            expected_revision=payload.expected_revision,
-            idempotency_key=_idempotency_key(idempotency),
-        )
-        return register_speaking_source_report(target, run_id, imported)
-
     @app.get("/api/v1/sessions", dependencies=[Depends(require_session)])
     def sessions(
         module: str | None = None,
@@ -1770,35 +1435,6 @@ def create_app(
             "item": listening_item(target, payload.item_id),
         }
 
-    @app.get("/api/v1/speaking/questions", dependencies=[Depends(require_session)])
-    def speaking_questions_endpoint(
-        part: int | None = Query(default=None, ge=1, le=3),
-        topic: str | None = None,
-        limit: int = Query(100, ge=1, le=500),
-    ) -> list[dict[str, Any]]:
-        return speaking_questions(target, part=part, topic=topic, limit=limit)
-
-    @app.post("/api/v1/speaking/handoffs", dependencies=[Depends(require_session)])
-    def speaking_handoff_endpoint(
-        payload: SpeakingHandoffCreate,
-        idempotency: str | None = Header(default=None, alias="Idempotency-Key"),
-    ) -> dict[str, Any]:
-        session = create_speaking_handoff(
-            target,
-            mode=payload.mode,
-            provider=payload.provider,
-            question_ids=payload.question_ids,
-            seed=payload.seed,
-            idempotency_key=_idempotency_key(idempotency),
-        )
-        if payload.practice_unit_id:
-            bind_practice_unit(
-                target,
-                payload.practice_unit_id,
-                session_id=str(session["session_id"]),
-            )
-        return session
-
     @app.post(
         "/api/v1/speaking/{session_id}/reports",
         dependencies=[Depends(require_session)],
@@ -1881,15 +1517,6 @@ def create_app(
             limit=limit,
             offset=offset,
         )
-        statuses = get_target_review_statuses(
-            target,
-            "question",
-            [str(item["question_id"]) for item in items],
-        )
-        for item in items:
-            item["local_review_status"] = statuses.get(
-                str(item["question_id"]), "unreviewed"
-            )
         return items
 
     @app.get("/api/v1/questions/{question_id}", dependencies=[Depends(require_session)])
@@ -3043,45 +2670,6 @@ def create_app(
         canonical_session["media_evidence_sufficient"] = not media_refs or all(
             item["available_to_agent"] for item in media_refs
         )
-        if (
-            payload.output_contract == "writing-mock-review@1"
-            and session
-            and session.get("assessment_run_id")
-        ):
-            assessment = get_assessment_run(
-                target, str(session["assessment_run_id"])
-            )
-            canonical_session["assessment_context"] = {
-                "assessment_run_id": assessment["run_id"],
-                "pack_id": assessment["pack_id"],
-                "practice_mode": assessment["practice_mode"],
-                "tasks": [
-                    {
-                        key: question.get(key)
-                        for key in (
-                            "question_id",
-                            "task",
-                            "content",
-                            "task_data",
-                            "media_id",
-                            "media_ids",
-                            "minimum_words",
-                        )
-                        if question.get(key) is not None
-                    }
-                    for question in assessment["pack_snapshot"].get("questions")
-                    or []
-                ],
-                "responses": [
-                    {
-                        "question_id": item["question_id"],
-                        "section_key": item["section_key"],
-                        "response": item["response"],
-                    }
-                    for item in assessment["responses"]
-                ],
-                "aggregation_rule": "Runtime computes (Task 1 + 2 × Task 2) / 3",
-            }
         provider_ids = [
             str(item["provider_id"]) for item in prepared.model_route
         ] or [str(profile.get("backend_id") or adapter_id)]

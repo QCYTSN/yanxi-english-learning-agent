@@ -6,7 +6,6 @@ from typing import Any
 
 from .allocation import recommend_allocation
 from .config import load_profile
-from .content_inventory import build_content_readiness
 from .diagnostics import diagnostic_status
 from .onboarding import onboarding_status
 from .storage import connect, recent_bands
@@ -163,7 +162,6 @@ def build_study_context(
     context["diagnostic"] = diagnostic_status(home)
     context["allocation"] = allocation.allocation
     context["allocation_reasons"] = allocation.reasons[:3]
-    readiness = build_content_readiness(home)
     with connect(home) as conn:
         pack_rows = conn.execute(
             """
@@ -200,7 +198,6 @@ def build_study_context(
             primary,
             share=0.70,
             allocation=allocation,
-            readiness=readiness,
             target=profile["target"],
             verified_pack_count=verified_packs.get(primary, 0),
         ),
@@ -208,12 +205,10 @@ def build_study_context(
             consolidation,
             share=0.30,
             allocation=allocation,
-            readiness=readiness,
             target=profile["target"],
             verified_pack_count=verified_packs.get(consolidation, 0),
         ),
-        "content_readiness_version": readiness["version"],
-        "verified_full_mock_count": readiness["band_ready_pack_count"],
+        "verified_full_mock_count": sum(verified_packs.values()),
     }
     if setup["status"] == "pending":
         context["next_action"] = "complete_onboarding_once"
@@ -229,22 +224,10 @@ def _recommended_task(
     *,
     share: float,
     allocation: Any,
-    readiness: dict[str, Any],
     target: dict[str, Any],
     verified_pack_count: int,
 ) -> dict[str, Any]:
-    module_readiness = readiness["modules"][module]
-    full_mock_metric = next(
-        (
-            item
-            for item in module_readiness["metrics"]
-            if item["key"] == "verified_full_mocks"
-        ),
-        None,
-    )
-    full_mock_available = verified_pack_count > 0 or bool(
-        full_mock_metric and full_mock_metric["current"] > 0
-    )
+    full_mock_available = verified_pack_count > 0
     current = allocation.recent_average.get(module)
     gap = allocation.evidence.get("target_gaps", {}).get(module)
     if full_mock_available:

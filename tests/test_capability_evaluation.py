@@ -48,8 +48,8 @@ def test_contract_evaluation_runs_all_positive_and_negative_cases(
     result = run_contract_evaluation(home, FIXTURES)
 
     assert result["status"] == "passed"
-    assert result["case_count"] == 30
-    assert result["passed_count"] == 30
+    assert result["case_count"] == 28
+    assert result["passed_count"] == 28
     assert {item["case_kind"] for item in result["cases"]} == {"valid", "invalid"}
     assert all(len(item["case_hash"]) == 64 for item in result["cases"])
     history = list_capability_evaluations(home)
@@ -107,7 +107,7 @@ def test_evaluation_cli_returns_machine_readable_report(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
     assert report["status"] == "passed"
-    assert report["case_count"] == 30
+    assert report["case_count"] == 28
 
 
 def test_release_gate_combines_contract_and_scale_checks(tmp_path: Path) -> None:
@@ -130,7 +130,7 @@ def test_release_gate_combines_contract_and_scale_checks(tmp_path: Path) -> None
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
     assert report["status"] == "passed"
-    assert report["contract_gate"]["case_count"] == 30
+    assert report["contract_gate"]["case_count"] == 28
     assert report["teaching_quality_gate"]["case_count"] == 14
     assert report["teaching_quality_gate"]["status"] == "passed"
     assert report["visual_review"] == "separate_human_decision_required"

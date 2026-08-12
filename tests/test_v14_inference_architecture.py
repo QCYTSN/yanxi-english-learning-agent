@@ -85,7 +85,6 @@ def test_schema21_separates_model_providers_without_replacing_sqlite(tmp_path: P
 def test_capabilities_are_product_contracts_not_agent_names():
     assert set(CAPABILITIES_BY_CONTRACT) == {
         "writing-review@1",
-        "writing-mock-review@1",
         "reading-review@1",
         "listening-review@1",
         "speaking-evaluation@1",
@@ -146,7 +145,7 @@ def test_architecture_endpoints_expose_capabilities_and_profiles(tmp_path: Path)
         profiles = client.get("/api/v1/execution-profiles?diagnostics=false")
         bootstrap = client.get("/api/v1/bootstrap")
     assert capabilities.status_code == 200
-    assert len(capabilities.json()) == 9
+    assert len(capabilities.json()) == 8
     general_capabilities = client.get(
         "/api/v1/capabilities?track_id=general-english"
     )

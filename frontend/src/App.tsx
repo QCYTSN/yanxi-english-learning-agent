@@ -7,7 +7,6 @@ import { RouteErrorBoundary } from './components/PageErrorBoundary'
 import { Shell } from './components/Shell'
 import { OnboardingPage } from './pages/OnboardingPage'
 
-const AssessmentRunnerPage = lazy(() => import('./pages/AssessmentRunnerPage').then((module) => ({ default: module.AssessmentRunnerPage })))
 const DiagnosticPage = lazy(() => import('./pages/DiagnosticPage').then((module) => ({ default: module.DiagnosticPage })))
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then((module) => ({ default: module.FeedbackPage })))
 const HistoryPage = lazy(() => import('./pages/HistoryPage').then((module) => ({ default: module.HistoryPage })))
@@ -57,7 +56,6 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
           <Routes>
             <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
             <Route path="/practice" element={<PracticePage />} />
-            <Route path="/assessment/:runId" element={<AssessmentRunnerPage />} />
             <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
             <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
             <Route path="/practice/listening" element={<ListeningWorkspace />} />

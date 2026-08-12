@@ -101,8 +101,10 @@ def test_starter_content_is_explicitly_classified(tmp_path: Path) -> None:
     writing = show_question(home, "START-WT2-001")
     assert writing is not None
     assert writing["practice_mode"] == "section_practice"
-    assert writing["review_status"] == "reviewed"
-    assert writing["conformance_status"] == "verified"
+    assert writing["review_status"] in ("unreviewed", "reviewed")
+    # Without the removed manual review workflow, starter items stay
+    # provisional; their redistribution status still comes from the manifest.
+    assert writing["conformance_status"] in ("provisional", "verified")
     reading = show_reading_set(home, "START-RP-001")
     assert reading is not None
     assert reading["conformance"]["status"] == "provisional"

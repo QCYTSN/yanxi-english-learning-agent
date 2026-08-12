@@ -111,9 +111,9 @@ def test_content_readiness_and_private_upload_queue(tmp_path: Path):
     client = _client(home)
     _authenticate(client)
 
+    # The content-readiness inventory was removed with the review workflow.
     readiness = client.get("/api/v1/content/readiness")
-    assert readiness.status_code == 200
-    assert set(readiness.json()["modules"]) == {"listening", "reading", "writing", "speaking"}
+    assert readiness.status_code == 404
 
     upload = client.post(
         "/api/v1/content/imports",
@@ -131,34 +131,6 @@ def test_content_readiness_and_private_upload_queue(tmp_path: Path):
     assert jobs.status_code == 200
     assert jobs.json()[0]["files"][0]["original_name"] == "owned.pdf"
 
-    pack = client.post("/api/v1/assessment-packs", json={
-        "module": "writing",
-        "title": "Starter writing pair",
-        "question_ids": ["START-WT1-001", "START-WT2-001"],
-    })
-    assert pack.status_code == 200
-    assert pack.json()["conformance_status"] == "provisional"
-    review_target = client.get(
-        f"/api/v1/content-reviews/targets/assessment_pack/{pack.json()['pack_id']}"
-    )
-    assert review_target.status_code == 200
-    checklist = {
-        key: True for key in review_target.json()["required_checklist"]
-    }
-    reviewed_pack = client.post(
-        f"/api/v1/content-reviews/targets/assessment_pack/{pack.json()['pack_id']}",
-        json={
-            "reviewer": "UI test reviewer",
-            "decision": "approved",
-            "checklist": checklist,
-            "notes": "Structure and dependencies checked.",
-        },
-    )
-    assert reviewed_pack.status_code == 200
-    assert reviewed_pack.json()["local_review_status"] == "approved"
-    assert client.get(
-        f"/api/v1/assessment-packs/{pack.json()['pack_id']}"
-    ).json()["conformance_status"] == "verified"
 
 
 def test_pdf_preparation_preview_and_page_plan_api(tmp_path: Path):

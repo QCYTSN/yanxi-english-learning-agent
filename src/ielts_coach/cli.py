@@ -18,8 +18,6 @@ from .capability_evaluation import (
 )
 from .config import load_profile
 from .conformance import assess_pack, assess_question, standard_profile
-from .content_imports import imports as list_content_imports, process_import
-from .content_inventory import build_content_readiness, content_requirements
 from .corpus import corpus_stats, import_manifest, reindex_corpus
 from .diagnostics import (
     attach_diagnostic_session,
@@ -33,7 +31,6 @@ from .init_home import initialise_home
 from .onboarding import complete_onboarding, onboarding_status
 from .paths import find_project_root, resolve_home
 from .profiles import build_learning_profile
-from .question_bank import draw_question, search_questions, show_question, show_reading_set
 from .reports import build_summary, build_trend_report, build_weekly_report
 from .session_io import load_data_file, load_session_file
 from .session_manager import finish_session, show_session, start_session, transition_session
@@ -46,7 +43,6 @@ from .study_runtime import (
     submit_reading_answers,
     submit_writing_version,
 )
-from .speaking_io import import_speaking_report
 from .storage import (
     SCHEMA_VERSION, connect, db_path, list_corpora, list_error_profile, list_sessions,
     record_runtime_telemetry, record_session, telemetry_summary, update_error_status,
@@ -63,10 +59,8 @@ from .privacy import check_processing_permission
 from .validation import validate_data
 
 app = typer.Typer(no_args_is_help=True, help="Local CLI for IELTS AI Coach")
-question_app = typer.Typer(no_args_is_help=True, help="Search and draw indexed IELTS questions")
 session_app = typer.Typer(no_args_is_help=True, help="Create and complete structured practice sessions")
 corpus_app = typer.Typer(no_args_is_help=True, help="Register and index user-owned corpora")
-speaking_app = typer.Typer(no_args_is_help=True, help="Import structured speaking reports")
 error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring error status")
 story_app = typer.Typer(no_args_is_help=True, help="Manage reusable personal Speaking stories")
 onboarding_app = typer.Typer(no_args_is_help=True, help="Inspect and complete first-use setup")
@@ -77,13 +71,10 @@ privacy_app = typer.Typer(no_args_is_help=True, help="Check whether material may
 telemetry_app = typer.Typer(no_args_is_help=True, help="Record metadata-only cost and latency observations")
 ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser study desk")
 conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content contracts and eligibility")
-content_app = typer.Typer(no_args_is_help=True, help="Inspect content readiness and staged local imports")
 backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
 evaluation_app = typer.Typer(no_args_is_help=True, help="Evaluate Agent contracts and provider reliability")
-app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
-app.add_typer(speaking_app, name="speaking")
 app.add_typer(error_app, name="error")
 app.add_typer(story_app, name="story")
 app.add_typer(onboarding_app, name="onboarding")
@@ -94,7 +85,6 @@ app.add_typer(privacy_app, name="privacy")
 app.add_typer(telemetry_app, name="telemetry")
 app.add_typer(ui_app, name="ui")
 app.add_typer(conformance_app, name="conformance")
-app.add_typer(content_app, name="content")
 app.add_typer(backup_app, name="backup")
 app.add_typer(evaluation_app, name="evaluation")
 
@@ -274,31 +264,8 @@ def backup_restore_command(
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
-@content_app.command("requirements")
-def content_requirements_command() -> None:
-    """Print the adjustable high-quality content inventory targets."""
-    typer.echo(json.dumps(content_requirements(), ensure_ascii=False, indent=2))
 
 
-@content_app.command("readiness")
-def content_readiness_command(home: Optional[Path] = typer.Option(None)) -> None:
-    """Compare the local corpus with the inventory targets."""
-    typer.echo(json.dumps(build_content_readiness(resolve_home(home)), ensure_ascii=False, indent=2))
-
-
-@content_app.command("imports")
-def content_imports_command(home: Optional[Path] = typer.Option(None)) -> None:
-    """List files staged through the local content workbench."""
-    typer.echo(json.dumps(list_content_imports(resolve_home(home)), ensure_ascii=False, indent=2))
-
-
-@content_app.command("process")
-def content_process_command(
-    import_id: str,
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    """Validate and import a staged manifest/JSONL package."""
-    typer.echo(json.dumps(process_import(resolve_home(home), import_id), ensure_ascii=False, indent=2))
 
 
 @conformance_app.command("standard")
@@ -650,74 +617,9 @@ def corpus_stats_command(corpus_id: Optional[str] = typer.Option(None), home: Op
         typer.echo(f"- {row['corpus_id']} | {row['module']} | questions={row['questions']} | passages={row['passages']} | types={row['question_types']}")
 
 
-@question_app.command("list")
-def question_list(
-    module: Optional[str] = typer.Option(None), task: Optional[str] = typer.Option(None),
-    question_type: Optional[str] = typer.Option(None, "--type"), topic: Optional[str] = typer.Option(None),
-    source_type: Optional[str] = typer.Option(None), corpus_id: Optional[str] = typer.Option(None),
-    passage_id: Optional[str] = typer.Option(None),
-    exclude_completed: bool = typer.Option(False), limit: int = typer.Option(50, min=1, max=1000),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    rows = search_questions(
-        resolve_home(home), module=module, task=task, question_type=question_type, topic=topic,
-        source_type=source_type, corpus_id=corpus_id, passage_id=passage_id,
-        exclude_completed=exclude_completed, limit=limit,
-    )
-    for row in rows:
-        typer.echo(f"- {row['question_id']} | {row['module']} | {row.get('question_type') or '-'} | {row['content'][:100]}")
-    typer.echo(f"Total: {len(rows)}")
 
 
-@question_app.command("search")
-def question_search(
-    query: str = typer.Argument(...), module: Optional[str] = typer.Option(None),
-    question_type: Optional[str] = typer.Option(None, "--type"), topic: Optional[str] = typer.Option(None),
-    exclude_completed: bool = typer.Option(False), limit: int = typer.Option(50),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    rows = search_questions(resolve_home(home), query=query, module=module, question_type=question_type, topic=topic, exclude_completed=exclude_completed, limit=limit)
-    for row in rows:
-        typer.echo(f"- {row['question_id']} | {row['module']} | {row['content'][:120]}")
-    typer.echo(f"Total: {len(rows)}")
 
-
-@question_app.command("show")
-def question_show(question_id: str = typer.Argument(...), with_answer: bool = typer.Option(False), home: Optional[Path] = typer.Option(None)) -> None:
-    question = show_question(resolve_home(home), question_id, include_answer=with_answer)
-    if not question:
-        raise typer.BadParameter(f"Unknown question: {question_id}")
-    typer.echo(json.dumps(question, ensure_ascii=False, indent=2))
-
-
-@question_app.command("set")
-def question_set(
-    passage_id: str = typer.Argument(...),
-    with_answers: bool = typer.Option(False),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    result = show_reading_set(resolve_home(home), passage_id, include_answers=with_answers)
-    if not result:
-        raise typer.BadParameter(f"Unknown Reading passage or no indexed questions: {passage_id}")
-    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
-
-
-@question_app.command("draw")
-def question_draw(
-    module: Optional[str] = typer.Option(None), task: Optional[str] = typer.Option(None),
-    question_type: Optional[str] = typer.Option(None, "--type"), topic: Optional[str] = typer.Option(None),
-    source_type: Optional[str] = typer.Option(None), corpus_id: Optional[str] = typer.Option(None),
-    exclude_completed: bool = typer.Option(True), seed: Optional[int] = typer.Option(None),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    question = draw_question(
-        resolve_home(home), seed=seed, module=module, task=task, question_type=question_type,
-        topic=topic, source_type=source_type, corpus_id=corpus_id, exclude_completed=exclude_completed,
-    )
-    if not question:
-        typer.echo("No matching question found.")
-        raise typer.Exit(code=1)
-    typer.echo(json.dumps(question, ensure_ascii=False, indent=2))
 
 
 @session_app.command("start")
@@ -952,11 +854,6 @@ def telemetry_summary_command(
             f"out={row['output_tokens']} | avg_ms={row['average_latency_ms']} | tools={row['tool_calls']}"
         )
 
-
-@speaking_app.command("import-report")
-def speaking_import_report(report_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
-    data = import_speaking_report(resolve_home(home), report_file)
-    typer.echo(f"Imported speaking report: {data['session_id']}")
 
 
 @onboarding_app.command("status")

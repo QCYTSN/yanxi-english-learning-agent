@@ -97,58 +97,14 @@ def test_speaking_voice_handoff_report_and_story_bank(tmp_path: Path) -> None:
     client = _client(home)
     _authenticate(client)
 
+    # Voice/Live external handoff was removed as a product decision; the
+    # two-step speaking flow now lives in dialogue (prompt + evaluation).
     handoff = client.post(
         "/api/v1/speaking/handoffs",
         headers={"Idempotency-Key": "speaking-handoff-full"},
         json={"mode": "full_mock", "provider": "external_voice_live", "seed": 7},
     )
-    assert handoff.status_code == 200
-    data = handoff.json()
-    assert [question["part"] for question in data["speaking_handoff"]["questions"]].count(2) == 1
-    prompt = data["speaking_handoff"]["prompt"]
-    assert "Do not correct" in prompt
-    assert "one minute to prepare" in prompt
-    assert "up to two minutes" in prompt
-
-    session_id = data["session_id"]
-    imported = client.post(
-        f"/api/v1/speaking/{session_id}/reports",
-        headers={"Idempotency-Key": "speaking-report-import"},
-        json={
-            "provider": "external_voice_live",
-            "mode": "full_mock",
-            "transcript": "Examiner: Tell me about your home. Learner: I live in a busy city.",
-            "expected_revision": 1,
-        },
-    )
-    assert imported.status_code == 200
-    assert imported.json()["status"] == "awaiting_feedback"
-    assert imported.json()["band"] is None
-    assert imported.json()["score_kind"] == "partial_profile"
-    assert imported.json()["speaking_report"]["local_evaluation"]["status"] == "pending"
-    replay = client.post(
-        f"/api/v1/speaking/{session_id}/reports",
-        headers={"Idempotency-Key": "speaking-report-import"},
-        json={
-            "provider": "external_voice_live",
-            "mode": "full_mock",
-            "transcript": "Examiner: Tell me about your home. Learner: I live in a busy city.",
-            "expected_revision": 1,
-        },
-    )
-    assert replay.status_code == 200
-    assert replay.json()["revision"] == imported.json()["revision"] == 2
-    stale = client.post(
-        f"/api/v1/speaking/{session_id}/reports",
-        headers={"Idempotency-Key": "speaking-report-stale"},
-        json={
-            "provider": "external_voice_live",
-            "mode": "full_mock",
-            "transcript": "A conflicting second import.",
-            "expected_revision": 1,
-        },
-    )
-    assert stale.status_code == 409
+    assert handoff.status_code in (404, 405)
 
     story = {
         "story_id": "first-day-campus",
