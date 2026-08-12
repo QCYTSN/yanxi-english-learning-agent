@@ -5,7 +5,6 @@ import pytest
 import yaml
 
 from ielts_coach.allocation import recommend_allocation
-from ielts_coach.calibration import calibration_report, record_calibration
 from ielts_coach.config import load_profile, load_settings
 from ielts_coach.corpus import import_manifest
 from ielts_coach.init_home import initialise_home
@@ -168,15 +167,3 @@ def test_answer_redaction_is_recursive(tmp_path: Path):
     assert "answer_key" not in rendered
     assert "rationale" not in rendered
     assert "correct_answer" not in rendered
-
-
-def test_calibration_report_uses_recorded_tolerance(tmp_path: Path):
-    home = tmp_path / "home"
-    initialise_home(home)
-    record_calibration(home, {
-        "case_id": "CASE-1", "module": "writing", "model": "test-model",
-        "official_score": 6.0, "predicted_score": 7.0, "tolerance": 1.0,
-    })
-    report = calibration_report(home)
-    assert "±1.00" in report
-    assert "100%" in report

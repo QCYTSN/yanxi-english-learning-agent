@@ -11,14 +11,6 @@ import typer
 from .allocation import recommend_allocation
 from . import __version__
 from .backups import create_backup, list_backups, restore_backup, verify_backup
-from .calibration import (
-    calibration_report,
-    import_calibration_case,
-    import_calibration_run,
-    list_calibration_cases,
-    prepare_calibration_run,
-    record_calibration,
-)
 from .capability_evaluation import (
     list_capability_evaluations,
     provider_reliability_report,
@@ -43,7 +35,6 @@ from .paths import find_project_root, resolve_home
 from .profiles import build_learning_profile
 from .question_bank import draw_question, search_questions, show_question, show_reading_set
 from .reports import build_summary, build_trend_report, build_weekly_report
-from .scale_benchmark import run_temporary_scale_benchmark
 from .session_io import load_data_file, load_session_file
 from .session_manager import finish_session, show_session, start_session, transition_session
 from .study_runtime import (
@@ -76,7 +67,6 @@ question_app = typer.Typer(no_args_is_help=True, help="Search and draw indexed I
 session_app = typer.Typer(no_args_is_help=True, help="Create and complete structured practice sessions")
 corpus_app = typer.Typer(no_args_is_help=True, help="Register and index user-owned corpora")
 speaking_app = typer.Typer(no_args_is_help=True, help="Import structured speaking reports")
-calibration_app = typer.Typer(no_args_is_help=True, help="Track model score calibration against authorised references")
 error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring error status")
 story_app = typer.Typer(no_args_is_help=True, help="Manage reusable personal Speaking stories")
 onboarding_app = typer.Typer(no_args_is_help=True, help="Inspect and complete first-use setup")
@@ -89,13 +79,11 @@ ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser 
 conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content contracts and eligibility")
 content_app = typer.Typer(no_args_is_help=True, help="Inspect content readiness and staged local imports")
 backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
-benchmark_app = typer.Typer(no_args_is_help=True, help="Run isolated local performance benchmarks")
 evaluation_app = typer.Typer(no_args_is_help=True, help="Evaluate Agent contracts and provider reliability")
 app.add_typer(question_app, name="question")
 app.add_typer(session_app, name="session")
 app.add_typer(corpus_app, name="corpus")
 app.add_typer(speaking_app, name="speaking")
-app.add_typer(calibration_app, name="calibration")
 app.add_typer(error_app, name="error")
 app.add_typer(story_app, name="story")
 app.add_typer(onboarding_app, name="onboarding")
@@ -108,7 +96,6 @@ app.add_typer(ui_app, name="ui")
 app.add_typer(conformance_app, name="conformance")
 app.add_typer(content_app, name="content")
 app.add_typer(backup_app, name="backup")
-app.add_typer(benchmark_app, name="benchmark")
 app.add_typer(evaluation_app, name="evaluation")
 
 
@@ -255,23 +242,6 @@ def evaluation_release_command(
     }
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     if result["status"] != "passed":
-        raise typer.Exit(code=1)
-
-
-@benchmark_app.command("scale")
-def benchmark_scale_command(
-    sessions: int = typer.Option(10_000, min=1, max=100_000),
-    questions: int = typer.Option(100_000, min=1, max=1_000_000),
-    repeats: int = typer.Option(5, min=1, max=20),
-) -> None:
-    """Benchmark synthetic sessions/questions in a temporary, disposable data home."""
-    report = run_temporary_scale_benchmark(
-        session_count=sessions,
-        question_count=questions,
-        repeats=repeats,
-    )
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
-    if not report["passed"]:
         raise typer.Exit(code=1)
 
 
@@ -1059,63 +1029,6 @@ def diagnostic_cancel_command(
 ) -> None:
     result = cancel_diagnostic(resolve_home(home), diagnostic_id)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
-
-
-@calibration_app.command("record")
-def calibration_record(record_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
-    record_calibration(resolve_home(home), load_data_file(record_file))
-    typer.echo(f"Recorded calibration case from: {record_file}")
-
-
-@calibration_app.command("case-import")
-def calibration_case_import(
-    case_file: Path = typer.Argument(..., exists=True, readable=True),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    result = import_calibration_case(
-        resolve_home(home), load_data_file(case_file), base_path=case_file.parent
-    )
-    typer.echo(f"Imported calibration case: {result['case_id']}")
-
-
-@calibration_app.command("case-list")
-def calibration_case_list(home: Optional[Path] = typer.Option(None)) -> None:
-    rows = list_calibration_cases(resolve_home(home))
-    if not rows:
-        typer.echo("No calibration cases registered.")
-        return
-    for row in rows:
-        typer.echo(
-            f"- {row['case_id']} | {row['module']} | {row.get('task') or '-'} | "
-            f"{row['criterion']} | {row['input_path']}"
-        )
-
-
-@calibration_app.command("prepare")
-def calibration_prepare(
-    model: str = typer.Option(..., help="Model/client label used for this blind run"),
-    output: Path = typer.Option(..., help="Write a blind scoring worksheet here"),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    run = prepare_calibration_run(resolve_home(home), model, output)
-    typer.echo(f"Prepared {len(run['predictions'])} blind calibration cases: {output}")
-
-
-@calibration_app.command("import-run")
-def calibration_import_run(
-    run_file: Path = typer.Argument(..., exists=True, readable=True),
-    tolerance: float = typer.Option(0.5, min=0.0, max=2.0),
-    home: Optional[Path] = typer.Option(None),
-) -> None:
-    count = import_calibration_run(
-        resolve_home(home), load_data_file(run_file), tolerance=tolerance
-    )
-    typer.echo(f"Imported {count} calibration predictions from: {run_file}")
-
-
-@calibration_app.command("report")
-def calibration_report_command(home: Optional[Path] = typer.Option(None)) -> None:
-    typer.echo(calibration_report(resolve_home(home)), nl=False)
 
 
 @error_app.command("list")
