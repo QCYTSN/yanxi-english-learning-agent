@@ -66,6 +66,7 @@ def test_skill_metadata_and_runtime_contract_stay_lightweight():
         assert "begin immediately" in specialist.lower()
         assert "study-context --module" in specialist
 
-    # Prevent gradual prompt bloat across the seven focused Skill bodies.
-    # The material-dialogue Skill is capability-loaded, not router preflight.
-    assert total_body_chars < 14_500
+    # Prevent gradual prompt bloat across the thirteen focused Skill bodies
+    # (six General English, seven IELTS). The dialogue Skills stay
+    # capability-loaded rather than router preflight.
+    assert total_body_chars < 30_000

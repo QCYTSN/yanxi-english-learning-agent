@@ -1,0 +1,8 @@
+{
+  "contract_version": 1,
+  "module": "vocabulary",
+  "request_kind": "phrase_query",
+  "summary": "缺少检查性问题。",
+  "limitations": [],
+  "next_action": null
+}

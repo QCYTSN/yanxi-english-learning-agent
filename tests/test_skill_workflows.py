@@ -1,9 +1,17 @@
 from pathlib import Path
 
 
-def test_seven_skill_architecture_and_workflow_guards():
+def test_skill_architecture_and_workflow_guards():
     root = Path(__file__).resolve().parents[1] / "skills-source"
     expected = {
+        # General English track
+        "general-study-help",
+        "general-writing",
+        "general-speaking",
+        "general-reading",
+        "general-vocabulary",
+        "general-grammar",
+        # IELTS Academic exam pack
         "ielts",
         "ielts-writing",
         "ielts-speaking",
@@ -13,6 +21,10 @@ def test_seven_skill_architecture_and_workflow_guards():
         "ielts-study-help",
     }
     assert expected == {path.name for path in root.iterdir() if (path / "SKILL.md").exists()}
+
+    general = (root / "general-study-help" / "SKILL.md").read_text(encoding="utf-8")
+    assert "one focused point at a time" in general
+    assert "check question" in general
 
     writing = (root / "ielts-writing" / "SKILL.md").read_text(encoding="utf-8")
     assert "No full polished rewrite before the learner attempts V2" in writing

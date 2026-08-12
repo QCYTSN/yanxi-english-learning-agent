@@ -7,6 +7,14 @@ from pathlib import Path
 import yaml
 
 SKILLS = (
+    # General English track (default)
+    "general-study-help",
+    "general-writing",
+    "general-speaking",
+    "general-reading",
+    "general-vocabulary",
+    "general-grammar",
+    # IELTS Academic exam pack
     "ielts",
     "ielts-writing",
     "ielts-speaking",

@@ -1,0 +1,9 @@
+{
+  "contract_version": 1,
+  "grammar_point": "主谓一致",
+  "rule": "单数主语配单数动词",
+  "correct_example": "The team is playing well.",
+  "incorrect_example": "The team are playing well.",
+  "check_question": "下面哪句是对的？",
+  "limitations": []
+}

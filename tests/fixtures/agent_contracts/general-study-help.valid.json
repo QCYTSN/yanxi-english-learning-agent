@@ -1,0 +1,15 @@
+{
+  "contract_version": 1,
+  "module": "vocabulary",
+  "request_kind": "phrase_query",
+  "summary": "这个词在邮件场景下更自然的说法。",
+  "sections": [
+    {
+      "title": "表达",
+      "content": "Please let me know if you need anything else."
+    }
+  ],
+  "check_question": "这句话可以怎么更口语一点？",
+  "limitations": [],
+  "next_action": "试着改写"
+}

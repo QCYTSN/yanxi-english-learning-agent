@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "summary",
+    "explanation",
+    "evidence_quotes",
+    "check_question",
+    "limitations"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "explanation": {"type": "string", "minLength": 1},
+    "evidence_quotes": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "check_question": {"type": "string", "minLength": 1},
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

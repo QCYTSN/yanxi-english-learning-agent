@@ -1,0 +1,12 @@
+{
+  "contract_version": 1,
+  "mode": "practice_prompt",
+  "scenario": "餐厅点餐",
+  "role": "服务员",
+  "prompt": "假装你在餐厅点餐，表达你过敏不能吃花生。",
+  "follow_ups": [
+    "还有什么不能吃？"
+  ],
+  "evaluation_dimensions": [],
+  "limitations": []
+}

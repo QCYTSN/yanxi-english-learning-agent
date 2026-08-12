@@ -2886,7 +2886,7 @@ def create_app(
         primary_provider = prepared.primary_model_provider
         capability = capability_for_contract(payload.output_contract)
         skill_envelope = compile_skill_envelope(capability)
-        is_study_help = payload.output_contract == "study-help@1"
+        is_study_help = payload.output_contract in ("study-help@1",) or payload.output_contract.startswith("general-")
         if is_study_help and (
             not payload.study_thread_id or not payload.user_message_id
         ):

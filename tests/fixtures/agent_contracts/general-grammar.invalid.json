@@ -1,0 +1,9 @@
+{
+  "contract_version": 1,
+  "grammar_point": "主谓一致",
+  "rule": "规则",
+  "correct_example": "x",
+  "incorrect_example": "y",
+  "check_question": "",
+  "limitations": []
+}

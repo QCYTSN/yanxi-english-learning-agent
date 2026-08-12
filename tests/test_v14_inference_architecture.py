@@ -93,6 +93,13 @@ def test_capabilities_are_product_contracts_not_agent_names():
         "diagnostic-summary@1",
         "weekly-coaching@1",
         "study-help@1",
+        # General English track contracts
+        "general-study-help@1",
+        "general-writing-feedback@1",
+        "general-speaking-prompt@1",
+        "general-vocabulary@1",
+        "general-reading-coach@1",
+        "general-grammar@1",
     }
     assert capability_for_contract("writing-review@1").capability_id == (
         "writing_review"

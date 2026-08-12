@@ -1,0 +1,16 @@
+{
+  "contract_version": 1,
+  "word": "schedule",
+  "meaning": "时间安排",
+  "usage": "后面常接 for：schedule a meeting for Friday",
+  "collocations": [
+    "busy schedule",
+    "on schedule"
+  ],
+  "example": "I have a busy schedule this week.",
+  "review_suggestion": {
+    "suggested": true,
+    "kind": "spaced_review"
+  },
+  "limitations": []
+}

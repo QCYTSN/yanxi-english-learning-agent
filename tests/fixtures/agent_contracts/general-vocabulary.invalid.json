@@ -1,0 +1,11 @@
+{
+  "contract_version": 1,
+  "word": "schedule",
+  "usage": "用法",
+  "example": "例句",
+  "review_suggestion": {
+    "suggested": false,
+    "kind": "none"
+  },
+  "limitations": []
+}

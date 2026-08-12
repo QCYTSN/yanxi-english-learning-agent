@@ -343,7 +343,163 @@ IELTS_ACADEMIC_PACK = DomainPackSpec(
 )
 
 
-DOMAIN_PACKS = {IELTS_ACADEMIC_PACK.track_id: IELTS_ACADEMIC_PACK}
+GENERAL_TRACK_ID = "general-english"
+
+GENERAL_CAPABILITIES = (
+    CapabilitySpec(
+        capability_id="study_help",
+        title="General English teacher dialogue",
+        module="cross_module",
+        output_contract="general-study-help@1",
+        skill="general-study-help",
+        privacy_scope="private_material",
+        media_types=("image",),
+    ),
+    CapabilitySpec(
+        capability_id="writing_feedback",
+        title="Writing feedback",
+        module="writing",
+        output_contract="general-writing-feedback@1",
+        skill="general-writing",
+        privacy_scope="private_material",
+        media_types=("image",),
+    ),
+    CapabilitySpec(
+        capability_id="speaking_prompt",
+        title="Speaking practice prompt and evaluation",
+        module="speaking",
+        output_contract="general-speaking-prompt@1",
+        skill="general-speaking",
+        privacy_scope="private_material",
+    ),
+    CapabilitySpec(
+        capability_id="vocabulary_lesson",
+        title="Vocabulary teaching",
+        module="vocabulary",
+        output_contract="general-vocabulary@1",
+        skill="general-vocabulary",
+        privacy_scope="private_material",
+    ),
+    CapabilitySpec(
+        capability_id="reading_coach",
+        title="Reading comprehension coaching",
+        module="reading",
+        output_contract="general-reading-coach@1",
+        skill="general-reading",
+        privacy_scope="private_material",
+        media_types=("image",),
+    ),
+    CapabilitySpec(
+        capability_id="grammar_lesson",
+        title="Grammar teaching in context",
+        module="grammar",
+        output_contract="general-grammar@1",
+        skill="general-grammar",
+        privacy_scope="private_material",
+    ),
+)
+
+
+GENERAL_DIMENSIONS = (
+    LearningDimensionSpec(
+        "listening",
+        "Listening",
+        "Understand everyday and workplace spoken English.",
+        "listening.gist",
+        10,
+    ),
+    LearningDimensionSpec(
+        "reading",
+        "Reading",
+        "Read daily and work documents with confidence.",
+        "reading.comprehension",
+        20,
+    ),
+    LearningDimensionSpec(
+        "writing",
+        "Writing",
+        "Write clear everyday and workplace messages.",
+        "writing.expression",
+        30,
+    ),
+    LearningDimensionSpec(
+        "speaking",
+        "Speaking",
+        "Speak naturally in daily and work situations.",
+        "speaking.fluency",
+        40,
+    ),
+    LearningDimensionSpec(
+        "vocabulary",
+        "Vocabulary",
+        "Use high-frequency words accurately and idiomatically.",
+        "vocabulary.usage",
+        50,
+    ),
+    LearningDimensionSpec(
+        "grammar",
+        "Grammar",
+        "Use grammar accurately in real communication.",
+        "grammar.accuracy",
+        60,
+    ),
+)
+
+
+GENERAL_SKILLS = (
+    SkillNodeSpec("listening.gist", "listening", "Daily conversation", "Follow everyday spoken exchanges and key messages.", order=10),
+    SkillNodeSpec("listening.workplace", "listening", "Workplace listening", "Handle calls, meetings and instructions in English.", order=20),
+    SkillNodeSpec("reading.comprehension", "reading", "Document comprehension", "Understand emails, notices and short articles.", order=10),
+    SkillNodeSpec("reading.inference", "reading", "Inference and tone", "Read between the lines for intent and attitude.", order=20),
+    SkillNodeSpec("writing.expression", "writing", "Clear expression", "Get ideas across clearly in everyday writing.", order=10),
+    SkillNodeSpec("writing.organization", "writing", "Organization", "Structure messages and paragraphs coherently.", order=20),
+    SkillNodeSpec("writing.revision", "writing", "Self-revision", "Find and fix your own writing mistakes.", order=30),
+    SkillNodeSpec("speaking.fluency", "speaking", "Fluency", "Keep conversations going without long pauses.", order=10),
+    SkillNodeSpec("speaking.clarity", "speaking", "Pronunciation clarity", "Be understood through clear sound and stress.", order=20),
+    SkillNodeSpec("vocabulary.usage", "vocabulary", "Word usage", "Use everyday vocabulary precisely.", order=10),
+    SkillNodeSpec("vocabulary.collocation", "vocabulary", "Collocation", "Combine words the way native speakers do.", order=20),
+    SkillNodeSpec("grammar.accuracy", "grammar", "Sentence accuracy", "Use correct sentence structure.", order=10),
+    SkillNodeSpec("grammar.tense", "grammar", "Tense and modality", "Express time and possibility accurately.", order=20),
+)
+
+
+GENERAL_EVIDENCE_MAPPINGS = (
+    EvidenceSkillMapping("listening", "evidence_kind", ("daily", "conversation"), "listening.gist"),
+    EvidenceSkillMapping("listening", "evidence_kind", ("work", "meeting", "call", "phone"), "listening.workplace"),
+    EvidenceSkillMapping("reading", "evidence_kind", ("email", "notice", "article", "document"), "reading.comprehension"),
+    EvidenceSkillMapping("reading", "evidence_kind", ("intent", "tone", "inference"), "reading.inference"),
+    EvidenceSkillMapping("writing", "criterion", ("clarity", "clear", "understandable"), "writing.expression"),
+    EvidenceSkillMapping("writing", "criterion", ("organization", "coherence", "structure"), "writing.organization"),
+    EvidenceSkillMapping("writing", "criterion", ("revision", "correct"), "writing.revision"),
+    EvidenceSkillMapping("speaking", "criterion", ("fluency", "flow"), "speaking.fluency"),
+    EvidenceSkillMapping("speaking", "criterion", ("pronunciation", "clarity"), "speaking.clarity"),
+    EvidenceSkillMapping("vocabulary", "evidence_kind", ("usage", "word choice"), "vocabulary.usage"),
+    EvidenceSkillMapping("vocabulary", "evidence_kind", ("collocation", "phrasal"), "vocabulary.collocation"),
+    EvidenceSkillMapping("grammar", "evidence_kind", ("sentence", "structure"), "grammar.accuracy"),
+    EvidenceSkillMapping("grammar", "evidence_kind", ("tense", "modality"), "grammar.tense"),
+)
+
+
+GENERAL_ENGLISH_PACK = DomainPackSpec(
+    track_id=GENERAL_TRACK_ID,
+    title="General English",
+    short_title="English",
+    description="Daily and workplace English learning across the four skills plus vocabulary and grammar.",
+    language="en",
+    status="active",
+    teaching_policy_id="general-english-policy@1",
+    assessment_scale=AssessmentScaleSpec("cefr", "CEFR", 1.0, 6.0, 1.0),
+    dimensions=GENERAL_DIMENSIONS,
+    skills=GENERAL_SKILLS,
+    capabilities=GENERAL_CAPABILITIES,
+    evidence_mappings=GENERAL_EVIDENCE_MAPPINGS,
+)
+
+
+DOMAIN_PACKS = {
+    IELTS_ACADEMIC_PACK.track_id: IELTS_ACADEMIC_PACK,
+    GENERAL_ENGLISH_PACK.track_id: GENERAL_ENGLISH_PACK,
+}
 
 
 def get_domain_pack(track_id: str = DEFAULT_TRACK_ID) -> DomainPackSpec:

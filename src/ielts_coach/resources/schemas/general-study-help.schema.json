@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "module",
+    "request_kind",
+    "summary",
+    "sections",
+    "check_question",
+    "limitations",
+    "next_action"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "module": {
+      "enum": ["listening", "reading", "writing", "speaking", "vocabulary", "grammar", "mixed"]
+    },
+    "request_kind": {
+      "enum": [
+        "comprehension_help",
+        "expression_help",
+        "phrase_query",
+        "writing_feedback",
+        "speaking_practice",
+        "vocabulary_lesson",
+        "grammar_lesson",
+        "free_chat",
+        "role_play",
+        "teacher_dialogue"
+      ]
+    },
+    "summary": {"type": "string", "minLength": 1},
+    "sections": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["title", "content"],
+        "properties": {
+          "title": {"type": "string", "minLength": 1},
+          "content": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "check_question": {"type": "string", "minLength": 1},
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_action": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

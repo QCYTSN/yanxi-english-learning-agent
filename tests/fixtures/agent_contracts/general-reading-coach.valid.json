@@ -1,0 +1,10 @@
+{
+  "contract_version": 1,
+  "summary": "这是一封关于项目延期的邮件。",
+  "explanation": "however 后面是真正要表达的内容。",
+  "evidence_quotes": [
+    "However, the timeline has slipped."
+  ],
+  "check_question": "however 的作用是什么？",
+  "limitations": []
+}

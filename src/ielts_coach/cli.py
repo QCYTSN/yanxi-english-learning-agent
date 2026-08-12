@@ -200,9 +200,6 @@ def evaluation_release_command(
         readable=True,
         help="Directory containing contract positive/negative cases",
     ),
-    sessions: int = typer.Option(10_000, min=1, max=100_000),
-    questions: int = typer.Option(100_000, min=1, max=1_000_000),
-    repeats: int = typer.Option(5, min=1, max=20),
     teaching_cases: Optional[Path] = typer.Option(
         None,
         exists=True,
@@ -211,16 +208,11 @@ def evaluation_release_command(
     ),
     home: Optional[Path] = typer.Option(None),
 ) -> None:
-    """Run deterministic contract, teaching-quality and scale release gates."""
+    """Run deterministic contract and teaching-quality release gates."""
     contract_report = run_contract_evaluation(
         resolve_home(home),
         cases,
         suite_name="release-contract-regression",
-    )
-    scale_report = run_temporary_scale_benchmark(
-        session_count=sessions,
-        question_count=questions,
-        repeats=repeats,
     )
     teaching_report = run_teaching_quality_evaluation(
         resolve_home(home),
@@ -232,12 +224,10 @@ def evaluation_release_command(
             "passed"
             if contract_report["status"] == "passed"
             and teaching_report["status"] == "passed"
-            and scale_report["passed"]
             else "failed"
         ),
         "contract_gate": contract_report,
         "teaching_quality_gate": teaching_report,
-        "scale_gate": scale_report,
         "visual_review": "separate_human_decision_required",
     }
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))

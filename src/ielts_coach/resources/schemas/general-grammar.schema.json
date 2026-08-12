@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "grammar_point",
+    "rule",
+    "correct_example",
+    "incorrect_example",
+    "check_question",
+    "limitations"
+  ],
+  "properties": {
+    "contract_version": {"const": 1},
+    "grammar_point": {"type": "string", "minLength": 1},
+    "rule": {"type": "string", "minLength": 1},
+    "correct_example": {"type": "string", "minLength": 1},
+    "incorrect_example": {"type": "string", "minLength": 1},
+    "check_question": {"type": "string", "minLength": 1},
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": false
+}

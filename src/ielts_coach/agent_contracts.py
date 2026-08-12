@@ -189,6 +189,35 @@ def persist_agent_contract(
             "revision": None,
         }
 
+    if contract.startswith("general-"):
+        # General English contracts are conversation-first: the validated
+        # result becomes a coaching artifact plus an assistant message in the
+        # owning learning thread. No formal IELTS session is created.
+        request = run.get("request") or {}
+        thread_id = str(request.get("study_thread_id") or "")
+        if not thread_id:
+            raise ValueError("General English results require a learning thread")
+        artifact = save_coaching_artifact(
+            home,
+            artifact_id=f"artifact:{run['run_id']}",
+            artifact_type=contract.partition("@")[0],
+            contract_version=1,
+            payload=result,
+            study_session_id=None,
+            agent_run_id=run["run_id"],
+        )
+        message = add_assistant_message(
+            home,
+            thread_id=thread_id,
+            result=result,
+            agent_run_id=str(run["run_id"]),
+        )
+        return {
+            "artifact_id": artifact["artifact_id"],
+            "message_id": message["message_id"],
+            "revision": None,
+        }
+
     artifact = save_coaching_artifact(
         home,
         artifact_id=f"artifact:{run['run_id']}",

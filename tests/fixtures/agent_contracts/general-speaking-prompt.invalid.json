@@ -1,0 +1,10 @@
+{
+  "contract_version": 1,
+  "mode": "practice_prompt",
+  "scenario": "x",
+  "role": "x",
+  "prompt": "",
+  "follow_ups": [],
+  "evaluation_dimensions": [],
+  "limitations": []
+}

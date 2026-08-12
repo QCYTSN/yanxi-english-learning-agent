@@ -505,7 +505,7 @@ class AgentJobManager:
                     "status",
                     {"stage": "running", "label": "Agent task running"},
                 )
-                if run.get("output_contract") == "study-help@1":
+                if run.get("output_contract") in ("study-help@1",) or run.get("output_contract", "").startswith("general-"):
                     outcome = self._run_tutor_with_timeout(
                         adapter,
                         run["request"],
@@ -621,7 +621,7 @@ class AgentJobManager:
                 validated = validate_agent_contract_domain(
                     run["output_contract"], structured
                 )
-            if run.get("output_contract") == "study-help@1":
+            if run.get("output_contract") in ("study-help@1",) or run.get("output_contract", "").startswith("general-"):
                 validated = validate_tutor_result_against_policy(
                     validated, orchestration
                 )
@@ -670,7 +670,7 @@ class AgentJobManager:
                 {"stage": "persisting", "label": "Saving authoritative result"},
             )
             canonical = persist_agent_contract(self.home, run, validated)
-            if run.get("output_contract") == "study-help@1":
+            if run.get("output_contract") in ("study-help@1",) or run.get("output_contract", "").startswith("general-"):
                 tutor_effects = persist_tutor_turn_effects(
                     self.home,
                     run=run,

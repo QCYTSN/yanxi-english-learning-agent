@@ -1,0 +1,17 @@
+{
+  "contract_version": 1,
+  "feedback_summary": "整体清晰，主要问题是语气偏硬。",
+  "priority_issues": [
+    {
+      "issue": "语气",
+      "evidence": "I need this now.",
+      "learner_action": "加 please 软化"
+    }
+  ],
+  "strengths": [
+    "结构清楚"
+  ],
+  "revised_example": "Could you send this over when you get a chance?",
+  "check_question": "这两句哪个更礼貌？",
+  "limitations": []
+}

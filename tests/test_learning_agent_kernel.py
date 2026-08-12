@@ -53,7 +53,10 @@ def _client(home: Path) -> TestClient:
 
 def test_ielts_is_registered_as_the_first_domain_pack() -> None:
     descriptors = domain_pack_descriptors(include_skills=True)
-    assert [item["track_id"] for item in descriptors] == [DEFAULT_TRACK_ID]
+    assert [item["track_id"] for item in descriptors] == [
+        DEFAULT_TRACK_ID,
+        "general-english",
+    ]
     pack = get_domain_pack(DEFAULT_TRACK_ID)
     assert {item.dimension_id for item in pack.dimensions} == {
         "listening",
@@ -63,8 +66,20 @@ def test_ielts_is_registered_as_the_first_domain_pack() -> None:
     }
     assert len(pack.skills) == 21
     assert len(pack.capabilities) == 9
+
+    general = get_domain_pack("general-english")
+    assert {item.dimension_id for item in general.dimensions} == {
+        "listening",
+        "reading",
+        "writing",
+        "speaking",
+        "vocabulary",
+        "grammar",
+    }
+    assert general.assessment_scale.scale_id == "cefr"
     assert {item["track_id"] for item in capability_descriptors()} == {
-        DEFAULT_TRACK_ID
+        DEFAULT_TRACK_ID,
+        "general-english",
     }
 
 
