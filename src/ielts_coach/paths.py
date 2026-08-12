@@ -16,10 +16,10 @@ def resolve_home(explicit: Path | None = None) -> Path:
     if os.name == "nt" and os.environ.get("LOCALAPPDATA"):
         return (
             Path(os.environ["LOCALAPPDATA"])
-            / "IELTS Study Desk"
+            / "Yanxi"
             / "data"
         ).resolve()
-    return (Path.home() / ".local" / "share" / "ielts-study-desk").resolve()
+    return (Path.home() / ".local" / "share" / "yanxi").resolve()
 
 
 def find_project_root(start: Path | None = None) -> Path:

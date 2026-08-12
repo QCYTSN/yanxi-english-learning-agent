@@ -810,7 +810,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(502, {
       error: {
         code: 'INVALID_API_RESPONSE',
-        message: '本地服务版本与当前页面不一致。请关闭旧窗口并重新启动 IELTS Study Desk。',
+        message: '本地服务版本与当前页面不一致。请关闭旧窗口并重新启动言蹊。',
         recoverable: true,
         details: { path, content_type: contentType || 'missing' },
       },

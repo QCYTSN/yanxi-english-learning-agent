@@ -1,31 +1,33 @@
-# IELTS Study Desk
+# 言蹊 (Yanxi)
 
 [![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
 [![Release: 1.4.0](https://img.shields.io/badge/release-1.4.0-334155.svg)](RELEASE_NOTES.md)
 
-Local-first, agent-native IELTS Academic learning software.
+Local-first, agent-native English learning software.
 
-IELTS Study Desk combines a browser learning workspace, a local Python Teaching
-Runtime, structured IELTS Skills and a user-selected model provider. Models can
-explain and evaluate work, but they cannot directly write authoritative
-learning records. Results pass Schema and semantic validation before the local
-Runtime stores them.
+言蹊 combines a browser learning workspace, a local Python Teaching Runtime,
+structured Skills and a user-selected model provider. Models can explain and
+evaluate work, but they cannot directly write authoritative learning records.
+Results pass Schema and semantic validation before the local Runtime stores
+them.
 
-The current product remains IELTS Academic. Internally, a reusable Learning
-Agent Kernel now owns objectives, activities, skill evidence, mastery estimates
-and review scheduling, while an IELTS Domain Pack owns the exam-specific
-curriculum and policies.
+The default track is general English (daily and workplace), backed by a
+reusable Learning Agent Kernel that owns objectives, activities, skill
+evidence, mastery estimates and review scheduling. IELTS Academic ships as the
+first optional exam Domain Pack with its own curriculum and band policies.
 
 > This independent project is not endorsed by IELTS, Cambridge University
 > Press & Assessment, the British Council or IDP Education.
 
 ## What ships
 
-- Today, Practice, Library, Progress and Settings workspaces;
+- a conversation-first learning workspace with Today, Practice, Library,
+  Progress and Settings surfaces;
 - persistent teacher conversations with image, PDF, Word and text attachments;
-- Reading, Writing, Speaking and Listening learning workflows;
+- Reading, Writing, Speaking and Listening learning workflows plus vocabulary
+  and grammar support;
 - local SQLite learning records, Sessions, Corpus and Media Registry;
 - ChatGPT login bridge, OpenAI-compatible API and local HTTP model providers;
 - bounded long-conversation context, indexed local history and resumable
@@ -108,7 +110,7 @@ installer release is listed yet, use the source installation below.
 On first launch the application creates its private data home under:
 
 ```text
-%LOCALAPPDATA%\IELTS Study Desk\data
+%LOCALAPPDATA%\Yanxi\data
 ```
 
 Existing `IELTS_HOME` settings and legacy `~/.ielts` homes are preserved.

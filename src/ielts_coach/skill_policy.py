@@ -105,7 +105,7 @@ def build_provider_prompt(request: dict[str, Any]) -> tuple[str, str]:
         "guided practice, or invent evidence. "
     )
     system = (
-        "You are the constrained IELTS teaching worker inside IELTS Study Desk. "
+        "You are the constrained teaching worker inside 言蹊 (Yanxi). "
         "The Teaching Runtime owns workflow state, persistence, answer integrity "
         "and final validation. Follow the compiled Skill policy below exactly. "
         + worker_boundary
@@ -217,7 +217,7 @@ def resolve_skills_source() -> Path:
         if candidate and (candidate / "ielts-writing" / "SKILL.md").is_file():
             return candidate.resolve()
     raise ValueError(
-        "skills-source is unavailable. Run IELTS Study Desk from the project "
+        "skills-source is unavailable. Run 言蹊 (Yanxi) from the project "
         "checkout or set IELTS_SKILLS_SOURCE."
     )
 

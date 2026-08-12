@@ -1,5 +1,5 @@
 ---
-name: IELTS Study Desk
+name: 言蹊 (Yanxi)
 description: A calm, evidence-led academic reading room for focused IELTS practice.
 colors:
   paper: "#FBFCFA"
@@ -114,7 +114,7 @@ components:
     padding: "14px 18px 8px"
 ---
 
-# Design System: IELTS Study Desk
+# Design System: 言蹊 (Yanxi)
 
 > This file is the visual and interaction authority for the product. `PRODUCT.md` owns product truth; this file owns the durable visual world. When older visual notes or current CSS conflict with this file, implement toward this file and update the tokens only through an explicit design decision.
 
@@ -122,7 +122,7 @@ components:
 
 **Creative North Star: "The Academic Reading Room / 学术阅读室"**
 
-IELTS Study Desk should feel like a quiet place where serious learning becomes easier to begin: editorial enough to invite reading, structured enough to support a timed exam, and restrained enough that the learner's passage, answer, essay, or conversation remains the dominant object. The product is not a generic AI chat shell and not a school administration dashboard. It is an IELTS teacher's desk expressed as a local desktop application.
+言蹊 (Yanxi) should feel like a quiet place where serious learning becomes easier to begin: editorial enough to invite reading, structured enough to support a learning path, and restrained enough that the learner's passage, answer, essay, or conversation remains the dominant object. The product is not a generic AI chat shell and not a school administration dashboard. It is an English teacher's desk expressed as a local desktop application.
 
 The visual system combines a paper-like neutral field, measured typography, one-pixel rules, and sparse semantic color. It may learn from DeepTutor's calm proportions, generous reading widths, and state-dependent chat composition, but it must retain its own IELTS identity, evidence-led teaching language, four-module workflows, and local-first trust model. No visual resource may require a network request at runtime.
 

@@ -1,4 +1,4 @@
-# IELTS Study Desk v1.4.0
+# 言蹊 (Yanxi) v1.4.0
 
 ## Public desktop release boundary
 

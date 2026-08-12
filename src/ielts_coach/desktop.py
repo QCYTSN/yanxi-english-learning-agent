@@ -12,7 +12,7 @@ from ielts_coach.web.server import open_ui, serve_ui, stop_ui, ui_status
 
 def _show_error(message: str) -> None:
     if os.name == "nt":
-        ctypes.windll.user32.MessageBoxW(0, message, "IELTS Study Desk", 0x10)
+        ctypes.windll.user32.MessageBoxW(0, message, "言蹊 (Yanxi)", 0x10)
     else:  # pragma: no cover - Windows is the packaged desktop target
         print(message)
 
@@ -44,7 +44,7 @@ def main() -> None:
         )
     except Exception as exc:  # pragma: no cover - native launcher safety net
         _show_error(
-            "IELTS Study Desk could not start.\n\n"
+            "言蹊 (Yanxi) could not start.\n\n"
             f"{exc}\n\n"
             "Use Settings > System after repairing the installation for diagnostics."
         )

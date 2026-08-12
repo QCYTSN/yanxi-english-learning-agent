@@ -8,7 +8,7 @@ from importlib import resources
 from pathlib import Path
 
 
-SHORTCUT_NAME = "IELTS Study Desk.lnk"
+SHORTCUT_NAME = "言蹊.lnk"
 
 
 def _powershell(script: str, environment: dict[str, str]) -> str:
@@ -73,7 +73,7 @@ $shortcut.TargetPath = $env:IELTS_SHORTCUT_TARGET
 $shortcut.Arguments = $env:IELTS_SHORTCUT_ARGS
 $shortcut.WorkingDirectory = $env:IELTS_SHORTCUT_WORKDIR
 $shortcut.IconLocation = $env:IELTS_SHORTCUT_ICON
-$shortcut.Description = 'Start or reopen the local IELTS Study Desk'
+$shortcut.Description = 'Start or reopen the local 言蹊 (Yanxi) study desk'
 $shortcut.Save()
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Output $shortcutPath

@@ -7,7 +7,7 @@ from .server import open_ui, serve_ui
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="IELTS Study Desk background launcher")
+    parser = argparse.ArgumentParser(description="言蹊 (Yanxi) background launcher")
     parser.add_argument("action", choices=("serve", "open"))
     parser.add_argument("--home", required=True, type=Path)
     parser.add_argument("--port", type=int, default=0)

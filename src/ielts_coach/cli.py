@@ -398,7 +398,7 @@ def ui_open(
         from .web.server import open_ui
 
         url = open_ui(resolve_home(home), port=port, open_browser=not no_open)
-        typer.echo(f"IELTS Study Desk ready: {url}")
+        typer.echo(f"言蹊 (Yanxi) ready: {url}")
     except (ImportError, RuntimeError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
@@ -409,7 +409,7 @@ def ui_stop(home: Optional[Path] = typer.Option(None)) -> None:
     """Stop the background Study Desk for this IELTS_HOME."""
     from .web.server import stop_ui
 
-    typer.echo("Stopping IELTS Study Desk." if stop_ui(resolve_home(home)) else "IELTS Study Desk is not running.")
+    typer.echo("Stopping 言蹊 (Yanxi)." if stop_ui(resolve_home(home)) else "言蹊 (Yanxi) is not running.")
 
 
 @ui_app.command("status")

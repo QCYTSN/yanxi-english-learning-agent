@@ -8,10 +8,12 @@ web
 
 ## Users
 
-The primary user is an individual IELTS Academic learner studying on a
-personal desktop computer. The first public release is designed for a
-single learner rather than a classroom, school administrator or multi-user
-organisation.
+The primary user is an individual English learner studying on a personal
+desktop computer. The first public release is designed for a single learner
+rather than a classroom, school administrator or multi-user organisation.
+The default learning track is general (daily / workplace) English; exam
+preparation (IELTS, and later CET, postgraduate or TOEFL) is an optional
+Domain Pack the learner can enable.
 
 Windows is the primary packaged experience. The source installation and core
 browser workflow must remain fully usable on macOS and Linux, with equivalent
@@ -19,31 +21,35 @@ learning functionality and a coherent interface on all three platforms.
 
 ## Product Purpose
 
-IELTS Study Desk is a local-first, Tutor-led learning product for discussing,
-planning, practising, reviewing and tracking IELTS Academic Listening,
-Reading, Writing and Speaking. It combines a bounded, tool-using IELTS Tutor
-Agent with deterministic study workflows,
-so learners can use their own materials and model connection without making a
-model conversation the authority for scores, answers or learning history.
+言蹊 (Yanxi) is a local-first, Tutor-led English learning product for
+discussing, planning, practising, reviewing and tracking English across
+Listening, Reading, Writing and Speaking plus vocabulary and grammar. It
+combines a bounded, tool-using Tutor Agent with a deterministic Learning Agent
+Kernel, so learners can use their own materials and model connection without
+making a model conversation the authority for scores, answers or learning
+history. IELTS Academic remains the first exam Domain Pack on top of the
+general English track.
 
 Success means a learner can install the product, connect an optional model,
-import material they are entitled to use, complete evidence-based four-module
-practice, revise their work and retain a recoverable local learning record
-without operating an Agent or terminal during normal study.
+import material they are entitled to use, learn through teacher-like dialogue
+with photos, documents or pasted English, retain a recoverable local learning
+record and revise through spaced review without operating an Agent or
+terminal during normal study.
 
 ## Positioning
 
-The product is a bounded IELTS Tutor Agent on top of an authoritative Teaching
+The product is a bounded Tutor Agent on top of an authoritative Teaching
 Runtime rather than a generic chat wrapper or a general autonomous Agent.
-Versioned Capabilities, complete Skills, IELTS integrity rules and output
+Versioned Capabilities, complete Skills, teaching integrity rules and output
 contracts constrain every assisted teaching action. Candidate model output
 must pass Schema and semantic validation before the Runtime may persist it.
 
-The public product remains IELTS Academic, while its internal longitudinal
-learning state is implemented by a reusable Learning Agent Kernel. The IELTS
-Academic Domain Pack owns the current four-module skill graph, assessment
-scale, Capabilities and evidence mappings. This is an internal architecture
-boundary, not a promise of unfinished subjects in the learner interface.
+The default public surface is the general English learning track, while the
+internal longitudinal learning state is implemented by a reusable Learning
+Agent Kernel. The general English Domain Pack owns the daily / workplace skill
+graph and CEFR-aligned assessment scale; the IELTS Academic Domain Pack owns
+the exam-specific skill graph, band scale, Capabilities and evidence mappings.
+Exam packs are additions, not the default learner interface.
 
 The product is also bring-your-own-content and bring-your-own-model. Public
 builds start with an empty question bank, support multiple provider routes and
@@ -115,9 +121,9 @@ model.
 
 ## Brand Commitments
 
-The product name is **IELTS Study Desk**. It is an independent study product
-and must not imply endorsement by IELTS, Cambridge University Press &
-Assessment, the British Council or IDP Education.
+The product name is **言蹊 (Yanxi)**. It is an independent study product and
+must not imply endorsement by IELTS, Cambridge University Press & Assessment,
+the British Council, IDP Education or any examination board.
 
 The experience should remain practical, academically credible and focused on
 learning. It must not become a colourful language-learning game, a generic AI

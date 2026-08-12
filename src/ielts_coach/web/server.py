@@ -103,7 +103,7 @@ def serve_ui(
     try:
         lock.acquire(timeout=0)
     except Timeout as exc:
-        raise RuntimeError("The IELTS Study Desk is already running for this IELTS_HOME.") from exc
+        raise RuntimeError("言蹊 (Yanxi) is already running for this IELTS_HOME.") from exc
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -140,7 +140,7 @@ def serve_ui(
     )
     if open_browser:
         threading.Timer(0.35, lambda: webbrowser.open(launch_url)).start()
-    print(f"IELTS Study Desk: {launch_url}")
+    print(f"言蹊 (Yanxi): {launch_url}")
     print("Press Ctrl+C to stop.")
     try:
         server.run(sockets=[sock])

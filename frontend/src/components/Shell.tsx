@@ -73,7 +73,7 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
     <div className={`app-shell${isStudyThread ? ' app-shell-thread' : ''}`}>
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
-        <Link className="brand" to="/today" aria-label="IELTS Study Desk 首页">
+        <Link className="brand" to="/today" aria-label="言蹊 首页">
           <span className="brand-mark" aria-hidden="true"><BookMarked size={24} /></span>
           <span className="brand-copy"><strong>IELTS</strong><small>Study Desk</small></span>
         </Link>
