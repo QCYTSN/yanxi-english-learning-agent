@@ -261,7 +261,7 @@ export function HistoryPage() {
       {sessions.isError && <ErrorState error={sessions.error} />}
       <div className="session-table table-scroll" tabIndex={0}>
         <table>
-          <thead><tr><th>Session</th><th>科目</th><th>状态</th><th>成绩</th><th>日期</th><th><span className="sr-only">操作</span></th></tr></thead>
+          <thead><tr><th>Session</th><th>科目</th><th>状态</th><th>水平</th><th>日期</th><th><span className="sr-only">操作</span></th></tr></thead>
           <tbody>{sessions.data?.map((session) => (
             <tr key={session.session_id}>
               <td>{session.session_id}</td>
@@ -326,7 +326,7 @@ function LearningSkillMapSection() {
         <div>
           <p className="eyebrow">Skill Evidence</p>
           <h2 id="learning-skill-title">能力形成到哪一步</h2>
-          <p>掌握度来自多次学习证据，不等同于 IELTS 官方分数；证据不足时不会强行判断。</p>
+          <p>掌握度来自多次学习证据，不等同于任何正式考试成绩；证据不足时不会强行判断。</p>
         </div>
         <ListChecks size={21} aria-hidden="true" />
       </div>

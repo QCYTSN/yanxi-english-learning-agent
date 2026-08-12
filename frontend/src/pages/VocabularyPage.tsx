@@ -1,0 +1,154 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { BookMarked, CalendarClock, CheckCircle2, Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { api, jsonBody, type VocabularyItem } from '../api/client'
+import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
+
+export function VocabularyPage() {
+  const queryClient = useQueryClient()
+  const [word, setWord] = useState('')
+  const [meaning, setMeaning] = useState('')
+  const items = useQuery({
+    queryKey: ['vocabulary', 'all'],
+    queryFn: () => api<VocabularyItem[]>('/api/v1/vocabulary?limit=500'),
+  })
+  const due = useQuery({
+    queryKey: ['vocabulary', 'due'],
+    queryFn: () => api<VocabularyItem[]>('/api/v1/vocabulary/due?limit=50'),
+    staleTime: 30_000,
+  })
+  const add = useMutation({
+    mutationFn: () => api<VocabularyItem>('/api/v1/vocabulary', {
+      method: 'POST',
+      body: jsonBody({ word, meaning: meaning || null }),
+    }),
+    onSuccess: async () => {
+      setWord('')
+      setMeaning('')
+      await queryClient.invalidateQueries({ queryKey: ['vocabulary'] })
+    },
+  })
+  const schedule = useMutation({
+    mutationFn: (itemId: string) => api<VocabularyItem>(`/api/v1/vocabulary/${itemId}/review`, {
+      method: 'PATCH',
+      body: jsonBody({ days: 3 }),
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vocabulary'] }),
+  })
+  const dismiss = useMutation({
+    mutationFn: (itemId: string) => api<VocabularyItem>(`/api/v1/vocabulary/${itemId}/status`, {
+      method: 'PATCH',
+      body: jsonBody({ status: 'dismissed' }),
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vocabulary'] }),
+  })
+  const dueWords = due.data ?? []
+  const allWords = (items.data ?? []).filter((item) => item.status !== 'dismissed')
+
+  return (
+    <div className="vocabulary-page">
+      <header className="conversation-history-header">
+        <div>
+          <p className="eyebrow">MY WORDS</p>
+          <h1>我的词表</h1>
+          <p>在对话里遇到生词时记下来，或者在这里直接添加；系统会安排间隔复习。</p>
+        </div>
+      </header>
+
+      <section className="vocabulary-add-panel">
+        <form
+          className="vocabulary-add-form"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (word.trim()) add.mutate()
+          }}
+        >
+          <label>
+            <BookMarked size={16} aria-hidden="true" />
+            <input
+              value={word}
+              onChange={(event) => setWord(event.target.value)}
+              placeholder="想记住的英文单词或短语"
+            />
+          </label>
+          <label>
+            <input
+              value={meaning}
+              onChange={(event) => setMeaning(event.target.value)}
+              placeholder="释义（可留空，对话里讲过的会自动带上）"
+            />
+          </label>
+          <button className="button primary" type="submit" disabled={!word.trim() || add.isPending}>
+            <Plus size={16} />加入词表
+          </button>
+        </form>
+        {add.error && <ErrorState error={add.error} />}
+      </section>
+
+      {dueWords.length > 0 && (
+        <section className="vocabulary-section">
+          <h2>到期复习 <StatusBadge tone="warning">{dueWords.length}</StatusBadge></h2>
+          <div className="vocabulary-grid">
+            {dueWords.map((item) => (
+              <article className="vocabulary-card due" key={item.item_id}>
+                <div className="vocabulary-card-head">
+                  <strong>{item.word}</strong>
+                  <span>{item.meaning ?? ''}</span>
+                </div>
+                {item.example && <p>{item.example}</p>}
+                <div className="vocabulary-card-actions">
+                  <button className="button secondary" onClick={() => schedule.mutate(item.item_id)}>
+                    <CalendarClock size={15} />已复习，3 天后再来
+                  </button>
+                  <button className="icon-button danger" title="不再学习这个词" aria-label={`不再学习 ${item.word}`} onClick={() => dismiss.mutate(item.item_id)}>
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="vocabulary-section">
+        <h2>全部词汇</h2>
+        {items.isPending && <LoadingState label="正在读取词表" />}
+        {items.isError && <ErrorState error={items.error} />}
+        {!items.isPending && !items.isError && (
+          <div className="vocabulary-grid">
+            {allWords.map((item) => (
+              <article className="vocabulary-card" key={item.item_id}>
+                <div className="vocabulary-card-head">
+                  <strong>{item.word}</strong>
+                  <span>{item.meaning ?? ''}</span>
+                </div>
+                {item.collocations.length > 0 && (
+                  <p className="vocabulary-collocations">{item.collocations.join(' · ')}</p>
+                )}
+                <div className="vocabulary-card-foot">
+                  <StatusBadge tone={item.status === 'learning' ? 'warning' : 'success'}>
+                    {item.status === 'learning' ? '学习中' : '已掌握'}
+                  </StatusBadge>
+                  <small>{item.review_count} 次复习</small>
+                  {item.status === 'learning' && (
+                    <button className="button ghost" onClick={() => schedule.mutate(item.item_id)}>
+                      <CalendarClock size={14} />安排复习
+                    </button>
+                  )}
+                  {item.status === 'learning' && (
+                    <button className="button ghost" onClick={() => dismiss.mutate(item.item_id)}>
+                      <CheckCircle2 size={14} />不再学习
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+            {allWords.length === 0 && (
+              <p className="muted">还没有词汇。在对话里遇到生词时直接说“把这个词记下来”，或者用上面的表单添加。</p>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}

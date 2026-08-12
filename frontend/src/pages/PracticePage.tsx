@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowRight, BookOpen, Headphones, Mic2, PenLine } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type AssessmentPack, type AssessmentRun, type Question, type SessionSummary } from '../api/client'
 import { ConformanceBadge, EmptyState, ErrorState, LoadingState, PageHeader } from '../components/Common'
 import {
@@ -112,6 +112,9 @@ export function PracticePage() {
         </aside>
         <div className="practice-catalog">
           <header className="catalog-heading">
+            <div className="practice-vocab-entry">
+              <Link to="/vocabulary">我的词表 <ArrowRight size={14} /></Link>
+            </div>
             <div className="catalog-icon"><ModuleIcon size={24} strokeWidth={1.7} /></div>
             <div><p>{moduleMeta.name}</p><h2>{moduleMeta.label}</h2><span>{moduleMeta.summary}</span></div>
           </header>

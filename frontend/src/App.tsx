@@ -20,6 +20,7 @@ const ReadingWorkspace = lazy(() => import('./pages/ReadingWorkspace').then((mod
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
 const SpeakingWorkspace = lazy(() => import('./pages/SpeakingWorkspace').then((module) => ({ default: module.SpeakingWorkspace })))
 const StudyThreadPage = lazy(() => import('./pages/StudyThreadPage').then((module) => ({ default: module.StudyThreadPage })))
+const VocabularyPage = lazy(() => import('./pages/VocabularyPage').then((module) => ({ default: module.VocabularyPage })))
 const TodayPage = lazy(() => import('./pages/TodayPage').then((module) => ({ default: module.TodayPage })))
 const WritingWorkspace = lazy(() => import('./pages/WritingWorkspace').then((module) => ({ default: module.WritingWorkspace })))
 
@@ -69,9 +70,10 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/content-studio" element={<ContentStudioPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/vocabulary" element={<VocabularyPage />} />
             <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
             <Route path="/settings/:section" element={<SettingsPage bootstrap={bootstrap.data} />} />
-            <Route path="*" element={<Navigate to="/today" replace />} />
+            <Route path="*" element={<Navigate to="/conversations" replace />} />
           </Routes>
         </Suspense>
       </RouteErrorBoundary>

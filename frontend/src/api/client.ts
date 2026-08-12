@@ -577,6 +577,22 @@ export type PracticeUnit = {
   payload: Record<string, unknown>
 }
 
+export type VocabularyItem = {
+  item_id: string
+  track_id: string
+  word: string
+  meaning: string | null
+  usage: string | null
+  example: string | null
+  collocations: string[]
+  status: 'learning' | 'mastered' | 'dismissed'
+  review_kind: string
+  next_review_at: string | null
+  review_count: number
+  last_reviewed_at: string | null
+  created_at: string
+}
+
 export type ReviewTask = {
   review_task_id: string
   module: 'listening' | 'reading' | 'writing' | 'speaking'

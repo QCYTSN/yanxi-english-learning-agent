@@ -3,7 +3,6 @@ import {
   BookMarked,
   ChartNoAxesCombined,
   ChevronRight,
-  House,
   LibraryBig,
   MessageSquareText,
   Plus,
@@ -17,7 +16,7 @@ import { ModelSwitcher } from './ModelSwitcher'
 import { ThreadActions } from './ThreadActions'
 
 const navigation = [
-  { to: '/today', label: '今天', icon: House },
+  { to: '/conversations', label: '对话', icon: MessageSquareText },
   { to: '/practice', label: '练习', icon: BookOpenText },
   { to: '/library', label: '资料库', icon: LibraryBig },
   { to: '/history', label: '进步', icon: ChartNoAxesCombined },
@@ -73,9 +72,9 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
     <div className={`app-shell${isStudyThread ? ' app-shell-thread' : ''}`}>
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
-        <Link className="brand" to="/today" aria-label="言蹊 首页">
+        <Link className="brand" to="/conversations" aria-label="言蹊 首页">
           <span className="brand-mark" aria-hidden="true"><BookMarked size={24} /></span>
-          <span className="brand-copy"><strong>IELTS</strong><small>Study Desk</small></span>
+          <span className="brand-copy"><strong>言蹊</strong><small>Yanxi</small></span>
         </Link>
 
         <nav className="primary-nav" aria-label="学习导航">
@@ -107,7 +106,7 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
       <div className="workspace-shell">
         <header className="workspace-bar">
           <div className="workspace-context">
-            <span>IELTS Academic</span>
+            <span>言蹊</span>
             <ChevronRight size={14} aria-hidden="true" />
             {settingsSectionLabel ? (
               <>
@@ -171,7 +170,7 @@ function RecentStudyThreads({ currentPath }: { currentPath: string }) {
           </div>
         ))}
         {!recentThreads.isPending && !recentThreads.data?.length && (
-          <p className="recent-thread-empty">你的雅思提问会保存在这里。</p>
+          <p className="recent-thread-empty">你的英语学习对话会保存在这里。</p>
         )}
       </div>
       <Link className="recent-thread-all" to="/conversations">查看全部对话</Link>

@@ -3755,6 +3755,138 @@ tbody tr:hover {
   min-width: 160px;
 }
 
+.vocabulary-page {
+  width: min(980px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 42px 0 80px;
+}
+
+.vocabulary-add-panel {
+  margin: 20px 0 8px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.vocabulary-add-form {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.vocabulary-add-form label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--canvas);
+}
+
+.vocabulary-add-form input {
+  border: 0;
+  background: transparent;
+  padding: 11px 0;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.vocabulary-section {
+  margin-top: 26px;
+}
+
+.vocabulary-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.vocabulary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.vocabulary-card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.vocabulary-card.due {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(14, 116, 107, 0.15);
+}
+
+.vocabulary-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vocabulary-card-head strong {
+  font-size: 1.1rem;
+}
+
+.vocabulary-card-head span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.vocabulary-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.vocabulary-collocations {
+  color: var(--accent) !important;
+}
+
+.vocabulary-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vocabulary-card-foot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.vocabulary-card-foot small {
+  color: var(--muted);
+  margin-right: auto;
+}
+
+.practice-vocab-entry {
+  margin-left: auto;
+  padding: 0 0 12px;
+}
+
+.practice-vocab-entry a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
 .conversation-history-page {
   width: min(980px, calc(100% - 64px));
   margin: 0 auto;
@@ -3780,6 +3912,46 @@ tbody tr:hover {
 .conversation-history-header p:not(.eyebrow) {
   margin: 0;
   color: var(--muted);
+}
+
+.today-reminder-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 6px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.today-reminder-strip.quiet {
+  color: var(--muted);
+}
+
+.today-reminder-strip a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.today-reminder-strip a:hover {
+  text-decoration: underline;
+}
+
+.reminder-separator {
+  margin: 0 6px;
+  color: var(--border-strong);
+}
+
+.today-reminder-action {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
 }
 
 .conversation-search {
