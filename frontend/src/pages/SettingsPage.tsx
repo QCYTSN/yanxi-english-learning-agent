@@ -26,7 +26,6 @@ import {
   downloadApi,
   jsonBody,
   type Bootstrap,
-  type ExternalAgentProfile,
   type ModelProvider,
 } from '../api/client'
 import { ErrorState, LoadingState, StatusBadge } from '../components/Common'
@@ -275,10 +274,6 @@ function AdvancedSection() {
     queryKey: ['model-providers'],
     queryFn: () => api<ModelProvider[]>('/api/v1/model-providers'),
   })
-  const agents = useQuery({
-    queryKey: ['external-agents'],
-    queryFn: () => api<ExternalAgentProfile[]>('/api/v1/external-agents?diagnostics=true'),
-  })
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434/v1')
   const [modelId, setModelId] = useState('')
   const createLocal = useMutation({
@@ -311,17 +306,6 @@ function AdvancedSection() {
         </div>
         {providers.data?.filter((item) => item.provider_kind === 'local_http').map((item) => <p className="muted" key={item.provider_id}>{item.display_name} · {item.model_id} · {item.base_url}</p>)}
         {createLocal.error && <ErrorState error={createLocal.error} />}
-      </section>
-      <section className="settings-panel">
-        <div className="section-heading"><div><h2>外部 Agent</h2><p>只用于材料整理、格式转换和开发者流程，不能成为教学主模型。</p></div><Bot size={20} /></div>
-        {agents.isPending && <LoadingState label="正在检查本地 Agent" />}
-        <div className="simple-list">{agents.data?.map((agent) => (
-          <article key={agent.agent_profile_id}>
-            <div><strong>{agent.display_name}</strong><p>{purposeLabel(agent.purpose)} · {agent.identity.launcher_kind}</p></div>
-            <StatusBadge tone={agent.available ? 'success' : 'neutral'}>{agent.available ? '可调用' : '未检测到'}</StatusBadge>
-          </article>
-        ))}</div>
-        {agents.error && <ErrorState error={agents.error} />}
       </section>
     </div>
   )
@@ -415,16 +399,6 @@ function Toggle({ checked, onChange, children }: {
 
 function scoreLabel(key: string) {
   return ({ overall: '总分', listening: '听力', reading: '阅读', writing: '写作', speaking: '口语' } as Record<string, string>)[key] ?? key
-}
-
-function purposeLabel(value: string) {
-  return ({
-    material_operations: '材料整理',
-    format_conversion: '格式转换',
-    corpus_maintenance: '题库维护',
-    developer_tools: '开发者工具',
-    manual_handoff: '手动交接',
-  } as Record<string, string>)[value] ?? value
 }
 
 function formatBytes(value: number) {

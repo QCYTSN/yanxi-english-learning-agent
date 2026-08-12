@@ -224,6 +224,6 @@ def _codex_version(executable: str) -> tuple[str | None, str | None]:
 def _process_environment() -> dict[str, str]:
     # Imported lazily to avoid pulling the Agent registry back into the managed
     # runtime module while CodexAppServerAdapter itself is being imported.
-    from .agent_gateway.process import _process_environment as build_environment
+    from .agent_gateway.process_env import process_environment
 
-    return build_environment({})
+    return process_environment({})

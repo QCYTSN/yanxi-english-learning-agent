@@ -83,13 +83,11 @@ from ..content_reviews import (
 from ..data_lifecycle import cleanup_deleted_thread_storage
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
 from ..execution_profiles import update_execution_profile
-from ..external_agents import list_external_agent_profiles
 from ..model_providers import (
     create_model_provider,
     delete_model_provider,
     list_model_providers,
     list_provider_models,
-    provider_presets,
     test_model_provider,
     update_model_provider,
 )
@@ -737,9 +735,7 @@ def create_app(
                 include_diagnostics=False
             ),
             "model_providers": model_providers,
-            "external_agents": list_external_agent_profiles(
-                target, diagnostics=False
-            ),
+            "external_agents": [],
             "ai_setup_required": not any(
                 item["role"] == "primary"
                 and item["is_enabled"]
@@ -2688,13 +2684,6 @@ def create_app(
         return capability_descriptors(track_id)
 
     @app.get(
-        "/api/v1/model-provider-presets",
-        dependencies=[Depends(require_session)],
-    )
-    def model_provider_presets() -> list[dict[str, Any]]:
-        return provider_presets()
-
-    @app.get(
         "/api/v1/model-providers",
         dependencies=[Depends(require_session)],
     )
@@ -2765,15 +2754,6 @@ def create_app(
     )
     def model_provider_models(provider_id: str) -> list[dict[str, Any]]:
         return list_provider_models(target, provider_id)
-
-    @app.get(
-        "/api/v1/external-agents",
-        dependencies=[Depends(require_session)],
-    )
-    def external_agents(
-        diagnostics: bool = Query(default=False),
-    ) -> list[dict[str, Any]]:
-        return list_external_agent_profiles(target, diagnostics=diagnostics)
 
     @app.get(
         "/api/v1/execution-profiles",

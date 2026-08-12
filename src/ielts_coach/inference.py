@@ -11,7 +11,6 @@ from .execution_profiles import (
     list_execution_profiles,
     resolve_execution_profile,
 )
-from .external_agents import list_external_agent_profiles
 from .model_providers import (
     ModelProviderChainAdapter,
     active_model_route,
@@ -82,6 +81,11 @@ class InferenceBroker:
                     "for material and developer workflows."
                 )
             if profile["backend_kind"] in {"mock", "manual"}:
+                if profile["backend_kind"] == "manual":
+                    raise ValueError(
+                        "Manual handoff is no longer supported. "
+                        "Configure a model provider instead."
+                    )
                 return PreparedExecution(
                     profile=profile,
                     adapter=get_adapter(str(profile["backend_id"])),
@@ -143,16 +147,6 @@ class InferenceBroker:
         include_diagnostics: bool = True,
     ) -> list[dict[str, Any]]:
         return list_model_providers(
-            self.home,
-            diagnostics=include_diagnostics,
-        )
-
-    def external_agents(
-        self,
-        *,
-        include_diagnostics: bool = True,
-    ) -> list[dict[str, Any]]:
-        return list_external_agent_profiles(
             self.home,
             diagnostics=include_diagnostics,
         )

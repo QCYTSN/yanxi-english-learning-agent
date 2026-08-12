@@ -61,7 +61,6 @@ export function AIConnectionsSection() {
     queryFn: () => api<ExecutionProfile[]>('/api/v1/execution-profiles'),
   })
   const codex = profiles.data?.find((profile) => profile.profile_id === 'codex-managed')
-  const cliProfiles = profiles.data?.filter((profile) => profile.backend_kind === 'external_agent') ?? []
   const [executablePath, setExecutablePath] = useState('')
   const [modelId, setModelId] = useState('')
   const [reasoningEffort, setReasoningEffort] = useState('')
@@ -139,13 +138,6 @@ export function AIConnectionsSection() {
     }),
     onSuccess: refresh,
   })
-  const makeCliDefault = useMutation({
-    mutationFn: (profileId: string) => api<ExecutionProfile>(`/api/v1/execution-profiles/${profileId}`, {
-      method: 'PATCH',
-      body: jsonBody({ is_default: true }),
-    }),
-    onSuccess: refresh,
-  })
   const loginChatGPT = useMutation({
     mutationFn: () => api<CodexLoginResult>('/api/v1/execution-profiles/codex-managed/login', {
       method: 'POST',
@@ -185,7 +177,7 @@ export function AIConnectionsSection() {
     onSuccess: refresh,
   })
   const actionError = profiles.error ?? runtime.error ?? account.error ?? models.error ?? save.error
-    ?? installRuntime.error ?? makeDefault.error ?? makeCliDefault.error ?? loginChatGPT.error
+    ?? installRuntime.error ?? makeDefault.error ?? loginChatGPT.error
     ?? loginDeviceCode.error ?? loginApiKey.error ?? logout.error
 
   return (
@@ -410,43 +402,7 @@ export function AIConnectionsSection() {
         </article>
       )}
 
-      {cliProfiles.length > 0 && (
-        <div className="adapter-list">
-          {cliProfiles.map((profile) => (
-            <article key={profile.profile_id}>
-              <div>
-                <h3>{profile.display_name}</h3>
-                <p>{profile.transport} · 认证由外部 CLI 管理</p>
-                {profile.diagnostics?.executable_path && (
-                  <small>
-                    <code>{profile.diagnostics.executable_path}</code> · {profile.diagnostics.version ?? '版本未知'}
-                  </small>
-                )}
-              </div>
-              <div className="row-actions">
-                <StatusBadge tone={profile.available ? 'success' : 'warning'}>
-                  {profile.available ? '可启动' : '不可用'}
-                </StatusBadge>
-                {profile.is_default
-                  ? <StatusBadge tone="success">默认执行方式</StatusBadge>
-                  : (
-                    <button
-                      className="button secondary"
-                      disabled={!profile.available || makeCliDefault.isPending}
-                      onClick={() => makeCliDefault.mutate(profile.profile_id)}
-                    >
-                      设为默认
-                    </button>
-                  )}
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
       {actionError && <ErrorState error={actionError} />}
-      <p className="muted">
-        Claude Code、OpenCode 与 Manual 仍保留为兼容方式；它们的认证由各自工具管理。
-      </p>
     </section>
   )
 }

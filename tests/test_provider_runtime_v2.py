@@ -89,12 +89,14 @@ def test_external_agents_cannot_become_teaching_inference(tmp_path: Path):
     initialise_home(home)
     broker = InferenceBroker(home)
 
-    with pytest.raises(ValueError, match="cannot evaluate IELTS"):
-        broker.prepare(execution_profile_id="claude-cli")
-
-    external = broker.external_agents(include_diagnostics=False)
-    assert external
-    assert all(item["teaching_model_eligible"] is False for item in external)
+    # External CLI Agent profiles were removed as a product decision; only the
+    # managed Codex bridge (ChatGPT login) and the pipeline-test mock remain.
+    profiles = {item["profile_id"] for item in broker.profiles()}
+    assert "claude-cli" not in profiles
+    assert "opencode-cli" not in profiles
+    assert "manual-handoff" not in profiles
+    assert "codex-managed" in profiles
+    assert "pipeline-test" in profiles
 
 
 def test_skill_compiler_includes_full_policy_references_and_schema():
@@ -180,9 +182,7 @@ def test_provider_and_learning_intent_endpoints_are_product_facing(
     assert providers.status_code == 200
     assert "endpoint-secret" not in providers.text
     assert bootstrap.json()["ai_setup_required"] is False
-    assert all(
-        item["teaching_model_eligible"] is False for item in external.json()
-    )
+    assert external.status_code == 404
     assert intent.json()["route"] == "/practice?module=reading"
     assert intent.json()["model_called"] is False
 

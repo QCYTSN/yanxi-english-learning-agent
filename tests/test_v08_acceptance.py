@@ -176,41 +176,16 @@ def test_onboarding_diagnostics_settings_and_agent_provenance_api(tmp_path: Path
     assert history[0]["run_id"] == provenance["run_id"]
     assert history[0]["agent_provider"] == "ielts-ai-coach"
 
-    manual_session = client.post(
-        "/api/v1/sessions",
-        headers={"Idempotency-Key": "v08-manual-session"},
-        json={"module": "writing"},
-    ).json()
-    manual_session_id = manual_session["session_id"]
-    client.post(
-        f"/api/v1/writing/{manual_session_id}/versions",
-        headers={"Idempotency-Key": "v08-manual-writing"},
-        json={
-            "label": "v1",
-            "content": "A second response for a declared external reviewer.",
-            "expected_revision": 0,
-        },
-    )
+    # External Manual handoff was removed as a product decision: creating an
+    # Agent run with the legacy "manual" adapter must fail explicitly.
     manual = client.post(
         "/api/v1/agent-runs",
         headers={"Idempotency-Key": "v08-manual-agent"},
         json={
             "adapter_id": "manual",
-            "study_session_id": manual_session_id,
+            "study_session_id": session_id,
             "action": "first_review",
             "output_contract": "writing-review@1",
-            "agent_provider": "OpenCode",
-            "agent_version": "declared",
-            "model_id": "user-declared-model",
-            "model_display_name": "User-declared model",
-            "agent_session_id": "external-session-1",
-            "source_type": "personal",
-            "explicit_consent": True,
         },
     )
-    assert manual.status_code == 200
-    manual_run = _wait_agent(client, manual.json()["run_id"], {"awaiting_import"})
-    assert manual_run["status"] == "awaiting_import"
-    assert manual_run["agent_provider"] == "OpenCode"
-    assert manual_run["model_id"] == "user-declared-model"
-    assert manual_run["launcher_kind"] == "manual_handoff"
+    assert manual.status_code == 422

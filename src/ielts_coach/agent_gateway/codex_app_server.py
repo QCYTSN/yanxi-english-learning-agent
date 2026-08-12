@@ -23,7 +23,7 @@ from ..media import resolve_media_file
 from ..skill_policy import build_provider_prompt, provider_output_schema
 from ..validation import load_schema
 from .base import AgentCapabilities, AgentIdentity
-from .process import _process_environment
+from .process_env import process_environment
 
 
 class AppServerError(ValueError):
@@ -183,7 +183,7 @@ class CodexAppServerClient:
         self._notifications: queue.Queue[dict[str, Any]] = queue.Queue()
         self._stderr: deque[str] = deque(maxlen=50)
         self._next_id = 1
-        environment = _process_environment({})
+        environment = process_environment({})
         environment["CODEX_HOME"] = str(self.codex_home)
         environment.setdefault("RUST_LOG", "warn")
         environment.setdefault("LOG_FORMAT", "json")

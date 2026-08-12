@@ -11,14 +11,9 @@ from fastapi.testclient import TestClient
 
 from ielts_coach.agent_contracts import CONTRACT_SCHEMAS, validate_agent_contract
 from ielts_coach.agent_gateway import adapter_descriptors
-from ielts_coach.agent_gateway.manual import ManualAdapter
-from ielts_coach.agent_gateway.process import (
-    ClaudeProcessAdapter,
-    OpenCodeProcessAdapter,
-    _normalise_opencode_result,
-    _process_environment,
+from ielts_coach.agent_gateway.process_env import (
     _proxy_environment_from_windows_value,
-    _remove_temporary_paths,
+    process_environment,
 )
 from ielts_coach.agent_jobs import AgentJobManager
 from ielts_coach.init_home import initialise_home
@@ -278,135 +273,6 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
     assert "privacy_receipts" in tables
 
 
-def test_process_adapters_disclose_identity_without_guessing_model():
-    descriptors = {item["id"]: item for item in adapter_descriptors()}
-    for adapter_id in ("claude", "opencode"):
-        assert adapter_id in descriptors
-        assert descriptors[adapter_id]["identity"]["launcher_kind"] == "local_process"
-        assert descriptors[adapter_id]["identity"]["model_id"] is None
-
-
-def test_process_adapters_extract_only_explicit_runtime_identity():
-    claude = ClaudeProcessAdapter()
-    claude_identity = claude._extract_runtime_identity(
-        json.dumps(
-            {
-                "modelUsage": {"\u001b[1mclaude-sonnet-explicit[1m]\u001b[0m": {"inputTokens": 20}},
-                "session_id": "claude-session",
-            }
-        )
-    )
-    assert claude_identity["agent_provider"] == "claude"
-    assert claude_identity["model_id"] == "claude-sonnet-explicit"
-    assert claude_identity["agent_session_id"] == "claude-session"
-
-    opencode = OpenCodeProcessAdapter()
-    opencode_identity = opencode._extract_runtime_identity(
-        json.dumps(
-            {
-                "type": "step_finish",
-                "properties": {
-                    "modelID": "model-returned-by-cli",
-                    "providerID": "provider-returned-by-cli",
-                    "sessionID": "opencode-session",
-                },
-            }
-        )
-    )
-    assert opencode_identity["agent_provider"] == "opencode"
-    assert opencode_identity["model_id"] == "model-returned-by-cli"
-    assert opencode_identity["agent_session_id"] == "opencode-session"
-
-
-def test_process_adapters_keep_large_prompts_out_of_windows_command_line(
-    tmp_path: Path,
-):
-    prompt = "REQUEST\n" + ("x" * 50000)
-    claude = ClaudeProcessAdapter()
-    claude_command, claude_stdin, _, claude_cleanup = claude._prepare_invocation(
-        tmp_path,
-        "claude.exe",
-        prompt,
-        "writing-review@1",
-    )
-    assert prompt not in claude_command
-    assert claude_stdin == prompt
-    assert claude_cleanup == []
-
-    opencode = OpenCodeProcessAdapter()
-    command, stdin_text, environment, cleanup = opencode._prepare_invocation(
-        tmp_path,
-        "opencode.exe",
-        prompt,
-        "writing-review@1",
-    )
-    try:
-        assert prompt not in command
-        assert stdin_text is None
-        assert Path(environment["OPENCODE_CONFIG"]).is_file()
-        request_path = next(path for path in cleanup if path.suffix == ".txt")
-        assert request_path.read_text(encoding="utf-8") == prompt
-        assert "--file" in command
-    finally:
-        _remove_temporary_paths(cleanup)
-    assert all(not path.exists() for path in cleanup)
-
-
-def test_manual_and_opencode_packages_copy_registered_images_without_source_path(
-    tmp_path: Path,
-):
-    home = tmp_path / "home"
-    initialise_home(home)
-    image = import_image_bytes(
-        home,
-        base64.b64decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
-        ),
-        alt_text="Synthetic Task 1 visual",
-    )
-    request = {
-        "request_id": "run_attachment_test",
-        "study_session_id": "S-example",
-        "output_contract": "writing-mock-review@1",
-        "media_refs": [
-            {
-                "media_id": image["media_id"],
-                "media_type": "image",
-                "mime_type": image["mime_type"],
-                "content_hash": image["content_hash"],
-                "available_to_agent": True,
-            }
-        ],
-    }
-    manual = ManualAdapter().start(home, request)
-    package_path = Path(manual["package_path"])
-    package_text = package_path.read_text(encoding="utf-8")
-    assert package_path.is_file()
-    assert len(manual["attachments"]) == 1
-    assert (package_path.parent / manual["attachments"][0]["file"]).is_file()
-    assert str(image["local_path"]) not in package_text
-
-    adapter = OpenCodeProcessAdapter()
-    command, _, _, cleanup = adapter._prepare_invocation(
-        home,
-        "opencode.exe",
-        "synthetic prompt",
-        "writing-mock-review@1",
-        request,
-    )
-    attached = [
-        Path(command[index + 1])
-        for index, value in enumerate(command[:-1])
-        if value == "--file"
-    ]
-    try:
-        assert len(attached) == 2
-        assert any(path.suffix.lower() == ".png" for path in attached)
-        assert all(str(image["local_path"]) != str(path) for path in attached)
-    finally:
-        _remove_temporary_paths(cleanup)
-
-
 def test_windows_system_proxy_is_translated_for_cli_adapters():
     assert _proxy_environment_from_windows_value("127.0.0.1:7890") == {
         "HTTP_PROXY": "http://127.0.0.1:7890",
@@ -433,57 +299,15 @@ def test_explicit_proxy_environment_is_not_overwritten(
     monkeypatch.delenv("http_proxy", raising=False)
     monkeypatch.setenv("HTTPS_PROXY", "http://explicit.local:9000")
     monkeypatch.setattr(
-        "ielts_coach.agent_gateway.process._windows_system_proxy_environment",
+        "ielts_coach.agent_gateway.process_env._windows_system_proxy_environment",
         lambda: {
             "HTTP_PROXY": "http://system.local:8080",
             "HTTPS_PROXY": "http://system.local:8080",
         },
     )
-    environment = _process_environment({})
+    environment = process_environment({})
     assert environment["HTTP_PROXY"] == "http://system.local:8080"
     assert environment["HTTPS_PROXY"] == "http://explicit.local:9000"
-
-
-def test_opencode_adapter_normalises_provider_aliases_before_strict_validation():
-    result = _normalise_opencode_result(
-        {
-            "criteria": [
-                {
-                    "criterion": "grammatical_range_and_accuracy",
-                    "score": 0,
-                    "feedback": "There is no sentence-level evidence.",
-                }
-            ],
-            "priority_issues": [
-                {
-                    "issue_id": "insufficient_response",
-                    "issue": "The response does not address the task.",
-                    "recommendation": "Write a complete response.",
-                },
-                "Use complete grammatical sentences.",
-                "Use task-relevant vocabulary.",
-                "This fourth priority must be truncated.",
-            ]
-        }
-    )
-    assert result["priority_issues"][0] | {
-        "tag": "insufficient_response",
-        "evidence": "The response does not address the task.",
-        "learner_action": "Write a complete response.",
-    } == result["priority_issues"][0]
-    assert result["criteria"][0] | {
-        "criterion": "GRA",
-        "score_low": 0,
-        "score_high": 0,
-        "evidence_support": ["There is no sentence-level evidence."],
-        "evidence_limit": ["There is no sentence-level evidence."],
-    } == result["criteria"][0]
-    assert result["priority_issues"][1] == {
-        "tag": "AGENT_PRIORITY_2",
-        "evidence": "Use complete grammatical sentences.",
-        "learner_action": "Use complete grammatical sentences.",
-    }
-    assert len(result["priority_issues"]) == 3
 
 
 def test_agent_timeout_has_a_recoverable_failure(tmp_path: Path):

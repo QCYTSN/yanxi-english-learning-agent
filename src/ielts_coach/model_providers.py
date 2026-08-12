@@ -57,45 +57,6 @@ BUILTIN_MODEL_PROVIDERS: tuple[dict[str, Any], ...] = (
     },
 )
 
-PROVIDER_PRESETS: tuple[dict[str, Any], ...] = (
-    {
-        "preset_id": "deepseek",
-        "display_name": "DeepSeek",
-        "base_url": "https://api.deepseek.com/v1",
-        "provider_kind": "openai_compatible",
-        "auth_mode": "api_key",
-    },
-    {
-        "preset_id": "qwen",
-        "display_name": "Qwen / DashScope",
-        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        "provider_kind": "openai_compatible",
-        "auth_mode": "api_key",
-    },
-    {
-        "preset_id": "zhipu",
-        "display_name": "智谱 GLM",
-        "base_url": "https://open.bigmodel.cn/api/paas/v4",
-        "provider_kind": "openai_compatible",
-        "auth_mode": "api_key",
-    },
-    {
-        "preset_id": "moonshot",
-        "display_name": "Kimi / Moonshot",
-        "base_url": "https://api.moonshot.cn/v1",
-        "provider_kind": "openai_compatible",
-        "auth_mode": "api_key",
-    },
-    {
-        "preset_id": "siliconflow",
-        "display_name": "硅基流动",
-        "base_url": "https://api.siliconflow.cn/v1",
-        "provider_kind": "openai_compatible",
-        "auth_mode": "api_key",
-    },
-)
-
-
 class ModelProviderError(ValueError):
     def __init__(
         self,
@@ -159,10 +120,6 @@ def ensure_builtin_model_providers(home: Path) -> None:
                     now,
                 ),
             )
-
-
-def provider_presets() -> list[dict[str, Any]]:
-    return [dict(item) for item in PROVIDER_PRESETS]
 
 
 def _provider_row(row: Any) -> dict[str, Any]:

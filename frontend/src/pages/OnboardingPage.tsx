@@ -21,12 +21,12 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
   })
   const [next, setNext] = useState<'today' | 'diagnostic'>('today')
   const existingPrimary = bootstrap.model_providers?.find((item) => item.role === 'primary')
-  const [aiChoice, setAiChoice] = useState<'oauth' | 'api' | 'later'>(
+  const [aiChoice, setAiChoice] = useState<'api' | 'oauth' | 'later'>(
     existingPrimary?.provider_kind === 'codex_oauth_bridge'
       ? 'oauth'
       : existingPrimary
         ? 'later'
-        : 'oauth',
+        : 'api',
   )
   const [apiName, setApiName] = useState('自定义 API')
   const [baseUrl, setBaseUrl] = useState('')
@@ -130,17 +130,17 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
         <p className="eyebrow">4 · AI service</p><h2>选择智能反馈服务</h2>
         <p>模型只负责需要推理的步骤；题库、计时、Session、进度和保存都在本地完成。</p>
         <div className="onboarding-ai-choices">
-          <label className={aiChoice === 'oauth' ? 'selected' : ''}>
-            <input type="radio" name="ai-choice" checked={aiChoice === 'oauth'} onChange={() => setAiChoice('oauth')} />
-            <Bot size={20} /><span><strong>使用 ChatGPT 登录</strong><small>推荐 · 无需 API Key</small></span>
-          </label>
           <label className={aiChoice === 'api' ? 'selected' : ''}>
             <input type="radio" name="ai-choice" checked={aiChoice === 'api'} onChange={() => setAiChoice('api')} />
-            <KeyRound size={20} /><span><strong>使用自己的 API</strong><small>DeepSeek、Qwen、GLM 等</small></span>
+            <KeyRound size={20} /><span><strong>配置你自己的 API</strong><small>推荐 · 任意厂商任意模型</small></span>
+          </label>
+          <label className={aiChoice === 'oauth' ? 'selected' : ''}>
+            <input type="radio" name="ai-choice" checked={aiChoice === 'oauth'} onChange={() => setAiChoice('oauth')} />
+            <Bot size={20} /><span><strong>使用 ChatGPT 登录</strong><small>无需 API Key</small></span>
           </label>
           <label className={aiChoice === 'later' ? 'selected' : ''}>
             <input type="radio" name="ai-choice" checked={aiChoice === 'later'} onChange={() => setAiChoice('later')} />
-            <ShieldCheck size={20} /><span><strong>暂不连接</strong><small>仍可做题和保存，稍后在设置中连接</small></span>
+            <ShieldCheck size={20} /><span><strong>暂不连接</strong><small>稍后在设置中随时配置</small></span>
           </label>
         </div>
         {aiChoice === 'oauth' && (

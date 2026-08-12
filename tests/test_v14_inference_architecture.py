@@ -105,11 +105,11 @@ def test_execution_profile_default_is_explicit_and_secret_free(tmp_path: Path):
     profiles = list_execution_profiles(home)
     assert {profile["profile_id"] for profile in profiles} >= {
         "codex-managed",
-        "claude-cli",
-        "opencode-cli",
-        "manual-handoff",
         "pipeline-test",
     }
+    assert "claude-cli" not in {profile["profile_id"] for profile in profiles}
+    assert "opencode-cli" not in {profile["profile_id"] for profile in profiles}
+    assert "manual-handoff" not in {profile["profile_id"] for profile in profiles}
     assert default_execution_profile(home) is None
     updated = update_execution_profile(
         home,

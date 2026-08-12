@@ -16,7 +16,6 @@ from .listening_corpus import install_starter_listening
 from .learning_model import ensure_learning_model
 from .content_reviews import ensure_bundled_content_reviews
 from .execution_profiles import ensure_builtin_execution_profiles
-from .external_agents import ensure_builtin_external_agents
 from .model_providers import ensure_builtin_model_providers
 
 DIRECTORIES = (
@@ -69,7 +68,6 @@ def initialise_home(
     ensure_learning_model(home)
     ensure_builtin_execution_profiles(home)
     ensure_builtin_model_providers(home)
-    ensure_builtin_external_agents(home)
     ensure_default_rubrics(home)
     if not include_demo_content:
         return

@@ -15,14 +15,6 @@ import { api, jsonBody, type ModelProvider } from '../api/client'
 import { normaliseCodexModels, type CodexModels } from './codexModels'
 import { ErrorState, LoadingState, StatusBadge } from './Common'
 
-type ProviderPreset = {
-  preset_id: string
-  display_name: string
-  base_url: string
-  provider_kind: 'openai_compatible'
-  auth_mode: 'api_key'
-}
-
 type CodexAccount = {
   account: { type?: string; email?: string | null; planType?: string | null } | null
   requiresOpenaiAuth?: boolean
@@ -41,10 +33,6 @@ export function ModelProvidersSection() {
   const providers = useQuery({
     queryKey: ['model-providers'],
     queryFn: () => api<ModelProvider[]>('/api/v1/model-providers?diagnostics=true'),
-  })
-  const presets = useQuery({
-    queryKey: ['model-provider-presets'],
-    queryFn: () => api<ProviderPreset[]>('/api/v1/model-provider-presets'),
   })
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['model-providers'] })
@@ -71,9 +59,8 @@ export function ModelProvidersSection() {
     }),
     onSuccess: refresh,
   })
-  const actionError = providers.error ?? presets.error ?? update.error ?? test.error ?? remove.error
+  const actionError = providers.error ?? update.error ?? test.error ?? remove.error
   const providerItems = Array.isArray(providers.data) ? providers.data : []
-  const presetItems = Array.isArray(presets.data) ? presets.data : []
 
   return (
     <div className="settings-detail-stack">
@@ -82,6 +69,11 @@ export function ModelProvidersSection() {
         <h2>主模型与备用模型</h2>
         <p>IELTS 教学 Runtime 始终控制流程和保存；这里仅决定由哪个模型完成需要推理的步骤。</p>
       </section>
+
+      <CustomProviderForm
+        hasPrimary={providerItems.some((item) => item.role === 'primary')}
+        refresh={refresh}
+      />
 
       <OpenAIProviderCard providers={providerItems} refresh={refresh} />
 
@@ -195,12 +187,6 @@ export function ModelProvidersSection() {
         )}
         {test.isSuccess && <p className="inline-success"><Check size={16} />连接测试通过。</p>}
       </section>
-
-      <CustomProviderForm
-        presets={presetItems}
-        hasPrimary={providerItems.some((item) => item.role === 'primary')}
-        refresh={refresh}
-      />
       {actionError && <ErrorState error={actionError} />}
     </div>
   )
@@ -277,12 +263,11 @@ function OpenAIProviderCard({ providers, refresh }: {
   const error = runtime.error ?? account.error ?? models.error ?? install.error ?? login.error ?? save.error
 
   return (
-    <section className="settings-panel recommended-provider">
-      <div className="recommended-label">推荐</div>
+    <section className="settings-panel">
       <div className="section-heading">
         <div>
-          <h3>使用 ChatGPT 登录</h3>
-          <p>无需复制 API Key；登录凭据只属于本机 IELTS Study Desk。</p>
+          <h3>使用 ChatGPT 登录（可选）</h3>
+          <p>无需复制 API Key；登录凭据只属于本机。</p>
         </div>
         <StatusBadge tone={signedIn ? 'success' : runtime.data?.installed ? 'warning' : 'neutral'}>
           {signedIn
@@ -338,12 +323,10 @@ function OpenAIProviderCard({ providers, refresh }: {
   )
 }
 
-function CustomProviderForm({ presets, hasPrimary, refresh }: {
-  presets: ProviderPreset[]
+function CustomProviderForm({ hasPrimary, refresh }: {
   hasPrimary: boolean
   refresh: () => Promise<void>
 }) {
-  const [presetId, setPresetId] = useState('custom')
   const [displayName, setDisplayName] = useState('自定义 API')
   const [baseUrl, setBaseUrl] = useState('')
   const [modelId, setModelId] = useState('')
@@ -370,30 +353,14 @@ function CustomProviderForm({ presets, hasPrimary, refresh }: {
       await refresh()
     },
   })
-  function choosePreset(value: string) {
-    setPresetId(value)
-    const preset = presets.find((item) => item.preset_id === value)
-    if (preset) {
-      setDisplayName(preset.display_name)
-      setBaseUrl(preset.base_url)
-    } else {
-      setDisplayName('自定义 API')
-      setBaseUrl('')
-    }
-  }
   return (
-    <section className="settings-panel">
+    <section className="settings-panel recommended-provider">
+      <div className="recommended-label">推荐</div>
       <div className="section-heading">
-        <div><h3>使用自己的 API</h3><p>统一使用 OpenAI-compatible 协议；密钥不会写入学习数据库。</p></div>
+        <div><h3>使用你自己的 API</h3><p>统一使用 OpenAI-compatible 协议，任意厂商任意模型；密钥不会写入学习数据库。</p></div>
         <KeyRound size={19} />
       </div>
       <div className="provider-form-grid">
-        <label>服务预设
-          <select value={presetId} onChange={(event) => choosePreset(event.target.value)}>
-            <option value="custom">自定义</option>
-            {presets.map((item) => <option key={item.preset_id} value={item.preset_id}>{item.display_name}</option>)}
-          </select>
-        </label>
         <label>连接名称<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} /></label>
         <label className="wide-field">Base URL<input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="https://api.example.com/v1" /></label>
         <label>Model ID<input value={modelId} onChange={(event) => setModelId(event.target.value)} placeholder="provider-model-id" /></label>
@@ -411,7 +378,7 @@ function CustomProviderForm({ presets, hasPrimary, refresh }: {
           流式传输响应
         </label>
       </div>
-      <button className="button secondary" onClick={() => create.mutate()} disabled={!baseUrl || !modelId || !apiKey || create.isPending}>
+      <button className="button primary" onClick={() => create.mutate()} disabled={!baseUrl || !modelId || !apiKey || create.isPending}>
         <Plus size={16} />保存为{hasPrimary ? '备用模型' : '主模型'}
       </button>
       {create.error && <ErrorState error={create.error} />}

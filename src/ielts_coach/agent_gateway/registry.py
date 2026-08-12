@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from .base import AgentAdapter, describe_adapter
-from .manual import ManualAdapter
 from .mock import MockAdapter
-from .process import ClaudeProcessAdapter, OpenCodeProcessAdapter
 from .codex_app_server import CodexAppServerAdapter
 
 
+# Only two adapters remain: the deterministic pipeline-test MockAdapter
+# (developer check, never learner feedback) and the managed Codex app-server
+# bridge that backs ChatGPT login. External CLI Agents (Claude Code, OpenCode,
+# Manual handoff) were removed as a product decision.
 _ADAPTERS: dict[str, AgentAdapter] = {
     "mock": MockAdapter(),
-    "manual": ManualAdapter(),
-    "opencode": OpenCodeProcessAdapter(),
-    "claude": ClaudeProcessAdapter(),
     "codex-managed": CodexAppServerAdapter(),
 }
 

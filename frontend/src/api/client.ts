@@ -58,7 +58,7 @@ export type Bootstrap = {
   capabilities: CapabilityDescriptor[]
   execution_profiles: ExecutionProfile[]
   model_providers: ModelProvider[]
-  external_agents: ExternalAgentProfile[]
+  external_agents: never[]
   ai_setup_required: boolean
   storage: {
     data_home: string
@@ -271,20 +271,6 @@ export type ModelProvider = {
     [key: string]: unknown
   }
   available?: boolean
-  diagnostics?: Record<string, unknown>
-}
-
-export type ExternalAgentProfile = {
-  agent_profile_id: string
-  display_name: string
-  adapter_id: string
-  purpose: string
-  is_enabled: boolean
-  available: boolean
-  teaching_model_eligible: false
-  boundary: string
-  capabilities: Record<string, boolean>
-  identity: AgentDescriptor['identity']
   diagnostics?: Record<string, unknown>
 }
 
