@@ -14,6 +14,7 @@ from .storage import initialise_database
 from .rubrics import ensure_default_rubrics
 from .listening_corpus import install_starter_listening
 from .learning_model import ensure_learning_model
+from .domain_packs import domain_pack_descriptors
 from .content_reviews import ensure_bundled_content_reviews
 from .execution_profiles import ensure_builtin_execution_profiles
 from .model_providers import ensure_builtin_model_providers
@@ -65,7 +66,8 @@ def initialise_home(
     if not force:
         migrate_configuration(home)
     initialise_database(home)
-    ensure_learning_model(home)
+    for pack in domain_pack_descriptors():
+        ensure_learning_model(home, str(pack["track_id"]))
     ensure_builtin_execution_profiles(home)
     ensure_builtin_model_providers(home)
     ensure_default_rubrics(home)

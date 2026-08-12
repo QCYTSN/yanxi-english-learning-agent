@@ -390,8 +390,9 @@ def _validate_session_semantics(data: dict[str, Any]) -> None:
 
 
 def _validate_profile_semantics(data: dict[str, Any]) -> None:
-    if (data.get("exam") or {}).get("type") != "academic":
-        raise ValueError("IELTS AI Coach supports IELTS Academic only")
+    exam_type = (data.get("exam") or {}).get("type")
+    if exam_type not in ("academic", "none"):
+        raise ValueError("exam.type must be 'academic' (IELTS) or 'none' (General English)")
     allocation = data["base_allocation"]
     if abs(sum(float(value) for value in allocation.values()) - 1.0) > 1e-6:
         raise ValueError("base_allocation values must sum to 1.0")

@@ -127,6 +127,37 @@ def _v32_memory_pedagogy_and_quality(conn: sqlite3.Connection) -> None:
         )
 
 
+def _v33_vocabulary_and_general_track(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS vocabulary_items (
+            item_id TEXT PRIMARY KEY,
+            track_id TEXT NOT NULL DEFAULT 'general-english',
+            word TEXT NOT NULL,
+            meaning TEXT,
+            usage TEXT,
+            example TEXT,
+            collocations_json TEXT NOT NULL DEFAULT '[]',
+            source_type TEXT NOT NULL,
+            source_id TEXT,
+            status TEXT NOT NULL DEFAULT 'learning'
+              CHECK(status IN ('learning','mastered','dismissed')),
+            review_kind TEXT NOT NULL DEFAULT 'sentence_recall',
+            next_review_at TEXT,
+            review_count INTEGER NOT NULL DEFAULT 0,
+            last_reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(track_id, word)
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_vocabulary_items_review "
+        "ON vocabulary_items(track_id,status,next_review_at)"
+    )
+
+
 MIGRATIONS = (
     Migration(
         28,
@@ -157,6 +188,12 @@ MIGRATIONS = (
         "v32-memory-pedagogy-quality",
         "Version learner memory and add teaching cycles and teaching-quality evaluations.",
         _v32_memory_pedagogy_and_quality,
+    ),
+    Migration(
+        33,
+        "v33-vocabulary-and-general-track",
+        "Add learner vocabulary items with review scheduling for the General English track.",
+        _v33_vocabulary_and_general_track,
     ),
 )
 

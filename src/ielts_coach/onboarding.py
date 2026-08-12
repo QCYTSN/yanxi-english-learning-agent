@@ -54,10 +54,10 @@ def update_profile(
     if unsupported:
         raise ValueError(f"Unsupported onboarding fields: {', '.join(sorted(unsupported))}")
     requested_exam = (supplied.get("exam") or {}).get("type")
-    if requested_exam and requested_exam != "academic":
+    if requested_exam not in (None, "academic", "none"):
         raise ValueError(
-            "IELTS AI Coach currently supports IELTS Academic only; "
-            "General Training Reading and Writing tasks are not implemented"
+            "Unsupported exam type; choose 'academic' for IELTS preparation "
+            "or 'none' for the General English track"
         )
     requested_track = supplied.get("active_learning_track_id")
     if requested_track:

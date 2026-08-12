@@ -12,6 +12,18 @@ from pathlib import Path
 from typing import Any, AsyncIterator
 from urllib.parse import quote
 
+from ..validation import (
+    validate_data,
+    validate_data_semantics,
+    validate_schema_data,
+)
+from ..vocabulary import (
+    add_vocabulary_item,
+    due_vocabulary_reviews,
+    list_vocabulary_items,
+    schedule_vocabulary_review,
+    set_vocabulary_status,
+)
 from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -2428,6 +2440,55 @@ def create_app(
         track_id: str = Query(DEFAULT_TRACK_ID),
     ) -> list[dict[str, Any]]:
         return list_skill_nodes(target, track_id=track_id)
+
+    @app.get("/api/v1/vocabulary", dependencies=[Depends(require_session)])
+    def vocabulary_list(
+        track_id: str = Query("general-english"),
+        status: str | None = Query(None),
+        limit: int = Query(200, ge=1, le=500),
+    ) -> list[dict[str, Any]]:
+        return list_vocabulary_items(
+            target,
+            track_id=track_id,
+            status=status,
+            limit=limit,
+        )
+
+    @app.get("/api/v1/vocabulary/due", dependencies=[Depends(require_session)])
+    def vocabulary_due(
+        track_id: str = Query("general-english"),
+        limit: int = Query(50, ge=1, le=100),
+    ) -> list[dict[str, Any]]:
+        return due_vocabulary_reviews(target, track_id=track_id, limit=limit)
+
+    @app.post("/api/v1/vocabulary", dependencies=[Depends(require_session)])
+    def vocabulary_add(payload: dict[str, Any]) -> dict[str, Any]:
+        supported = {
+            "word", "meaning", "usage", "example", "collocations",
+            "review_kind", "source_type", "source_id", "track_id",
+        }
+        unknown = set(payload) - supported
+        if unknown:
+            raise ValueError(
+                f"Unsupported vocabulary fields: {', '.join(sorted(unknown))}"
+            )
+        return add_vocabulary_item(target, **payload)
+
+    @app.patch("/api/v1/vocabulary/{item_id}/review", dependencies=[Depends(require_session)])
+    def vocabulary_review_schedule(
+        item_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        days = int(payload.get("days") or 3)
+        return schedule_vocabulary_review(target, item_id, days=days)
+
+    @app.patch("/api/v1/vocabulary/{item_id}/status", dependencies=[Depends(require_session)])
+    def vocabulary_status_update(
+        item_id: str,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        status = str(payload.get("status") or "learning")
+        return set_vocabulary_status(target, item_id, status=status)
 
     @app.get("/api/v1/learning-objectives", dependencies=[Depends(require_session)])
     def learning_objectives(

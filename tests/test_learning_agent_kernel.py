@@ -103,7 +103,11 @@ def test_initialisation_seeds_generic_learning_model_without_user_content(
             (DEFAULT_TRACK_ID,),
         ).fetchone()[0]
         learner_rows = conn.execute("SELECT COUNT(*) FROM learning_objectives").fetchone()[0]
-    assert version == "32"
+        general_count = conn.execute(
+            "SELECT COUNT(*) FROM learning_skill_nodes WHERE track_id=?",
+            ("general-english",),
+        ).fetchone()[0]
+    assert version == "33"
     assert {
         "learning_skill_nodes",
         "learning_objectives",
@@ -113,6 +117,8 @@ def test_initialisation_seeds_generic_learning_model_without_user_content(
         "learning_review_schedules",
     } <= tables
     assert skill_count == 21
+    assert general_count == 13
+
     assert learner_rows == 0
 
 
@@ -324,7 +330,7 @@ def test_threads_and_http_bootstrap_expose_learning_track_boundary(
         )
         snapshot = client.get("/api/v1/learning-model?dimension_id=reading")
     assert bootstrap.status_code == 200
-    assert bootstrap.json()["active_learning_track_id"] == DEFAULT_TRACK_ID
+    assert bootstrap.json()["active_learning_track_id"] == "general-english"
     assert bootstrap.json()["learning_tracks"][0]["track_id"] == DEFAULT_TRACK_ID
     assert tracks.status_code == 200
     assert objective.status_code == 200

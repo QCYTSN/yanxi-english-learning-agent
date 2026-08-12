@@ -54,7 +54,7 @@ def _client(home: Path) -> TestClient:
 def test_schema21_separates_model_providers_without_replacing_sqlite(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 32
+    assert SCHEMA_VERSION == 33
     with connect(home) as conn:
         tables = {
             row["name"]
@@ -147,11 +147,15 @@ def test_architecture_endpoints_expose_capabilities_and_profiles(tmp_path: Path)
         bootstrap = client.get("/api/v1/bootstrap")
     assert capabilities.status_code == 200
     assert len(capabilities.json()) == 9
+    general_capabilities = client.get(
+        "/api/v1/capabilities?track_id=general-english"
+    )
+    assert len(general_capabilities.json()) == 6
     assert profiles.status_code == 200
     assert any(
         item["profile_id"] == "codex-managed" for item in profiles.json()
     )
-    assert len(bootstrap.json()["capabilities"]) == 9
+    assert len(bootstrap.json()["capabilities"]) == 6
     assert bootstrap.json()["execution_profiles"]
 
 
