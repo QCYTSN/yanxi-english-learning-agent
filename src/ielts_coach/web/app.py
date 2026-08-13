@@ -2100,7 +2100,7 @@ def create_app(
     @app.get("/api/v1/vocabulary/seed", dependencies=[Depends(require_session)])
     def vocabulary_seed(
         level: str | None = Query(None),
-        limit: int = Query(100, ge=1, le=3000),
+        limit: int = Query(100, ge=1, le=20000),
     ) -> dict[str, Any]:
         """Bundled public-domain starter words for typing practice and cold start."""
         from ..seed_words import load_seed_words, seed_metadata

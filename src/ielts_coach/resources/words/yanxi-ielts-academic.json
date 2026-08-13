@@ -1,0 +1,3993 @@
+{
+ "seed_id": "yanxi-ielts-academic",
+ "title": "言蹊雅思学术核心词表 · AWL",
+ "version": 1,
+ "language": "en",
+ "level_note": "Academic Word List (Coxhead) 570 词族 headword；雅思学术类阅读核心词。言蹊自评分档：B2-C1。",
+ "source": {
+  "origin": "Academic Word List (Coxhead, 1999) 词族整理，数据文件 TheoSeo93/Academic_Words_list (OSL-1.1)",
+  "rights": "OSL-1.1",
+  "note": "仅取 570 词族 headword；词形事实数据，不含释义。"
+ },
+ "bands": {
+  "570": "B2-C1"
+ },
+ "words": [
+  {
+   "word": "analyse",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "approach",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "area",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assess",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assume",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "authority",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "available",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "benefit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "concept",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "consist",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "constitute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "context",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contract",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "create",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "data",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "define",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "derive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "distribute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "economy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "environment",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "establish",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "estimate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "evident",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "export",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "factor",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "finance",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "formula",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "function",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "identify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "income",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "indicate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "individual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "interpret",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "involve",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "issue",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "labour",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "legal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "legislate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "major",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "method",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "occur",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "percent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "period",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "policy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "principle",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "proceed",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "process",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "require",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "research",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "respond",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "role",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "section",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sector",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "significant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "similar",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "source",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "specific",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "structure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "theory",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "vary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "achieve",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "acquire",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "administrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "affect",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "appropriate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "aspect",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assist",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "category",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "chapter",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "commission",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "community",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "complex",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "compute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "conclude",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "conduct",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "consequent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "construct",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "consume",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "credit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "culture",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "design",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "distinct",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "element",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "equate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "evaluate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "feature",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "final",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "focus",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "impact",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "injure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "institute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "invest",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "item",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "journal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "maintain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "normal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "obtain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "participate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "perceive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "positive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "potential",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "previous",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "primary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "purchase",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "range",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "region",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "regulate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "relevant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reside",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "resource",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "restrict",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "secure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "seek",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "select",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "site",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "strategy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "survey",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "text",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "tradition",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "transfer",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "alternative",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "circumstance",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "comment",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "compensate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "component",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "consent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "considerable",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "constant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "constrain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contribute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "convene",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "coordinate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "core",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "corporate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "correspond",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "criteria",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "deduce",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "demonstrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "document",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "dominate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "emphasis",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ensure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "exclude",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "framework",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "fund",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "illustrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "immigrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "imply",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "initial",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "instance",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "interact",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "justify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "layer",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "link",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "locate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "maximise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "minor",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "negate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "outcome",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "partner",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "philosophy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "physical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "proportion",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "publish",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "react",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "register",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "rely",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "remove",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "scheme",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sequence",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sex",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "shift",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "specify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sufficient",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "task",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "technical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "technique",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "technology",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "valid",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "volume",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "access",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "adequate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "annual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "apparent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "approximate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "attitude",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "attribute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "civil",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "code",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "commit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "communicate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "concentrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "confer",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contrast",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "cycle",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "debate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "despite",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "dimension",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "domestic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "emerge",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "error",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ethnic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "goal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "grant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "hence",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "hypothesis",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "implement",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "implicate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "impose",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "integrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "internal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "investigate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "job",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "label",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mechanism",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "obvious",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "occupy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "option",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "output",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "overall",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "parallel",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "parameter",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "phase",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "predict",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "principal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "prior",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "professional",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "project",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "promote",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "regime",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "resolve",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "retain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "series",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "statistic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "status",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "stress",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "subsequent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sum",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "summary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "undertake",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "academy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "adjust",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "alter",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "amend",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "aware",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "capacity",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "challenge",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "clause",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "compound",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "conflict",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "consult",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contact",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "decline",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "discrete",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "draft",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "enable",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "energy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "enforce",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "entity",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "equivalent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "evolve",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "expand",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "expose",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "external",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "facilitate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "fundamental",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "generate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "generation",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "image",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "liberal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "licence",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "logic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "margin",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "medical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mental",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "modify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "monitor",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "network",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "notion",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "objective",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "orient",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "perspective",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "precise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "prime",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "psychology",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "pursue",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ratio",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reject",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "revenue",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "stable",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "style",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "substitute",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sustain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "symbol",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "target",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "transit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "trend",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "version",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "welfare",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "whereas",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "abstract",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "accurate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "acknowledge",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "aggregate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "allocate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assign",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "attach",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "author",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "bond",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "brief",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "capable",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "cite",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "cooperate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "discriminate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "display",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "diverse",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "domain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "edit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "enhance",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "estate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "exceed",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "expert",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "explicit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "federal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "fee",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "flexible",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "furthermore",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "gender",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ignorant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "incentive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "incidence",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "incorporate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "index",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "inhibit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "initiate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "input",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "instruct",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "intelligent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "interval",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "lecture",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "migrate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "minimum",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ministry",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "motive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "neutral",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "nevertheless",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "overseas",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "precede",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "presume",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "rational",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "recover",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reveal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "scope",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "subsidy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "tape",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "trace",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "transform",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "transport",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "underlie",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "utilise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "adult",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "advocate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "aid",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "channel",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "chemical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "classic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "comprehensive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "comprise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "confirm",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contrary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "convert",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "couple",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "decade",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "definite",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "deny",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "differentiate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "dispose",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "dynamic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "eliminate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "empirical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "equip",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "extract",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "file",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "finite",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "foundation",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "globe",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "grade",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "guarantee",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "hierarchy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "identical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ideology",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "infer",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "innovate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "insert",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "intervene",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "isolate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "media",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mode",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "paradigm",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "phenomenon",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "priority",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "prohibit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "publication",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "quote",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "release",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reverse",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "simulate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sole",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "somewhat",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "submit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "successor",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "survive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "thesis",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "topic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "transmit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ultimate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "unique",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "visible",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "voluntary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "abandon",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "accompany",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "accumulate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ambiguous",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "append",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "appreciate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "arbitrary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "automate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "bias",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "chart",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "clarify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "commodity",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "complement",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "conform",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contemporary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "contradict",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "crucial",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "currency",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "denote",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "detect",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "deviate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "displace",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "drama",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "eventual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "exhibit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "exploit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "fluctuate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "guideline",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "highlight",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "implicit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "induce",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "inevitable",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "infrastructure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "inspect",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "intense",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "manipulate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "minimise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "nuclear",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "offset",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "paragraph",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "plus",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "practitioner",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "predominant",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "prospect",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "radical",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "random",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reinforce",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "restore",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "revise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "schedule",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "tense",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "terminate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "theme",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "thereby",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "uniform",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "vehicle",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "via",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "virtual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "visual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "widespread",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "accommodate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "analogy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "anticipate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assure",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "attain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "behalf",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "bulk",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "cease",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "coherent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "coincide",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "commence",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "compatible",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "concurrent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "confine",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "controversy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "converse",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "device",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "devote",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "diminish",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "distort",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "duration",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "erode",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ethic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "format",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "found",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "inherent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "insight",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "integral",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "intermediate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "manual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mature",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mediate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "medium",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "military",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "minimal",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "mutual",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "norm",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "overlap",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "passive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "portion",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "preliminary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "protocol",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "qualitative",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "refine",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "relax",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "restrain",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "revolution",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "rigid",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "route",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "scenario",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "sphere",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "subordinate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "supplement",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "suspend",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "team",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "temporary",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "trigger",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "unify",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "violate",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "vision",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "adjacent",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "albeit",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "assemble",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "collapse",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "colleague",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "compile",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "conceive",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "convince",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "depress",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "encounter",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "enormous",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "forthcoming",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "incline",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "integrity",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "intrinsic",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "invoke",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "levy",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "likewise",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "nonetheless",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "notwithstanding",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "odd",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "ongoing",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "panel",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "persist",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "pose",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "reluctance",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "straightforward",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "undergo",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  },
+  {
+   "word": "whereby",
+   "yanxi_level": "B2-C1",
+   "tags": [
+    "ielts-academic"
+   ]
+  }
+ ]
+}

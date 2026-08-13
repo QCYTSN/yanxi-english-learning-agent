@@ -219,19 +219,26 @@ def _create_run(home: Path, run_id: str, contract: str, thread_id: str) -> dict:
 
 
 
-def test_seed_words_bundle_is_starter_plus_frequency_3000() -> None:
+def test_seed_words_bundle_is_general_plus_exam_lists() -> None:
     from ielts_coach.seed_words import load_seed_words, seed_metadata, seed_words_pool
 
     words = load_seed_words()
-    # GSL starter-100 (deduplicated) + FrequencyWords top-3000 pool.
-    assert 2900 <= len(words) <= 3100
+    # GSL starter + FrequencyWords 3000 + CET4/CET6/TOEFL + AWL (IELTS core).
+    assert 12000 <= len(words) <= 15000
     assert all(item["word"] for item in words)
-    assert all(item.get("yanxi_level") in {"A1", "A1-A2", "B1"} for item in words)
     assert all(str(item["word"]).islower() for item in words)
     meta = seed_metadata()
     assert meta["seed_id"] == "yanxi-starter-100"
     assert meta["source"][0]["rights"] == "public_domain"
     assert meta["source"][1]["rights"] == "MIT"
+    # Exam tags survive deduplication (AWL overlaps heavily with CET/TOEFL).
+    from collections import Counter
+
+    tags = Counter(t for item in words for t in item.get("tags", []))
+    assert tags["cet4"] >= 4000
+    assert tags["cet6"] >= 3000
+    assert tags["toefl"] >= 9000
+    assert tags["ielts-academic"] >= 500
     pool = seed_words_pool(limit=5)
     assert pool == ["the", "of", "and", "to", "a"]
     assert seed_words_pool(limit=3, exclude={"the", "of", "and"}) == ["to", "a", "in"]

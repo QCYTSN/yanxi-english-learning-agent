@@ -35,3 +35,16 @@ Assessment, the British Council or IDP Education.
   (`src/ielts_coach/resources/words/yanxi-frequency-3000.json`). The list is
   compiled from public subtitle and web corpora; word forms only, no
   definitions or examples are included.
+- **言蹊四级词表 / 六级词表 / 托福词表 (CET-4 / CET-6 / TOEFL)** — word
+  forms extracted from the KyleBing `english-vocabulary` list
+  (https://github.com/KyleBing/english-vocabulary, no LICENSE declared).
+  That repository carries no licence declaration, so 言蹊 includes only the
+  bare word forms (facts) — none of its definitions, examples or
+  arrangement — and attributes the source here. Heuristic 言蹊 bands:
+  CET-4 A2-B1, CET-6 B1-B2, TOEFL B1-C1
+  (`yanxi-cet4.json`, `yanxi-cet6.json`, `yanxi-toefl.json`).
+- **言蹊雅思学术核心词表 (AWL)** — 568 headwords of the Academic Word List
+  (Coxhead, 1999), the recognised IELTS-academic core, from the data file
+  in TheoSeo93/Academic_Words_list (https://github.com/TheoSeo93/Academic_Words_list,
+  Open Software License 1.1). Word forms only
+  (`yanxi-ielts-academic.json`).

@@ -49,11 +49,21 @@ def verify_wheel(wheel: Path) -> None:
     ]
     if forbidden:
         raise SystemExit("Question-bank files leaked into the wheel:\n" + "\n".join(forbidden))
-    seed = "ielts_coach/resources/words/yanxi-starter-100.json"
-    frequency = "ielts_coach/resources/words/yanxi-frequency-3000.json"
-    missing = [name for name in (seed, frequency) if name not in names]
+    word_files = [
+        "yanxi-starter-100.json",
+        "yanxi-frequency-3000.json",
+        "yanxi-cet4.json",
+        "yanxi-cet6.json",
+        "yanxi-toefl.json",
+        "yanxi-ielts-academic.json",
+    ]
+    missing = [
+        f"ielts_coach/resources/words/{name}"
+        for name in word_files
+        if f"ielts_coach/resources/words/{name}" not in names
+    ]
     if missing:
-        raise SystemExit("Bundled starter word lists missing from the wheel: " + ", ".join(missing))
+        raise SystemExit("Bundled word lists missing from the wheel: " + ", ".join(missing))
 
 
 def verify_empty_home() -> None:

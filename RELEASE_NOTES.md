@@ -11,6 +11,10 @@
 - starter pool grows to ~3000 words with a FrequencyWords (MIT) top-3000
   list, heuristic A1/A1-A2/B1 bands — typing and 听言 practice have a real
   cold-start vocabulary;
+- exam word lists join the pool: CET-4 (4536), CET-6 (3989), TOEFL (10357)
+  and the Academic Word List IELTS core (568) — deduplicated pool of
+  ~13 000 words, exam tags preserved per word; word forms only, sourced and
+  attributed in THIRD_PARTY_NOTICES;
 - first-class typing practice with 成蹊 feedback (vermilion seal on correct
   words, ink-trace retry on typos), word pool from your words plus the
   starter list;

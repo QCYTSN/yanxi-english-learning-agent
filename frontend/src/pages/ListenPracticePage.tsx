@@ -25,7 +25,7 @@ export function ListenPracticePage() {
   })
   const seed = useQuery({
     queryKey: ['vocabulary', 'seed'],
-    queryFn: () => api<SeedResponse>('/api/v1/vocabulary/seed?limit=3000'),
+    queryFn: () => api<SeedResponse>('/api/v1/vocabulary/seed?limit=20000'),
   })
 
   const pool = useMemo<ListenWord[]>(() => {
