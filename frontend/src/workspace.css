@@ -5450,6 +5450,27 @@ button.resume-learning-row {
   margin-top: 18px;
 }
 
+.speaking-step-guide ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.speaking-recording-card .section-heading h2,
+.speaking-returned-card .section-heading h2 {
+  color: var(--ink);
+}
+
+.speaking-recording-card {
+  border-color: var(--evidence);
+  box-shadow: 0 0 0 1px rgba(13, 107, 98, 0.15);
+}
+
+.speaking-preview {
+  border-style: dashed;
+}
+
 .settings-support-actions .inline-success {
   margin: 0;
 }
