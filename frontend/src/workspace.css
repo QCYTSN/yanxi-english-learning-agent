@@ -628,7 +628,7 @@ select:focus {
 
 .general-practice-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin: 0 0 22px;
 }
@@ -4001,6 +4001,149 @@ tbody tr:hover {
   margin-left: auto;
   padding: 0 0 12px;
 }
+
+/* Typing practice (成蹊式反馈：朱砂印章亮一格，墨色淡描不扣分) */
+
+.page-typing .page-header {
+  margin-bottom: 14px;
+}
+
+.typing-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.typing-mistakes {
+  color: #b45309;
+}
+
+.typing-start {
+  display: grid;
+  place-items: center;
+  padding: 48px 0;
+}
+
+.typing-start-card {
+  max-width: 460px;
+  text-align: center;
+  padding: 28px 32px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.typing-start-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.typing-start-card p {
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0 0 18px;
+}
+
+.typing-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 24px 0 40px;
+}
+
+.typing-progress {
+  display: flex;
+  gap: 8px;
+}
+
+.typing-seal {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: transparent;
+}
+
+.typing-seal.lit {
+  background: #c0392b;
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.18);
+}
+
+.typing-word {
+  text-align: center;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.typing-word-hint {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.typing-target {
+  font-size: 2.6rem;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.typing-word-done {
+  font-size: 2.6rem;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.typing-meaning {
+  color: var(--muted);
+  margin: 0;
+}
+
+.typing-word-origin {
+  font-size: 0.8rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.typing-input {
+  font-size: 1.5rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+  padding: 10px 16px;
+  min-width: 320px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.typing-empty {
+  text-align: center;
+  padding: 56px 0;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.typing-empty h2 {
+  color: var(--text);
+  margin: 0;
+}
+
 
 .practice-vocab-entry a {
   display: inline-flex;

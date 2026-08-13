@@ -216,3 +216,19 @@ def _create_run(home: Path, run_id: str, contract: str, thread_id: str) -> dict:
     }
     return create_agent_run(home, run)
 
+
+
+def test_seed_words_bundle_is_public_domain_starter_100() -> None:
+    from ielts_coach.seed_words import load_seed_words, seed_metadata, seed_words_pool
+
+    words = load_seed_words()
+    assert len(words) == 100
+    assert all(item["word"] for item in words)
+    assert all(item.get("yanxi_level") == "A1" for item in words)
+    meta = seed_metadata()
+    assert meta["seed_id"] == "yanxi-starter-100"
+    assert meta["source"]["rights"] == "public_domain"
+    pool = seed_words_pool(limit=5)
+    assert pool == ["the", "of", "and", "to", "a"]
+    assert seed_words_pool(limit=3, exclude={"the", "of", "and"}) == ["to", "a", "in"]
+    assert len(seed_words_pool()) == 100

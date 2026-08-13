@@ -108,6 +108,14 @@ export function PracticePage() {
         </article>
         <article>
           <div>
+            <p className="eyebrow">打字练习</p>
+            <h3>把词打出来</h3>
+            <p>我的词表优先，起步词表兜底；打对亮印章，打错描墨痕。</p>
+          </div>
+          <Link className="button secondary" to="/practice/typing">开始打词 <ArrowRight size={15} /></Link>
+        </article>
+        <article>
+          <div>
             <p className="eyebrow">词汇</p>
             <h3>记下生词，间隔复习</h3>
             <p>对话里遇到的词随手记，系统安排复习。</p>

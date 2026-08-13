@@ -2083,6 +2083,22 @@ def create_app(
             limit=limit,
         )
 
+    @app.get("/api/v1/vocabulary/seed", dependencies=[Depends(require_session)])
+    def vocabulary_seed(
+        level: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=3000),
+    ) -> dict[str, Any]:
+        """Bundled public-domain starter words for typing practice and cold start."""
+        from ..seed_words import load_seed_words, seed_metadata
+
+        words = load_seed_words()
+        if level:
+            words = [item for item in words if item.get("yanxi_level") == level]
+        return {
+            "meta": seed_metadata(),
+            "words": words[:limit],
+        }
+
     @app.get("/api/v1/vocabulary/due", dependencies=[Depends(require_session)])
     def vocabulary_due(
         track_id: str = Query("general-english"),

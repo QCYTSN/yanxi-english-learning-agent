@@ -19,6 +19,7 @@ const ReadingWorkspace = lazy(() => import('./pages/ReadingWorkspace').then((mod
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
 const SpeakingWorkspace = lazy(() => import('./pages/SpeakingWorkspace').then((module) => ({ default: module.SpeakingWorkspace })))
 const StudyThreadPage = lazy(() => import('./pages/StudyThreadPage').then((module) => ({ default: module.StudyThreadPage })))
+const TypingPracticePage = lazy(() => import('./pages/TypingPracticePage').then((module) => ({ default: module.TypingPracticePage })))
 const VocabularyPage = lazy(() => import('./pages/VocabularyPage').then((module) => ({ default: module.VocabularyPage })))
 const TodayPage = lazy(() => import('./pages/TodayPage').then((module) => ({ default: module.TodayPage })))
 const WritingWorkspace = lazy(() => import('./pages/WritingWorkspace').then((module) => ({ default: module.WritingWorkspace })))
@@ -56,6 +57,7 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
           <Routes>
             <Route path="/today" element={<TodayPage bootstrap={bootstrap.data} />} />
             <Route path="/practice" element={<PracticePage />} />
+            <Route path="/practice/typing" element={<TypingPracticePage />} />
             <Route path="/practice/writing/:sessionId" element={<WritingWorkspace />} />
             <Route path="/practice/reading/:sessionId" element={<ReadingWorkspace />} />
             <Route path="/practice/listening" element={<ListeningWorkspace />} />
