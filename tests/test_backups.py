@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from ielts_coach.backups import create_backup, list_backups, restore_backup, verify_backup
+from ielts_coach.backups import backup_download_path, create_backup, list_backups, restore_backup, verify_backup
 from ielts_coach.init_home import initialise_home
 
 
@@ -74,3 +74,52 @@ def test_backup_manifest_does_not_include_runtime_exports_or_prior_backups(tmp_p
         manifest = json.loads(archive.read("manifest.json"))
     assert manifest["backup_format_version"] == 1
     assert manifest["backup_id"] == created["backup_id"]
+
+
+def test_backup_download_path_resolves_stored_id(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    created = create_backup(home)
+    path = backup_download_path(home, created["backup_id"])
+    assert path == Path(created["path"])
+    assert path.is_file()
+    with pytest.raises(ValueError, match="stored backup ID only"):
+        backup_download_path(home, "/etc/passwd")
+
+
+def test_wipe_learner_data_keeps_settings_and_removes_progress(tmp_path: Path):
+    from ielts_coach.data_lifecycle import wipe_learner_data
+    from ielts_coach.storage import connect
+
+    home = tmp_path / "home"
+    initialise_home(home)
+    settings = home / "config" / "settings.yaml"
+    settings.write_text("model: kept\n", encoding="utf-8")
+    (home / "story-bank" / "note.txt").write_text("learner content", encoding="utf-8")
+    (home / "media" / "audio.mp3").write_text("fake audio", encoding="utf-8")
+    with connect(home) as conn:
+        conn.execute(
+            "INSERT INTO vocabulary_items (item_id,word,status,track_id,source_type,created_at,updated_at)"
+            " VALUES ('v1','sunshine','learning','general-english','learner_input',datetime('now'),datetime('now'))"
+        )
+
+    with pytest.raises(ValueError, match="explicit confirmation"):
+        wipe_learner_data(home)
+
+    result = wipe_learner_data(home, confirmed=True)
+    assert result["wiped"] is True
+    assert "database" in result["removed"]
+    assert "story-bank" in result["removed"]
+    assert "media" in result["removed"]
+
+    # Settings survive; learner data is gone; DB is recreated empty.
+    assert settings.read_text(encoding="utf-8") == "model: kept\n"
+    assert not (home / "story-bank").exists()
+    assert not (home / "media").exists()
+    with connect(home) as conn:
+        count = conn.execute("SELECT COUNT(*) FROM vocabulary_items").fetchone()[0]
+        assert count == 0
+        session_rows = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        assert session_rows == 0
+    # Learning profile is reset with the rest of the data.
+    assert not (home / "config" / "profile.yaml").exists()

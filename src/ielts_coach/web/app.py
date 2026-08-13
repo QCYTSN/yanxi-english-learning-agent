@@ -43,7 +43,7 @@ from ..capability_evaluation import (
     provider_reliability_report,
 )
 from ..allocation import recommend_allocation
-from ..backups import create_backup, list_backups, restore_backup, verify_backup
+from ..backups import backup_download_path, create_backup, list_backups, restore_backup, verify_backup
 from ..config import load_profile
 from ..conformance import standard_profile
 from ..content_imports import (
@@ -69,7 +69,7 @@ from ..content_imports import (
     update_import_review_segment,
 )
 from ..content_audio import read_audio_review, update_audio_review
-from ..data_lifecycle import cleanup_deleted_thread_storage
+from ..data_lifecycle import cleanup_deleted_thread_storage, wipe_learner_data
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
 from ..execution_profiles import update_execution_profile
 from ..model_providers import (
@@ -967,6 +967,19 @@ def create_app(
             confirmed=payload.confirmed,
             allow_external_path=False,
         )
+
+    @app.get("/api/v1/backups/{backup_id}/download", dependencies=[Depends(require_session)])
+    def backup_download_endpoint(backup_id: str) -> FileResponse:
+        path = backup_download_path(target, backup_id)
+        return FileResponse(
+            path,
+            media_type="application/zip",
+            filename=path.name,
+        )
+
+    @app.post("/api/v1/data/wipe", dependencies=[Depends(require_session)])
+    def data_wipe_endpoint(payload: BackupRestore) -> dict[str, Any]:
+        return wipe_learner_data(target, confirmed=payload.confirmed)
 
     @app.get("/api/v1/content/imports", dependencies=[Depends(require_session)])
     def content_imports_endpoint(limit: int = Query(100, ge=1, le=500)) -> list[dict[str, Any]]:

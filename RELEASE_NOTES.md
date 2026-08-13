@@ -14,7 +14,16 @@
 - listening-first practice (听言) using the browser's local system speech —
   no cloud TTS;
 - typing misses feed learner memory (`spelling_weakness`), so later
-  conversations proactively explain words you struggle to spell.
+  conversations proactively explain words you struggle to spell;
+- typing misses also schedule a one-day review and drop words marked
+  mastered/known back into the learning queue, closing the mistake→review
+  loop;
+- Settings gains backup download (one click, full learning-data zip) and a
+  double-confirmed "wipe all learning data" action that keeps model
+  connections and existing backups;
+- listening practice shows a friendly empty state when the local bank has
+  no material (public installs start empty);
+- the bundled starter-100 word list now ships inside the install package.
 
 ### Brand
 
@@ -22,7 +31,22 @@
   (logo glyphs and GB2312 heading set, OFL-1.1);
 - tagline 不言之教，自成其蹊; CEFR self-assessment on first use;
 - speaking practice becomes a two-step flow with a recording placeholder
-  that survives tab switches.
+  that survives tab switches;
+- README logo, in-app sidebar seal and desktop icon all render from the
+  same KaiTi-based seal design.
+
+### Upgrading from v1.4
+
+- Install the new version over v1.4 — the runtime auto-migrates the
+  database (backward-compatible with V0.1 data) and keeps a pre-migration
+  snapshot under `home/backups` before touching anything.
+- Run `ielts-coach doctor` afterwards to confirm schema, skills and
+  question-bank state.
+- Learning data lives under `%LOCALAPPDATA%\Yanxi\data` (Windows) and
+  survives both upgrades and uninstalls; model connections in
+  `settings.yaml` are preserved too.
+- Desktop shortcut: `ielts-coach ui shortcut-install` refreshes it; Inno
+  Setup uninstall now removes the shortcut as well.
 
 # 言蹊 (Yanxi) v1.4.0
 

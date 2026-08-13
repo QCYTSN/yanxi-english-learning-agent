@@ -49,6 +49,9 @@ def verify_wheel(wheel: Path) -> None:
     ]
     if forbidden:
         raise SystemExit("Question-bank files leaked into the wheel:\n" + "\n".join(forbidden))
+    seed = "ielts_coach/resources/words/yanxi-starter-100.json"
+    if seed not in names:
+        raise SystemExit(f"Bundled starter-100 word list missing from the wheel: {seed}")
 
 
 def verify_empty_home() -> None:

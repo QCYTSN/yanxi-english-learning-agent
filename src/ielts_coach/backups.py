@@ -133,6 +133,11 @@ def list_backups(home: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def backup_download_path(home: Path, backup_id: str) -> Path:
+    """Resolve a stored backup ID to its zip file, for HTTP download."""
+    return _resolve_backup(home, backup_id, allow_external_path=False)
+
+
 def verify_backup(
     home: Path,
     backup: str | Path,

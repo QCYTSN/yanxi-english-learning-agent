@@ -17,6 +17,7 @@ import {
   Save,
   ServerCog,
   ShieldCheck,
+  Trash2,
   UserRound,
 } from 'lucide-react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
@@ -199,8 +200,20 @@ function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
     }),
     onSuccess: () => queryClient.invalidateQueries(),
   })
+  const download = useMutation({
+    mutationFn: (backupId: string) => downloadApi(`/api/v1/backups/${backupId}/download`),
+  })
+  const wipe = useMutation({
+    mutationFn: () => api('/api/v1/data/wipe', { method: 'POST', body: jsonBody({ confirmed: true }) }),
+    onSuccess: () => window.location.reload(),
+  })
   function confirmRestore(backupId: string) {
     if (window.confirm('恢复会替换当前学习数据；系统会先自动创建安全备份。是否继续？')) restore.mutate(backupId)
+  }
+  function confirmWipe() {
+    if (!window.confirm('将删除本机全部学习数据（对话、词汇、进度、素材、报告）。模型连接设置和已有备份会保留。此操作不可撤销。')) return
+    if (!window.confirm('再次确认：真的要清除全部学习数据吗？')) return
+    wipe.mutate()
   }
   return (
     <div className="settings-detail-stack">
@@ -226,6 +239,7 @@ function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
                 <StatusBadge tone={backup.status === 'available' ? 'success' : 'warning'}>{backup.status === 'available' ? '可用' : '无效'}</StatusBadge>
                 {backup.status === 'available' && <>
                   <button className="button ghost" onClick={() => verify.mutate(backup.backup_id)}><CheckCircle2 size={15} />校验</button>
+                  <button className="button ghost" onClick={() => download.mutate(backup.backup_id)} disabled={download.isPending}><Download size={15} />下载</button>
                   <button className="button ghost" onClick={() => confirmRestore(backup.backup_id)}><RotateCcw size={15} />恢复</button>
                 </>}
               </div>
@@ -235,7 +249,12 @@ function DataSection({ bootstrap }: { bootstrap: Bootstrap }) {
         </div>
         {(backups.data?.length ?? 0) > 6 && <button className="button ghost backup-list-toggle" type="button" onClick={() => setShowAllBackups((value) => !value)}>{showAllBackups ? '收起旧备份' : `查看全部 ${backups.data?.length ?? 0} 个备份`}</button>}
       </section>
-      {(create.error || verify.error || restore.error || backups.error) && <ErrorState error={create.error ?? verify.error ?? restore.error ?? backups.error} />}
+      <section className="settings-panel">
+        <div className="section-heading"><div><h2>清除全部学习数据</h2><p>删除对话、词汇、进度、素材和报告，重新开始。模型连接设置与已有备份保留。</p></div><Trash2 size={20} /></div>
+        <button className="button danger" onClick={confirmWipe} disabled={wipe.isPending}>{wipe.isPending ? '正在清除…' : '清除全部学习数据'}</button>
+        {wipe.error && <ErrorState error={wipe.error} />}
+      </section>
+      {(create.error || verify.error || restore.error || backups.error || download.error) && <ErrorState error={create.error ?? verify.error ?? restore.error ?? backups.error ?? download.error} />}
     </div>
   )
 }

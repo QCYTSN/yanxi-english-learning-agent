@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -271,3 +272,37 @@ def test_typing_mistake_writes_learner_memory(tmp_path: Path) -> None:
         item["memory_type"] == "spelling_weakness"
         for item in context["learner_memories"]
     )
+
+
+def test_typing_mistake_schedules_review_and_downgrades_mastered(tmp_path: Path) -> None:
+    from ielts_coach.storage import connect
+    from ielts_coach.vocabulary import (
+        add_vocabulary_item,
+        due_vocabulary_reviews,
+        record_typing_mistake,
+        set_vocabulary_status,
+    )
+
+    home = tmp_path / "home"
+    item = add_vocabulary_item(home, word="accommodation", meaning="住宿")
+    set_vocabulary_status(home, item["item_id"], status="mastered")
+
+    # A miss on a mastered word drops it back to learning and schedules
+    # a short review, so the due-review surface picks it up again.
+    record_typing_mistake(home, "accommodation")
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT status, next_review_at, review_count FROM vocabulary_items WHERE word=?",
+            ("accommodation",),
+        ).fetchone()
+    assert row["status"] == "learning"
+    assert row["next_review_at"] is not None
+    assert row["review_count"] == 1
+
+    # Not due yet: the mistake schedules review for tomorrow.
+    assert due_vocabulary_reviews(home, track_id="general-english") == []
+    tomorrow = (
+        datetime.now(timezone.utc) + timedelta(days=1, hours=1)
+    ).isoformat()
+    due = due_vocabulary_reviews(home, track_id="general-english", now=tomorrow)
+    assert any(item["word"] == "accommodation" for item in due)

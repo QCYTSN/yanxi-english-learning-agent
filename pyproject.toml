@@ -46,7 +46,8 @@ include-package-data = false
 "ielts_coach.resources" = [
   "assets/*",
   "evaluations/*.json",
-  "schemas/*.json"
+  "schemas/*.json",
+  "words/*.json"
 ]
 "ielts_coach.web" = [
   "static/index.html",

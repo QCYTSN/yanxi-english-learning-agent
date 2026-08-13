@@ -292,3 +292,40 @@ def test_media_registry_and_mock_agent_round_trip(tmp_path: Path):
     content = client.get(f"/api/v1/media/{media.json()['media_id']}/content")
     assert content.status_code == 200
     assert content.headers["content-type"] == "image/png"
+
+
+def test_backup_download_and_data_wipe_endpoints(tmp_path: Path) -> None:
+    from ielts_coach.storage import connect
+
+    home = tmp_path / "home"
+    initialise_home(home)
+    client = _client(home)
+    _authenticate(client)
+
+    with connect(home) as conn:
+        conn.execute(
+            "INSERT INTO vocabulary_items (item_id,word,status,track_id,source_type,created_at,updated_at)"
+            " VALUES ('v1','sunshine','learning','general-english','learner_input',datetime('now'),datetime('now'))"
+        )
+    created = client.post("/api/v1/backups").json()
+    assert created["database_integrity"] == "ok"
+
+    # The stored backup can be downloaded as a zip.
+    response = client.get(f"/api/v1/backups/{created['backup_id']}/download")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert response.content[:2] == b"PK"
+
+    # Wipe refuses without confirmation, then clears the data.
+    refused = client.post("/api/v1/data/wipe", json={"confirmed": False})
+    assert refused.status_code == 422
+    wiped = client.post("/api/v1/data/wipe", json={"confirmed": True})
+    assert wiped.status_code == 200
+    assert wiped.json()["wiped"] is True
+    with connect(home) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM vocabulary_items").fetchone()[0] == 0
+
+    # The fresh home shows the onboarding state again.
+    boot = client.get("/api/v1/bootstrap").json()
+    assert boot["setup_required"] is True
+    assert boot["profile"] is None

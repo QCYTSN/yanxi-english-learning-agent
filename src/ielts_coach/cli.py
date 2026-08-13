@@ -402,7 +402,7 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
         "settings.yaml": (target / "config" / "settings.yaml").exists(),
         "SQLite database": db_path(target).exists(),
         "question bank directory": (target / "corpus").exists(),
-        "seven source skills": all((root / "skills-source" / skill / "SKILL.md").exists() for skill in SKILLS),
+        f"source skills ({len(SKILLS)} present)": all((root / "skills-source" / skill / "SKILL.md").exists() for skill in SKILLS),
         "Claude skills synced": skills_are_synced(root, TARGETS[0]),
         "Codex skills synced": skills_are_synced(root, TARGETS[1]),
         "OpenCode skills synced": skills_are_synced(root, TARGETS[2]),

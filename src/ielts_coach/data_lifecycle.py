@@ -238,3 +238,46 @@ def _remove_empty_media_directories(home: Path) -> None:
                 path.rmdir()
             except OSError:
                 pass
+
+
+def wipe_learner_data(home: Path, *, confirmed: bool = False) -> dict[str, Any]:
+    """Delete every learner-generated record while keeping app configuration.
+
+    Removes the SQLite database, all managed study/content roots, and the
+    learning profile. Keeps ``config/settings.yaml`` (model connections) and
+    any existing backups. The database is recreated empty, so the next launch
+    re-enters onboarding instead of showing stale progress.
+    """
+    if not confirmed:
+        raise ValueError("Wiping all learner data requires explicit confirmation")
+    home = home.resolve()
+    removed: list[str] = []
+
+    database_dir = home / "database"
+    if database_dir.is_dir():
+        shutil.rmtree(database_dir)
+        removed.append("database")
+
+    from .backups import MANAGED_ROOTS
+
+    for root in MANAGED_ROOTS:
+        if root == "config":
+            continue
+        target = (home / root).resolve()
+        if target.parent != home or home not in target.parents:
+            raise ValueError(f"Managed data path escapes IELTS_HOME: {root}")
+        if target.is_symlink():
+            target.unlink()
+            removed.append(root)
+        elif target.is_dir():
+            shutil.rmtree(target)
+            removed.append(root)
+
+    profile_path = home / "config" / "profile.yaml"
+    if profile_path.is_file():
+        profile_path.unlink()
+        removed.append("config/profile.yaml")
+
+    initialise_database(home)
+    invalidate_storage_usage(home)
+    return {"wiped": True, "removed": removed}

@@ -352,6 +352,10 @@ def record_typing_mistake(
     stable memory key per word: re-ingestion refreshes the same memory instead
     of duplicating it. The tutor context already surfaces active learner
     memories, so the next conversation can explain the word proactively.
+
+    It also closes the practice loop: the word gets a short review due in one
+    day, and a word marked mastered/known that is misspelled drops back to
+    ``learning`` so the due-review query will pick it up again.
     """
     from .storage import create_learner_memory
 
@@ -369,14 +373,22 @@ def record_typing_mistake(
         source_kind="runtime_observation",
         track_id=track_id,
     )
+    now = _now()
+    review_at = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     with connect(home) as conn:
         conn.execute(
             """
             UPDATE vocabulary_items
-            SET review_count=review_count+1, updated_at=?
+            SET review_count=review_count+1,
+                next_review_at=?,
+                status=CASE
+                    WHEN status IN ('mastered','known') THEN 'learning'
+                    ELSE status
+                END,
+                updated_at=?
             WHERE track_id=? AND word=?
             """,
-            (_now(), track_id, word),
+            (review_at, now, track_id, word),
         )
     return {
         "memory_id": memory["memory_id"],

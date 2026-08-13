@@ -50,6 +50,9 @@ Filename: "{app}\{#MyAppExeName}"; Description: "启动 {#MyAppName}"; Flags: no
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--stop"; RunOnceId: "StopIELTSStudyDesk"; Flags: runhidden waituntilterminated skipifdoesntexist
 
 [UninstallDelete]
+; The CLI `ui shortcut-install` shortcut is created with WScript.Shell, so
+; Inno does not track it — remove it explicitly on uninstall.
+Type: files; Name: "{userdesktop}\言蹊.lnk"
 Type: filesandordirs; Name: "{app}"
 
 ; User questions, sessions, credentials and imported media are deliberately

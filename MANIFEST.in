@@ -5,6 +5,7 @@ include THIRD_PARTY_NOTICES.md
 recursive-include skills-source *.md *.json
 recursive-include src/ielts_coach/resources/assets *
 recursive-include src/ielts_coach/resources/schemas *.json
+recursive-include src/ielts_coach/resources/words *.json
 recursive-include src/ielts_coach/web/static *
 prune src/ielts_coach/resources/starter-corpus
 prune src/ielts_coach/resources/original-mocks
