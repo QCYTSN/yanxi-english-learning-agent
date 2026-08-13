@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Keyboard, RotateCcw } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, type VocabularyItem } from '../api/client'
+import { api, jsonBody, type VocabularyItem } from '../api/client'
 import { ErrorState, LoadingState, PageHeader } from '../components/Common'
 
 type SeedResponse = {
@@ -50,6 +50,12 @@ export function TypingPracticePage() {
   const [input, setInput] = useState('')
   const [mistakes, setMistakes] = useState(0)
   const [done, setDone] = useState(false)
+  const reportMistake = useMutation({
+    mutationFn: (word: string) => api('/api/v1/vocabulary/typing-mistake', {
+      method: 'POST',
+      body: jsonBody({ word }),
+    }),
+  })
 
   function startSession() {
     if (pool.length === 0) return
@@ -70,12 +76,14 @@ export function TypingPracticePage() {
     const target = current.word
     if (value.length > target.length) {
       setMistakes((count) => count + 1)
+      reportMistake.mutate(target)
       setInput('')
       return
     }
     const isTypo = !target.startsWith(value)
     if (isTypo) {
       setMistakes((count) => count + 1)
+      reportMistake.mutate(target)
       setInput('')
     } else if (value === target) {
       setDone(true)

@@ -22,6 +22,7 @@ from ..vocabulary import (
     due_vocabulary_reviews,
     list_recent_ingests,
     list_vocabulary_items,
+    record_typing_mistake,
     schedule_vocabulary_review,
     set_vocabulary_status,
     undo_vocabulary_ingest,
@@ -2147,6 +2148,15 @@ def create_app(
     def vocabulary_ingest_undo(item_id: str) -> dict[str, Any]:
         """Remove one still-unconfirmed word the tutor auto-ingested."""
         return undo_vocabulary_ingest(target, item_id)
+
+    @app.post("/api/v1/vocabulary/typing-mistake", dependencies=[Depends(require_session)])
+    def vocabulary_typing_mistake(payload: dict[str, Any]) -> dict[str, Any]:
+        """Feed a typing miss into learner memory so dialogue can reuse it."""
+        word = str(payload.get("word") or "")
+        track_id = str(payload.get("track_id") or "general-english")
+        if not word:
+            raise ValueError("A typing mistake needs a word")
+        return record_typing_mistake(target, word, track_id=track_id)
 
     @app.get("/api/v1/learning-objectives", dependencies=[Depends(require_session)])
     def learning_objectives(

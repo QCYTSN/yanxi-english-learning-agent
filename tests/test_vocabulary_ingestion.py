@@ -232,3 +232,42 @@ def test_seed_words_bundle_is_public_domain_starter_100() -> None:
     assert pool == ["the", "of", "and", "to", "a"]
     assert seed_words_pool(limit=3, exclude={"the", "of", "and"}) == ["to", "a", "in"]
     assert len(seed_words_pool()) == 100
+
+
+def test_typing_mistake_writes_learner_memory(tmp_path: Path) -> None:
+    from ielts_coach.storage import list_learner_memories
+    from ielts_coach.vocabulary import record_typing_mistake
+
+    home = tmp_path / "home"
+    result = record_typing_mistake(home, "accommodation")
+    assert result["recorded"] is True
+    memories = list_learner_memories(
+        home,
+        memory_type="spelling_weakness",
+        track_id="general-english",
+    )
+    assert len(memories) == 1
+    assert memories[0]["memory_key"] == "typing:accommodation"
+    assert "accommodation" in memories[0]["statement"]
+
+    # Re-recording the same word refreshes the same memory, not a duplicate.
+    record_typing_mistake(home, "accommodation")
+    memories = list_learner_memories(
+        home,
+        memory_type="spelling_weakness",
+        track_id="general-english",
+    )
+    assert len(memories) == 1
+
+    # The memory is visible to the tutor context pipeline.
+    from ielts_coach.tutor_orchestrator import TutorOrchestrator
+
+    orchestrator = TutorOrchestrator(home)
+    context = orchestrator.initial_context(
+        "hello",
+        thread_id=_create_thread(home),
+    )
+    assert any(
+        item["memory_type"] == "spelling_weakness"
+        for item in context["learner_memories"]
+    )

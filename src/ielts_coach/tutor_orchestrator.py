@@ -595,6 +595,8 @@ class TutorOrchestrator:
         conversation_length: int = 0,
     ) -> dict[str, Any]:
         state = get_thread_learning_state(self.home, thread_id)
+        thread = get_study_thread_overview(self.home, thread_id)
+        thread_track = str(thread.get("track_id") or "ielts-academic")
         memories = [
             {
                 "memory_id": item["memory_id"],
@@ -607,6 +609,7 @@ class TutorOrchestrator:
             }
             for item in list_learner_memories(
                 self.home,
+                track_id=thread_track,
                 limit=6,
                 touch_access=True,
             )

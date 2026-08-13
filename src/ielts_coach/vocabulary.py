@@ -340,6 +340,51 @@ def undo_vocabulary_ingest(
     return {"item_id": item_id, "removed": True}
 
 
+def record_typing_mistake(
+    home: Path,
+    word: str,
+    *,
+    track_id: str = "general-english",
+) -> dict[str, Any]:
+    """Feed a typing miss into the learner's memory so dialogue can reuse it.
+
+    The mistake is stored as a ``spelling_weakness`` learner memory with a
+    stable memory key per word: re-ingestion refreshes the same memory instead
+    of duplicating it. The tutor context already surfaces active learner
+    memories, so the next conversation can explain the word proactively.
+    """
+    from .storage import create_learner_memory
+
+    word = str(word or "").strip().casefold()
+    if not word:
+        raise ValueError("A typing mistake needs a word")
+    initialise_database(home)
+    memory = create_learner_memory(
+        home,
+        memory_type="spelling_weakness",
+        memory_key=f"typing:{word}",
+        statement=f"Learner often misspells \"{word}\" while typing practice.",
+        confidence=0.7,
+        scope="learning_history",
+        source_kind="runtime_observation",
+        track_id=track_id,
+    )
+    with connect(home) as conn:
+        conn.execute(
+            """
+            UPDATE vocabulary_items
+            SET review_count=review_count+1, updated_at=?
+            WHERE track_id=? AND word=?
+            """,
+            (_now(), track_id, word),
+        )
+    return {
+        "memory_id": memory["memory_id"],
+        "word": word,
+        "recorded": True,
+    }
+
+
 def _row(row: Any) -> dict[str, Any]:
     return {
         "item_id": row["item_id"],
