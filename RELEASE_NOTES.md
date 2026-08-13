@@ -1,3 +1,29 @@
+# 言蹊 (Yanxi) v1.5.0 (unreleased)
+
+## Vocabulary loop and practice entries
+
+### Added
+
+- dialogue word auto-ingestion: words the tutor explains in conversation
+  become confirmable candidates with undo and already-known dedup;
+- bundled public-domain starter-100 word list (General Service List, West
+  1953) with 言蹊 self-assessed A1 band; word forms only, no definitions;
+- first-class typing practice with 成蹊 feedback (vermilion seal on correct
+  words, ink-trace retry on typos), word pool from your words plus the
+  starter list;
+- listening-first practice (听言) using the browser's local system speech —
+  no cloud TTS;
+- typing misses feed learner memory (`spelling_weakness`), so later
+  conversations proactively explain words you struggle to spell.
+
+### Brand
+
+- 言蹊 diagonal calligraphy wordmark with LXGW WenKai subsets bundled
+  (logo glyphs and GB2312 heading set, OFL-1.1);
+- tagline 不言之教，自成其蹊; CEFR self-assessment on first use;
+- speaking practice becomes a two-step flow with a recording placeholder
+  that survives tab switches.
+
 # 言蹊 (Yanxi) v1.4.0
 
 ## Public desktop release boundary

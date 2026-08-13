@@ -1,6 +1,6 @@
 ---
 name: 言蹊 (Yanxi)
-description: A calm, evidence-led academic reading room for focused IELTS practice.
+description: A calm, evidence-led reading room for focused English learning.
 colors:
   paper: "#FBFCFA"
   surface: "#FFFFFF"
@@ -124,7 +124,7 @@ components:
 
 言蹊 (Yanxi) should feel like a quiet place where serious learning becomes easier to begin: editorial enough to invite reading, structured enough to support a learning path, and restrained enough that the learner's passage, answer, essay, or conversation remains the dominant object. The product is not a generic AI chat shell and not a school administration dashboard. It is an English teacher's desk expressed as a local desktop application.
 
-The visual system combines a paper-like neutral field, measured typography, one-pixel rules, and sparse semantic color. It may learn from DeepTutor's calm proportions, generous reading widths, and state-dependent chat composition, but it must retain its own IELTS identity, evidence-led teaching language, four-module workflows, and local-first trust model. No visual resource may require a network request at runtime.
+The visual system combines a paper-like neutral field, measured typography, one-pixel rules, and sparse semantic color. It may learn from DeepTutor's calm proportions, generous reading widths, and state-dependent chat composition, but it must retain its own 言蹊 identity, evidence-led teaching language, six-dimension General English workflows (plus the optional IELTS Academic track), and local-first trust model. No visual resource may require a network request at runtime.
 
 Most screens are in **Operate** mode: compact controls, clear hierarchy, and predictable task state. Reading passages, feedback, and teacher responses enter **Read** mode: wider line-height, fewer borders, and longer uninterrupted text. The dialogue surface is a hybrid: the composer is operational; the teacher response is editorial.
 
@@ -154,7 +154,7 @@ The palette is an ink-and-paper system with two deliberately different accents: 
 ### Tertiary
 
 - **Review Amber:** use for learner attention, incomplete evidence, review priorities, and limitations.
-- **Correction Red:** use only for destructive actions, failed validation, and errors that block continuation. Do not use red for ordinary IELTS mistakes.
+- **Correction Red:** use only for destructive actions, failed validation, and errors that block continuation. Do not use red for ordinary learning mistakes.
 
 ### Neutral
 
@@ -296,7 +296,7 @@ Borders are one pixel and neutral. Active navigation may combine a subtle surfac
 
 ### Study Launcher
 
-The Today launcher has one display greeting, one calm sentence, and one composer. The attachment affordance is an icon button with an accessible label; long file-type helper text appears only on focus, hover, or after attachments are present. The four IELTS modules are compact entry points beneath the composer, not four promotional cards. One resumable task may appear below; repeated review queues do not dominate the first viewport.
+The Today launcher has one display greeting, one calm sentence, and one composer. The attachment affordance is an icon button with an accessible label; long file-type helper text appears only on focus, hover, or after attachments are present. The learning dimensions are compact entry points beneath the composer, not promotional cards. One resumable task may appear below; repeated review queues do not dominate the first viewport.
 
 ### Model Switcher
 
@@ -304,7 +304,7 @@ The model switcher is globally available because changing the teaching model is 
 
 ### Conversation
 
-Before the first message, the composer is centered as the primary invitation. After sending, the interface becomes a reading view: title in a compact header, messages on a constrained axis, and the composer anchored near the bottom. User messages are quiet right-aligned bubbles no wider than roughly 75%; assistant responses are borderless editorial blocks with generous paragraph spacing and a small `IELTS 教师` label.
+Before the first message, the composer is centered as the primary invitation. After sending, the interface becomes a reading view: title in a compact header, messages on a constrained axis, and the composer anchored near the bottom. User messages are quiet right-aligned bubbles no wider than roughly 75%; assistant responses are borderless editorial blocks with generous paragraph spacing and a small `言蹊 教师` label.
 
 Attachments belong to the message that introduced them. Show a collapsed `N 个材料` disclosure immediately below that message, with filenames inside when expanded. Do not maintain a permanent empty materials sidebar. Enter sends; Shift+Enter inserts a line break. Auto-scroll follows new output only while the learner is already near the bottom.
 
@@ -326,7 +326,7 @@ Loading states use reserved space, plain language, and a compact progress indica
 
 - **Do** make the learner's passage, question, essay, recording, or teacher answer the largest object on the page.
 - **Do** separate learning surfaces from Settings and advanced model or Agent configuration.
-- **Do** use meaningful titles and IELTS classifications instead of internal IDs, `full-mock`, or engineering status strings.
+- **Do** use meaningful titles and track/module classifications instead of internal IDs, `full-mock`, or engineering status strings.
 - **Do** preserve original question structure, answer constraints, passage formatting, and evidence anchors.
 - **Do** keep navigation, the active model, save state, and the next action visible without turning them into competing cards.
 - **Do** keep all fonts, icons, and visual assets offline-capable and test Windows first with full macOS and Linux usability.
@@ -340,4 +340,4 @@ Loading states use reserved space, plain language, and a compact progress indica
 - **Don't** wrap every paragraph, attachment, status, and action in its own rounded rectangle.
 - **Don't** expose raw runtime, schema, HTTP, OAuth, or CLI errors in the learning flow.
 - **Don't** auto-scroll a conversation after the learner has moved away from the bottom.
-- **Don't** let a visual redesign weaken IELTS answer integrity, active revision, speaking mock integrity, privacy consent, or Runtime validation.
+- **Don't** let a visual redesign weaken answer integrity, active revision, speaking mock integrity, privacy consent, or Runtime validation.

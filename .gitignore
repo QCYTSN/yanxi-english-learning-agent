@@ -21,6 +21,10 @@ frontend/playwright-report/
 installer-output/
 release-artifacts/
 
+# Agent workbench scratch (font experiments, session notes)
+.workbuddy/
+.impeccable/
+
 # User data and private corpora
 data/
 private-data/

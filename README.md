@@ -26,6 +26,11 @@ first optional exam Domain Pack with its own curriculum and band policies.
 - a conversation-first learning workspace with Today, Practice, Library,
   Progress and Settings surfaces;
 - persistent teacher conversations with image, PDF, Word and text attachments;
+- auto-ingested vocabulary: words the tutor explains in conversation become
+  confirmable candidates with undo and already-known dedup, feeding spaced
+  review;
+- first-class typing and listening practice (打词 / 听言) over your own words
+  plus a bundled public-domain starter-100 word list;
 - Reading, Writing, Speaking and Listening learning workflows plus vocabulary
   and grammar support;
 - local SQLite learning records, Sessions, Corpus and Media Registry;
@@ -33,10 +38,11 @@ first optional exam Domain Pack with its own curriculum and band policies.
 - bounded long-conversation context, indexed local history and resumable
   background OCR/content jobs;
 - versioned learner memory with expiry and explicit contradiction resolution;
+- typing misses feed learner memory so later conversations proactively
+  explain the words you struggle to spell;
 - Runtime-owned teaching cycles and privacy-safe teaching-policy regression;
 - learner-facing teaching paths, editable study goals, skill-evidence views and
   learner-controlled teacher memory;
-- optional external CLI Agents for advanced material workflows;
 - Windows desktop installer and Python package for technical users.
 
 ## What does not ship
@@ -54,23 +60,24 @@ ensures those fixtures do not enter the wheel or Windows installer.
 ```text
 Browser learning UI
         ↓
-Conversation Runtime ──> bounded Tutor Agent ──> allowlisted IELTS tools
+Conversation Runtime ──> bounded Tutor Agent ──> allowlisted Skill tools
         │
         └──────────────> Formal Teaching Runtime ──> Practice / Assessment
                                       │
-                         IELTS Academic Domain Pack
+                         General English (default) / IELTS Academic
                                       ↓
                    Learning Agent Kernel / authoritative local data
                                       ↓
                          SQLite / Session / Corpus / Media
 ```
 
-Model providers and external Agents are separate concepts:
+Model providers and the Teaching Runtime are separate concepts:
 
-- **Model Provider** supplies inference for core teaching workflows;
-- **External Agent** is an optional advanced tool for local material and
-  developer workflows;
-- **Teaching Runtime** owns IELTS rules, privacy, validation and persistence.
+- **Model Provider** supplies inference for core teaching workflows
+  (BYO OpenAI-compatible API, ChatGPT login bridge, or local HTTP model);
+- **Teaching Runtime** owns track rules, privacy, validation and persistence;
+- external CLI Agents are not teaching providers and are not part of the
+  main learning experience.
 
 See [Architecture V2](docs/ARCHITECTURE_V2.md) and the
 [Tutor Agent architecture](docs/TUTOR_AGENT_ARCHITECTURE.md). The reusable
@@ -82,8 +89,10 @@ learning-state boundary is defined in the
 The internal learning layer is deliberately narrower than a general autonomous
 Agent:
 
-- the IELTS Academic Domain Pack defines the four-module skill graph,
-  evidence mappings, assessment scale and teaching policies;
+- the General English track defines the six-dimension skill graph (listening,
+  reading, writing, speaking, vocabulary, grammar) with CEFR-aligned teaching
+  policies; IELTS Academic ships as an optional exam Domain Pack with its own
+  four-module graph, evidence mappings and band policies;
 - the Runtime derives objectives, activities, mastery evidence and review
   timing from validated learning records;
 - learner memory is local, revisioned, expirable and withheld from the Tutor
@@ -95,9 +104,10 @@ Agent:
 - release checks cover both structured-output contracts and positive/negative
   teaching-policy controls without retaining raw learner content.
 
-This architecture can support future English-learning tracks, but the public
-product currently exposes only IELTS Academic. New tracks require their own
-curriculum, Skills, contracts and evaluation set.
+This architecture can support future English-learning tracks. The default
+track is General English; IELTS Academic is the first optional exam Domain
+Pack. New tracks require their own curriculum, Skills, contracts and
+evaluation set.
 
 ## Install on Windows
 
@@ -141,20 +151,17 @@ Install a developer desktop shortcut:
 ielts-coach ui shortcut-install
 ```
 
-The shortcut starts or reuses the local service and opens the browser UI. It
-does not require Claude Code, OpenCode or Codex to already be running.
+The shortcut starts or reuses the local service and opens the browser UI.
 
 ## Model connections
 
-Core deterministic functions do not require a model. For teacher dialogue,
-Writing feedback and evidence-based explanations, configure one of:
+Core deterministic functions (typing, listening, wordlist, review scheduling)
+do not require a model. For teacher dialogue, Writing feedback and
+evidence-based explanations, configure one of:
 
-1. ChatGPT login through the isolated managed runtime;
-2. an OpenAI-compatible API;
+1. an OpenAI-compatible API (BYO key, any vendor and model);
+2. ChatGPT login through the isolated managed runtime;
 3. a local OpenAI-compatible HTTP model.
-
-Claude Code, OpenCode and Codex CLI remain optional advanced integrations and
-are not required for the main learning experience.
 
 ## Development
 
