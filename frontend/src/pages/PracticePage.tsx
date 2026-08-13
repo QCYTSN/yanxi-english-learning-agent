@@ -116,6 +116,14 @@ export function PracticePage() {
         </article>
         <article>
           <div>
+            <p className="eyebrow">听言练习</p>
+            <h3>先听，再写出来</h3>
+            <p>系统语音读词你拼写；先让耳朵认识它，再让手指记住它。</p>
+          </div>
+          <Link className="button secondary" to="/practice/listen">开始听言 <ArrowRight size={15} /></Link>
+        </article>
+        <article>
+          <div>
             <p className="eyebrow">词汇</p>
             <h3>记下生词，间隔复习</h3>
             <p>对话里遇到的词随手记，系统安排复习。</p>

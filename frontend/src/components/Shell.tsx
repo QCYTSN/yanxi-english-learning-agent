@@ -27,6 +27,7 @@ const routeLabels = [
   ['/practice/listening', '听力工作区'],
   ['/practice/speaking', '口语工作区'],
   ['/practice/typing', '打字练习'],
+  ['/practice/listen', '听言练习'],
   ['/assessment', '完整模考'],
   ['/feedback', '反馈与修订'],
   ['/diagnostic', '能力摸底'],
