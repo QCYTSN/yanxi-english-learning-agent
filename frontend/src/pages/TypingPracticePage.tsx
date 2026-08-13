@@ -31,7 +31,7 @@ export function TypingPracticePage() {
   })
   const seed = useQuery({
     queryKey: ['vocabulary', 'seed'],
-    queryFn: () => api<SeedResponse>('/api/v1/vocabulary/seed?limit=100'),
+    queryFn: () => api<SeedResponse>('/api/v1/vocabulary/seed?limit=3000'),
   })
 
   const pool = useMemo<TypingWord[]>(() => {

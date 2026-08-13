@@ -28,3 +28,10 @@ Assessment, the British Council or IDP Education.
   (`src/ielts_coach/resources/words/yanxi-starter-100.json`). Word forms and
   言蹊 self-assessed level bands only; no definitions, examples or commercial
   dictionary content is included.
+- **言蹊高频词表 (Frequency 3000)** — word forms derived from the
+  FrequencyWords `en_50k` list by hermitdave
+  (https://github.com/hermitdave/FrequencyWords), MIT License, top-3000 by
+  corpus frequency with heuristic 言蹊 A1/A1-A2/B1 bands
+  (`src/ielts_coach/resources/words/yanxi-frequency-3000.json`). The list is
+  compiled from public subtitle and web corpora; word forms only, no
+  definitions or examples are included.

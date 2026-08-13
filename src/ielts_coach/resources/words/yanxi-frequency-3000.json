@@ -1,0 +1,12019 @@
+{
+ "seed_id": "yanxi-frequency-3000",
+ "title": "言蹊高频词表 · Frequency 3000",
+ "version": 1,
+ "language": "en",
+ "level_note": "言蹊自评分档参考（非剑桥 CEFR 标定）：A1 = 日常最高频词，A1-A2 = 高频基础词，B1 = 中级词。",
+ "source": {
+  "origin": "FrequencyWords en_50k (hermitdave, https://github.com/hermitdave/FrequencyWords), top-3000 by corpus frequency",
+  "rights": "MIT",
+  "note": "词形列表由字幕与网页公开语料整理，本文件不含释义、例句或商业词典内容。"
+ },
+ "bands": {
+  "100": "A1",
+  "1000": "A1-A2",
+  "3000": "B1"
+ },
+ "words": [
+  {
+   "word": "you",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "the",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "to",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "it",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "and",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "that",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "of",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "is",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "in",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "what",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "we",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "me",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "this",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "he",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "for",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "my",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "on",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "have",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "your",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "do",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "was",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "no",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "not",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "be",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "are",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "know",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "can",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "with",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "but",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "all",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "so",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "just",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "there",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "here",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "they",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "like",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "get",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "she",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "go",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "if",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "right",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "out",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "about",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "up",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "at",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "him",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "now",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "oh",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "one",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "come",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "well",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "her",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "how",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "yeah",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "will",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "got",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "want",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "think",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "as",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "see",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "did",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "good",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "who",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "why",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "from",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "let",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "his",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "yes",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "when",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "going",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "time",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "an",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "okay",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "back",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "look",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "us",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "would",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "them",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "where",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "were",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "take",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "then",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "had",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "or",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "been",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "our",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "gonna",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "tell",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "really",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "man",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "some",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "say",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "hey",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "could",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "didn",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "by",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "need",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "something",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "has",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "too",
+   "yanxi_level": "A1"
+  },
+  {
+   "word": "more",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "way",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "down",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "make",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "very",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "never",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "only",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "people",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "over",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "because",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "little",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "please",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "love",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "should",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mean",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "said",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sorry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "give",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "off",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "am",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thank",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "any",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "two",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "even",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "much",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "doing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sure",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "these",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "help",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "first",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "into",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anything",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "still",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "find",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "life",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "nothing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sir",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "day",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "god",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "work",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "their",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "uh",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "again",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "maybe",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "must",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "before",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "other",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wait",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stop",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "call",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "after",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "won",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "talk",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "away",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "than",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thought",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "home",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "night",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "put",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "great",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "those",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "last",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "better",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "everything",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "told",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "new",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "things",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "always",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "keep",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "long",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "years",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "leave",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "does",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "money",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "around",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "doesn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "name",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "place",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ever",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "feel",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "guys",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "father",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "guy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "made",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "old",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "isn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "which",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "big",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "done",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hello",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "nice",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "believe",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "girl",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "someone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fine",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thanks",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wanted",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kind",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "coming",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "house",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "every",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ok",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "through",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "being",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "course",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stay",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "left",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dad",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "enough",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "happened",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "came",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "may",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mother",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wrong",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "world",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bad",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "might",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "three",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "today",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "listen",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "another",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "understand",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "remember",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ask",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "own",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "same",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "show",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "else",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kill",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "talking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "found",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "next",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "getting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "care",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "car",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "looking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "son",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "try",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "woman",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "went",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hi",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dead",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "many",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mind",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wasn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "friend",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "best",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mom",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hell",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "morning",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "trying",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "boy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "together",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "yourself",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "job",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "saw",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "family",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "real",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "without",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "baby",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "room",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wouldn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "already",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "move",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "most",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seen",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "live",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "miss",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "actually",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "huh",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shit",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "both",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "heard",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "once",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ready",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "head",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "called",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "used",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "idea",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "knew",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hold",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "happy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "door",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "such",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fuck",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "brother",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "also",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pretty",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bit",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "took",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "haven",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "yet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "men",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "whole",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "start",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "use",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "while",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "since",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wife",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "days",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "guess",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tomorrow",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "matter",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "meet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bring",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tonight",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "everyone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "run",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wanna",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hard",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ah",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "alone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "myself",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "school",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "um",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "end",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "saying",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "phone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "play",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "looks",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "couldn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fucking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "problem",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "few",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "friends",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gotta",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ago",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "open",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anyone",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "killed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hope",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "face",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "until",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lost",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "police",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "excuse",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "turn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "business",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "case",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wants",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "says",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "true",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "die",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "heart",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "soon",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "each",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "worry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "later",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "year",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "watch",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "music",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hand",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "having",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "probably",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "beautiful",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "doctor",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sit",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "eat",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thinking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "young",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "second",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "working",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "water",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "person",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "part",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kids",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "late",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stuff",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "exactly",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "under",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "death",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "minute",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pay",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "crazy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "forget",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "everybody",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kid",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "change",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gave",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "happen",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "damn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "five",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "drink",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "far",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "knows",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "its",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "whatever",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "eyes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shut",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "aren",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hit",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "taking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "easy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "times",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "check",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hands",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "minutes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "deal",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "different",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "means",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "point",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "inside",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "makes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "asked",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "somebody",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mine",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "making",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "body",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "afraid",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sleep",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "chance",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "quite",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "four",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anyway",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "close",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "party",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fun",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "against",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "word",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "comes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "important",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "set",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shall",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "story",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "number",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "daughter",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "least",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "waiting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hurt",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wish",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "moment",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fight",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "week",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "husband",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "girls",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "rest",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "married",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fire",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "game",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "nobody",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mr",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "children",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "side",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stand",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "read",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "though",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cut",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "started",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sister",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "supposed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "between",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "child",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "goes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hours",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "speak",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "women",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "behind",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "almost",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "truth",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "blood",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "able",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lady",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anymore",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "playing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gets",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "reason",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "trouble",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "break",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "war",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "city",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "walk",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "town",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "trust",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "met",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "office",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "question",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "brought",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "yours",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "welcome",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "high",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wow",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "couple",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "half",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "died",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cool",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "free",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "either",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seems",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "power",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "whoa",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bye",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "buy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "telling",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "honey",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tried",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "front",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "team",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "answer",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gun",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "boys",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "line",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "send",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "news",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stupid",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hurry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "full",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "months",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "save",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sometimes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "become",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "along",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hate",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "food",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "outside",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "light",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "needs",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dog",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "country",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "clear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "order",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "em",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fact",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lord",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "captain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "six",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "funny",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "black",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "alive",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pick",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "feeling",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "living",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cause",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ahead",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lose",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "king",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "plan",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dinner",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sighs",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sort",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "leaving",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shouldn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "running",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "boss",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "alright",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "promise",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "taken",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "safe",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ma",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "book",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sent",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "white",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hour",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anybody",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "small",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "perfect",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lives",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "special",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "parents",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "john",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "himself",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "perhaps",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sounds",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "serious",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sick",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "company",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ha",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "scared",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "uncle",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "poor",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "red",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "past",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "earth",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "possible",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "shoot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "touch",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sound",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "top",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ass",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "laughs",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cannot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "asking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "win",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "glad",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "control",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hmm",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "human",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "drive",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hair",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "jack",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bitch",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "luck",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "murder",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "happens",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "air",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ten",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "daddy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "finally",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "chuckles",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fast",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cold",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seem",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "laughing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "words",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hospital",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "street",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hang",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dance",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "meeting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "till",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "others",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "catch",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "follow",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sense",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sex",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lie",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "evening",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "master",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "known",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dream",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "write",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "million",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "voice",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sweet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "rather",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "felt",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sign",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lucky",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "somewhere",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "jesus",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "longer",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "calling",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "worked",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "quiet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "looked",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "less",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pull",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "beat",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "careful",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "coffee",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "return",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "secret",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "weeks",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "weren",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "date",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seeing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fall",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "given",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ooh",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fault",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "straight",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "takes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "song",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "future",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gentlemen",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "loved",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "changed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "road",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "calm",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wonderful",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mad",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "turned",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "drop",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ladies",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "learn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "step",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "absolutely",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "early",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "explain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "clean",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "piece",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "yesterday",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "throw",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "picture",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "land",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "feet",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wonder",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "questions",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "speaking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "worth",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "darling",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dude",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "giving",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "president",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "eye",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "quick",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "moving",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "figure",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "state",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "strong",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sam",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "none",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "amazing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ones",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "works",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "act",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "needed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "weird",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "law",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "worried",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "report",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "goodbye",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "missing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "choice",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "happening",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "chief",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wedding",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "strange",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "general",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kidding",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "decided",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ya",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pass",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tired",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "class",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "officer",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kept",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wake",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "worse",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "busy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "eh",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mistake",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "kiss",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "court",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "building",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "finish",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "during",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "age",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ship",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "caught",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "marry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "meant",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sell",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dark",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "watching",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "system",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "suppose",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "evidence",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "movie",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ride",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "completely",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mouth",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "totally",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "birthday",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tv",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "forgive",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "born",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "imagine",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "information",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "instead",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "definitely",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "security",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "certainly",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "film",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "month",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lying",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "unless",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "train",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seven",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "clothes",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "michael",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hotel",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "christmas",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "attack",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hasn",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "round",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "expect",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "terrible",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "george",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bag",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "history",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "blue",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "near",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "broke",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "station",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seriously",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "forever",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "david",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "frank",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "except",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "thinks",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "message",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "entire",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "joe",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "table",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "talked",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "across",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "rock",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lovely",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "handle",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "middle",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "buddy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "paid",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "protect",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "using",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "floor",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ran",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "swear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "spend",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "situation",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ring",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "anywhere",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dangerous",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bill",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "york",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "army",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lead",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bought",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "finished",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fair",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sun",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "letter",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fool",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "attention",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "club",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "simple",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "interesting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "space",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "test",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "box",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "group",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "single",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sitting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "marriage",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "join",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fear",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "peace",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "forgot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "force",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "short",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "normal",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "charlie",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "present",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "enjoy",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mike",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "crime",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "horse",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ground",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "american",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "count",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "area",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "charge",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "honor",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lunch",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "miles",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "radio",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "idiot",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ball",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "surprise",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "paper",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "key",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "boat",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "quickly",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "gold",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bar",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fish",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mark",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tom",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wearing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "crying",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "accident",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "government",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "eight",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fell",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cover",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "certain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "interested",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "deep",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "star",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sea",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "agree",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "problems",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "detective",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "prison",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "major",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stick",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "offer",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "difficult",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "smart",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "personal",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "record",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "stopped",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hide",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "whether",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bank",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "trip",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "relax",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "america",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "public",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "list",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "afternoon",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "brain",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fix",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bastard",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "proud",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tea",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "service",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "screaming",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "forward",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "angry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "park",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "soul",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fighting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "peter",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "rich",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "agent",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "blow",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "paul",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dress",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mary",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "missed",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "scene",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "killing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "standing",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "saved",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mm",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "respect",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "killer",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ice",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mess",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "tough",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "feels",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "church",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sad",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cell",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "drunk",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "share",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "camera",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "within",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "card",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "fly",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "ben",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "girlfriend",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "laugh",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "smell",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "broken",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mum",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "honest",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "often",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "starting",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "calls",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "spent",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "third",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "english",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "visit",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "mama",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "judge",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "window",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "hungry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "dare",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "relationship",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "moved",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "prove",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "private",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "wall",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "seat",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "position",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lieutenant",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "realize",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lt",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "especially",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "machine",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "walking",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "art",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "pleasure",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "bloody",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "college",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "french",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "involved",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "became",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "lived",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "impossible",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "obviously",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "neither",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "accept",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "boyfriend",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "besides",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "queen",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "teacher",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "cops",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "sake",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "loves",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "carry",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "teach",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "apartment",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "upset",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "green",
+   "yanxi_level": "A1-A2"
+  },
+  {
+   "word": "la",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "liked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cute",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "evil",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "professor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "contact",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cop",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "huge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "holy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "store",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "likes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lawyer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doubt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "continue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "appreciate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shop",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "driving",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "congratulations",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wrote",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "village",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "quit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "field",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "james",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "decision",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "south",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sleeping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "slow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "laughter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "island",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "glass",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beginning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cash",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hundred",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "difference",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plane",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "push",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "continues",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mmm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "singing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eating",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "north",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mrs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tree",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "madam",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gift",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "truck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "putting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "board",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grab",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stuck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "magic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "support",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rules",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grunts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "partner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reach",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wind",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "colonel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "max",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "immediately",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "seconds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thousand",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gives",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "experience",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "victim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "upon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "computer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "christ",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "planet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "promised",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bus",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "henry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dirty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "search",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "staying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dreams",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arrest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "holding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suddenly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "usually",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lots",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shoes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "er",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jump",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rid",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knock",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "owe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "harry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "worst",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "river",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aunt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "patient",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kitchen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aah",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "passed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "final",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "summer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bob",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "listening",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "escape",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "everywhere",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "moon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arms",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "turns",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "address",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "match",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gasps",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grand",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yep",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nervous",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "de",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "choose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "themselves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "decide",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drinking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "press",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bother",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "foot",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hadn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blame",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crap",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drugs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "type",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rings",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mission",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "named",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heaven",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "picked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "paris",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "race",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "risk",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "books",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "further",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "danny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "action",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "allowed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "orders",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "learned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "price",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arrived",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "otherwise",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pictures",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "smoke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "favor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "played",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "notice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "awesome",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "smile",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "director",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guard",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "begin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spot",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "surprised",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "innocent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "narrator",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "herself",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "london",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "feelings",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "enemy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "battle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ourselves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alex",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dollars",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "allow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gay",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "department",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guilty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "apart",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "earlier",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "duty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bell",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "west",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "legs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hero",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "destroy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bunch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "according",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chicken",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bigger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grunting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "low",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "helping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "admit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "closed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "names",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "witness",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "upstairs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "steal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jimmy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "twice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cross",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ways",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sergeant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "indeed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "keeping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "energy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pregnant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "waste",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "helped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fired",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "favorite",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tony",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "taste",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "locked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "places",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "writing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "adam",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brothers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "starts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prince",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "form",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sold",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "silly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mention",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "build",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "throat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hole",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "figured",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "track",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ringing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lock",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leg",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "above",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hiding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "steve",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "seemed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breakfast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "engine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "written",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "complete",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "video",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "applause",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "however",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pressure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fresh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weapon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sky",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stole",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "study",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "burn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reading",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crowd",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "treat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "roll",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "double",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spirit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "danger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cost",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "empty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "level",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "memory",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "itself",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "acting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "interest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plans",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "following",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bathroom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "built",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "closer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ray",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sarah",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "band",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "groans",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "apparently",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "excited",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "richard",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "losing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "animals",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flight",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nature",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "raise",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pop",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "client",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bomb",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "neck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suspect",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "warm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "extra",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bottle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "van",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heavy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mommy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dogs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wild",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ridiculous",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "simply",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "animal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "showed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "billy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shooting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "keeps",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "camp",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guns",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "medical",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shame",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hoping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bird",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "majesty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flowers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "famous",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "asleep",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beauty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "driver",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "keys",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rain",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "awful",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "large",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "local",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "deserve",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "goddamn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stone",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jane",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grace",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "consider",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weekend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wondering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lay",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plenty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "willing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pants",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sweetheart",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "skin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "excellent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "asshole",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beach",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "faith",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beg",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fuckin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "responsible",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "military",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opportunity",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "common",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bottom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "german",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whoever",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cook",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "walked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "papers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "justice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hall",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "commander",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drug",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "main",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knife",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "devil",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "necessary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "although",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "princess",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lights",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knowing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clearly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "agreed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "johnny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "corner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "code",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "note",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tommy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "due",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "correct",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "apologize",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "language",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stars",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "faster",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cars",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "folks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bullshit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fellow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "several",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grandma",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shows",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leader",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leaves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "restaurant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "east",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shouting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blind",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ghost",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cup",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gotten",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tight",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "conversation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tells",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pulled",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hanging",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "speed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stories",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "health",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "advice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "held",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "murdered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beyond",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rule",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hardly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "possibly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "inspector",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cousin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trial",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "emergency",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ought",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eddie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "somehow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hearing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "states",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "account",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spoke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "file",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "understood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "angel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tape",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "milk",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "powerful",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weapons",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "practice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "manager",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pardon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vote",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "national",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "career",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "minister",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "super",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "taught",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "robert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "biggest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plays",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "natural",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dancing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "copy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plus",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "martin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "freedom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "among",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breath",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "operation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chris",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crew",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "challenge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "market",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "meat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "towards",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bringing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dropped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "student",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lied",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "strength",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "size",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breathe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "color",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "monster",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loud",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "photo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aw",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nearly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sight",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "greatest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "games",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bridge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dressed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arrested",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "horrible",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "coach",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "planning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "checked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breaking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "noticed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fantastic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "screams",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "serve",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ideas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "investigation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "center",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "older",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pack",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "soldiers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nonsense",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doc",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "project",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "training",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "example",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prepared",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "science",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "united",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "travel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "incredible",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grandpa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "paying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "character",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "teeth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "criminal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "charles",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chinese",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "truly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "honestly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bro",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "survive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bobby",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "target",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "feed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nurse",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "records",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breathing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sweetie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "numbers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "oil",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suicide",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "belong",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whoo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "perfectly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "amy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "forgotten",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "remain",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "original",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "papa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "onto",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "concerned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "credit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ugh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "invited",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "discuss",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "research",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "easier",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "view",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chair",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hurts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "strike",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "roger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fill",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "condition",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mountain",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dr",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nowhere",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sheriff",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "turning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "recognize",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heads",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "audience",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jealous",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pretend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "society",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "finding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shirt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "comfortable",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "meaning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pieces",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "letting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "began",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aye",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jeff",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "female",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "release",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ho",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cards",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pray",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unfortunately",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "balls",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "destroyed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ended",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "universe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prepare",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opinion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "movies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "soldier",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wash",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "program",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "usual",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ticket",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stolen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prefer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aware",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "surely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "male",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "base",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "matters",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lift",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lab",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "command",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "proof",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cream",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "selling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "believed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "create",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "afford",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sunday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "total",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dumb",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "threw",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "france",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "birth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "created",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "realized",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "british",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "noise",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nuts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "students",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "birds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "social",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brilliant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bodies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opened",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ours",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bucks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kevin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mister",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ugly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ryan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "focus",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opens",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "exist",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "followed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "england",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "draw",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "purpose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "letters",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "daniel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opening",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bullet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "anna",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lately",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stayed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "falling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "season",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ends",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suggest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "distance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "responsibility",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whenever",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "issue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thousands",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "process",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sword",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shower",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weak",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fucked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lonely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "happiness",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eric",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tiny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "desk",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pool",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "property",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "forced",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "settle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "indistinct",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weight",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "received",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gang",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bite",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "friday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disappeared",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "interview",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "expecting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kinda",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "surgery",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "horses",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mayor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "babe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ancient",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "handsome",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thomas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "saturday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "staff",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lines",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gentleman",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "introduce",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "split",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "recently",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "expected",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "add",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ordered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "slowly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alarm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "member",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "slept",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "signed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "enter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spanish",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "garden",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brings",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pig",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "model",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "finger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "medicine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "access",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "failed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "easily",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "discovered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "based",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "screw",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "insane",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cares",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "weather",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fingers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "san",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "scott",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "path",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "soft",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "harm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "style",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "community",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sees",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "basically",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "al",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "signal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nope",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spare",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "speech",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "covered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "snow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "russian",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bright",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "roof",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ohh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sending",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "paint",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "remind",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "naked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "post",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sugar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heading",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "streets",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "damage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "silence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doors",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pete",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "success",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nah",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "amount",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "members",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "manage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "safety",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "returned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "harder",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fbi",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "block",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "showing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fancy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chef",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "contract",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dig",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drinks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "buried",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brian",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trade",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "journey",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stomach",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "changes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "details",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thoughts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "divorce",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "funeral",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "maria",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "football",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reality",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "theory",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gosh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ruined",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "william",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spread",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "outta",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "japanese",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sudden",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "coat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sooner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheese",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "larry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spring",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "page",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ears",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "simon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "castle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hidden",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "storm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cos",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "personally",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "artist",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hill",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "exciting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "permission",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jerry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "expensive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tickets",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "forest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "barely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eggs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "goin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "regret",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lesson",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lover",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bread",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "andy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "subject",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "legal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "growing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ill",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jason",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "owner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "caused",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beeping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "points",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dating",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loss",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "secretary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "revenge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "santa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "likely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "connection",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "assistant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reasons",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yelling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "painting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trees",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doctors",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rush",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "foreign",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rough",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "murderer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "century",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nights",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pair",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "runs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pocket",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "farm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "matt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bike",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "obvious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grew",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "professional",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "goodness",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "parts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "university",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "square",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grandfather",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "europe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "genius",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cases",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ruin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "winter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tongue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "memories",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "da",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "buying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cancer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clock",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ocean",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dna",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "liar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tour",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thief",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bleep",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lisa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rights",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "including",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "competition",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "smith",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "planned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "emily",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "boring",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "victims",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mentioned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bones",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bless",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "warning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knocking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "re",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crash",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bedroom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lower",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "silver",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "groaning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "madame",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "defense",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "results",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "toilet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "event",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "complicated",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shape",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "priest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "royal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheap",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "romantic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "downstairs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "invite",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fortune",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tears",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "avoid",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reached",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "higher",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "familiar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "telephone",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "burning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "filled",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kelly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "airport",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jobs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "walter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rachel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "giant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "insurance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "woods",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "scare",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pleased",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "period",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "political",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "player",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stops",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "secrets",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "laura",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "repeat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "photos",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "finds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "statement",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "younger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "china",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "humans",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "delicious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "particular",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "proper",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rome",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "belongs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "attacked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bath",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hired",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "site",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knowledge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "led",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guests",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "celebrate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "map",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "horn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eventually",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pity",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "powers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ashamed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "assume",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "glasses",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rise",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fixed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "request",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "officers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pounds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "data",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carefully",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "per",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "depends",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jury",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "waited",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "positive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "attorney",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "direction",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "families",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "forces",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "location",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "walls",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "useless",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "saving",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "speaks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fought",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "meal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "deliver",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "answers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "changing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "temple",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "scary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "millions",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "offered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "regular",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carrying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "official",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jacket",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "switch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chase",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "role",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "odd",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sexy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "faces",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "becomes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "closes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "badly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tall",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "confused",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "affair",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "television",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shock",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "raised",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "panting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pizza",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "image",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clears",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "golden",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "patients",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "watched",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "committed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sexual",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suffer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arthur",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wherever",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "appear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chocolate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clever",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mercy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shots",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lucy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dealing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trap",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "charges",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "phil",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bang",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "poison",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "butt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drove",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yourselves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "headed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "babies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yellow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "soup",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mystery",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "picking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wound",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "traffic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "courage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hunt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "indian",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "terms",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "italian",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "emma",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "checking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disease",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "managed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "winner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "council",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "appointment",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "monday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crack",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "threat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jenny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "physical",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "source",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chose",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "healthy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carl",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "victory",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kicked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "annie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disgusting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "palace",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "below",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shopping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "neighborhood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "march",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lips",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "midnight",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "piss",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "advantage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "india",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aside",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jerk",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dawn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "effect",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spell",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "freak",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "screwed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "enemies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "awake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chuckling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vacation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "violence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grandmother",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "modern",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "luke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "firm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prime",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "touched",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "talent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whore",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "piano",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "license",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cooking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "honour",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "concern",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "moves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "available",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "factory",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gods",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "value",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "central",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "union",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mirror",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "studio",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "media",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "taxi",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dies",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "iron",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hearts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "desire",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rob",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "claire",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fred",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "songs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "washington",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "monkey",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pride",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pills",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "miracle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "swim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "burned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "smells",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "christian",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bleeding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hook",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beating",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "protection",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "treatment",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "metal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disappear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grateful",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "extremely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "treasure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rescue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "capable",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "passing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chatter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "result",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suffering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sisters",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "laid",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "governor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guards",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "louis",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "text",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "literally",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "remove",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "becoming",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "performance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stronger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "deeply",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "scream",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "desert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vehicle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "illegal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pulling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "throwing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "josh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unbelievable",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ted",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "zero",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dean",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "curious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sean",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "candy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bone",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tied",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "edge",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "load",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "susan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ahh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mountains",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "boom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "former",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "holiday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "riding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "scoffs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hundreds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "motherfucker",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bags",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stealing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "appears",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arrive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "remains",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "decent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "issues",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tip",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bride",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pissed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "penny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "claim",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "friendship",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "desperate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flower",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dramatic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "refuse",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "solve",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "theme",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loving",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "properly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dragon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mostly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chuck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "directly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "surface",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "false",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "junior",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hunting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "silent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thou",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "egg",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "germany",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "punch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "africa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "woke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "intelligence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "borrow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "winning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "falls",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "popular",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "escaped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "witch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "convinced",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "warn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "announcer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "champagne",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dust",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kyle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "someday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fallen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stranger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "presence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "internet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "monsieur",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "therefore",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "technology",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tires",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "toast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wise",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clark",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "americans",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "notes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "smoking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hank",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ls",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "april",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wolf",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "precious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rooms",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "coast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "treated",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "material",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "released",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "uniform",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hated",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "considered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "exchange",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "steps",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "convince",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "files",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "signs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drag",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cab",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hung",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carried",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ordinary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "successful",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eve",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mistakes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "houses",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chattering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "brains",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "japan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "creature",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fourth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "separate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cleaning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "california",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lf",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ll",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shift",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "elizabeth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chicago",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "exact",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "karen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "goal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "expert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "served",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "direct",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "score",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "row",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "marks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "twenty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "receive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "series",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "section",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pilot",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jackson",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "darkness",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sale",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "destiny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spoken",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "armed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rare",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "helen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grade",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "juice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wide",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tower",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "solution",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "schedule",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "explosion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wheel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cigarette",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "julie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fruit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blew",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "victor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "talks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sacrifice",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "range",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "button",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reports",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prisoner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "effort",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "youth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pot",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "eaten",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "taylor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knees",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "garage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "parking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ambulance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "staring",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chances",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "circumstances",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gordon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "progress",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unusual",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "county",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stairs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "campaign",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vision",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reporter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "equipment",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "moments",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joey",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mass",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alien",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trapped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "helps",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "route",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "defend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trace",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nasty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tests",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "magazine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rocks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dump",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rude",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "searching",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "connected",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "amen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pushed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "merry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "zone",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "senior",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "closing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "freeze",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "emperor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "incident",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "snake",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mexico",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lily",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "actor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "newspaper",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sentence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "greg",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leading",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "friendly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jones",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chosen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "engaged",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "julia",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "charming",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mustn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "anger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spending",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "learning",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "spy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sharp",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shadow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "warrant",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "elevator",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kingdom",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ricky",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jamie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "squad",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shoulder",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "amanda",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "highness",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kinds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fishing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sometime",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "attitude",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sucks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "negative",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "screen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "workers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bored",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cameras",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "similar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "understanding",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beeps",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chain",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bull",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gasping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fully",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "robin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "collect",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gorgeous",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "morgan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "passion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "writer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "empire",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "international",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "curse",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hire",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bastards",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "puts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "leads",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "id",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blows",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sons",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "estate",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "customers",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "maggie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gunshot",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "device",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "troops",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hug",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "design",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "movement",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thunder",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "object",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loser",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sobbing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "politics",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "despite",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alcohol",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "climb",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clients",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "conference",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "provide",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "marty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "seek",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "witnesses",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "earn",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trash",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "valley",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fashion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "howard",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "episode",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prize",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "previously",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sports",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wanting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "debt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wishes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hitler",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wire",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "circle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "approach",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stock",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "facts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "remembered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "percent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "normally",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joined",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "education",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bravo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "library",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rape",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wings",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "growling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thrown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tank",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "exhales",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "authority",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "current",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "failure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nightmare",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hitting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "glory",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "knocked",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "studying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "barry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "agency",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "apple",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "border",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rope",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "duck",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reputation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "confidence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yard",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "beloved",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lack",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "actual",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "skills",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "films",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mental",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "salt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flesh",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "anne",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "secure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "highly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "federal",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sand",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "emotional",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "setting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nothin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "senator",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "services",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "robbery",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hates",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reward",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "theater",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "johnson",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "commit",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "patrick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "entirely",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "extraordinary",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ships",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "opposite",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "parties",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stands",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "terry",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "events",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mummy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bay",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "slip",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disappointed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "settled",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "begins",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "andrew",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "alert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "detail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pink",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fellas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "accepted",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "background",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "garbage",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "panic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "minds",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "belt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blowing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hollywood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "agreement",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jackie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pushing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ability",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tiger",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whispering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "culture",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "saint",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jesse",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "task",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "solid",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doll",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "intend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "district",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pa",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "custody",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ignore",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "naturally",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "useful",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "attempt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "abandoned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cutting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kissed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guarantee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "barking",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gather",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "policy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "violent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "maid",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "embarrassing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "childhood",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wasting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bow",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chick",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sara",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "disaster",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "revolution",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "online",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "demon",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "heavily",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "coincidence",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "perform",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "terrific",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mac",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "identity",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "virgin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "impressive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "windows",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "potential",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guitar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "committee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dozen",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "delivery",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "advance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "quietly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "teaching",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hunter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "latest",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hurting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "swing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "capital",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "counting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drew",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dirt",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "whistle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "marie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hits",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "doug",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "deny",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "urgent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "threatened",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "behavior",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "molly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mixed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stays",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "assure",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "subtitles",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "explanation",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wins",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unique",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "chasing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "billion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "duke",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "production",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "slave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "agents",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "carol",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lets",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cruel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mask",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sally",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "behave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bury",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "massive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pathetic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "species",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "approaching",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jo",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "loan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "struggle",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dish",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trusted",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jumped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "firing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "channel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "abby",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stopping",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "asks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jean",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "swimming",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "daily",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "basement",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "linda",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "quarter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "erm",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bound",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "navy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "article",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guide",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "accused",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "transfer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "guts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "quality",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fella",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "roman",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "greater",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "damned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "couch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vegas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shoe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "title",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "punishment",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "los",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "clicks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "closet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fever",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "coward",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flash",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "impressed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bruce",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "siren",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "prisoners",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sides",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bowl",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "katie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "supply",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sensitive",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hopefully",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rolling",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "roy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dollar",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tone",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "voices",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheating",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "confess",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "demand",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "museum",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "unknown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "drama",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suspicious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "adult",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "todd",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "frightened",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "warned",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "steady",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kills",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crossed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lou",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "particularly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sandwich",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "laws",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joint",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bullets",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "package",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trained",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "thursday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "boots",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "possibility",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "albert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "civil",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "june",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "germans",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "baseball",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "express",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "miserable",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tuesday",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "parker",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "joseph",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "refused",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shine",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "assault",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "hong",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jokes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "breaks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "argue",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "trail",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "option",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "recall",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mighty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "collection",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "oliver",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wilson",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "accent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "believes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "decisions",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "embarrassed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mobile",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "customer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "terribly",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sec",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "charity",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "considering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pussy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "donna",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "protecting",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "flag",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kidnapped",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "italy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "balance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "creatures",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nuclear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wallet",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shout",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "vincent",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "entered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "impression",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "angela",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jay",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "degrees",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "favour",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reaction",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "network",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jessica",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "version",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "concert",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gear",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "singer",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "diamond",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "defeat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "steven",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lane",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "blast",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wounded",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "anytime",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "partners",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ages",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "charlotte",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ceremony",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "league",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bars",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "orange",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "specific",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "conditions",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "plastic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crisis",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fifth",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "term",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "self",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "offering",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bud",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suffered",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "reported",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "commissioner",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "rip",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mysterious",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "entrance",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "messed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tunnel",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "designed",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "neighbor",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "aboard",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sweat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "justin",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ghosts",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crimes",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "costs",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "deserves",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "dreaming",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bust",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "el",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "teddy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kong",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "messages",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "enjoying",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "afterwards",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "comfort",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mason",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "surrender",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gym",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kitty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "crush",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "yup",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arranged",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "suits",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "pee",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "stress",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cave",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "wing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "jordan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "arrange",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "comrade",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "noble",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tricks",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "betty",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "launch",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "legend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "mix",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "golf",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "imagination",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "fox",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "kissing",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "butter",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "tax",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "gross",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "edward",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "texas",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "insist",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "marcus",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "classic",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "selfish",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "skull",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "frankie",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "shown",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "survived",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "print",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "champion",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "bills",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "therapy",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lifetime",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "throughout",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "nathan",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "toward",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "sauce",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "experiment",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "margaret",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "describe",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "ross",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "grass",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "cheat",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "attend",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "homework",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "lewis",
+   "yanxi_level": "B1"
+  },
+  {
+   "word": "betrayed",
+   "yanxi_level": "B1"
+  }
+ ]
+}

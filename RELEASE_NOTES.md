@@ -8,6 +8,9 @@
   become confirmable candidates with undo and already-known dedup;
 - bundled public-domain starter-100 word list (General Service List, West
   1953) with 言蹊 self-assessed A1 band; word forms only, no definitions;
+- starter pool grows to ~3000 words with a FrequencyWords (MIT) top-3000
+  list, heuristic A1/A1-A2/B1 bands — typing and 听言 practice have a real
+  cold-start vocabulary;
 - first-class typing practice with 成蹊 feedback (vermilion seal on correct
   words, ink-trace retry on typos), word pool from your words plus the
   starter list;
