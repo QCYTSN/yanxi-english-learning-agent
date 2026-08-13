@@ -48,3 +48,8 @@ Assessment, the British Council or IDP Education.
   in TheoSeo93/Academic_Words_list (https://github.com/TheoSeo93/Academic_Words_list,
   Open Software License 1.1). Word forms only
   (`yanxi-ielts-academic.json`).
+- **言蹊雅思核心词表 (IELTS Core)** — 1647 word forms from
+  hefengxian/ielts-vocabulary (https://github.com/hefengxian/ielts-vocabulary,
+  MIT License, Copyright (c) 2023 Frank). Word forms only; its definitions,
+  examples and thematic arrangement are not included
+  (`yanxi-ielts-core.json`).

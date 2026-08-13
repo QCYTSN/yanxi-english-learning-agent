@@ -56,6 +56,7 @@ def verify_wheel(wheel: Path) -> None:
         "yanxi-cet6.json",
         "yanxi-toefl.json",
         "yanxi-ielts-academic.json",
+        "yanxi-ielts-core.json",
     ]
     missing = [
         f"ielts_coach/resources/words/{name}"

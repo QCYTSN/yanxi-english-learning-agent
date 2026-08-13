@@ -223,8 +223,8 @@ def test_seed_words_bundle_is_general_plus_exam_lists() -> None:
     from ielts_coach.seed_words import load_seed_words, seed_metadata, seed_words_pool
 
     words = load_seed_words()
-    # GSL starter + FrequencyWords 3000 + CET4/CET6/TOEFL + AWL (IELTS core).
-    assert 12000 <= len(words) <= 15000
+    # GSL starter + FrequencyWords 3000 + CET4/CET6/TOEFL + AWL + IELTS core.
+    assert 13000 <= len(words) <= 16000
     assert all(item["word"] for item in words)
     assert all(str(item["word"]).islower() for item in words)
     meta = seed_metadata()
@@ -239,6 +239,7 @@ def test_seed_words_bundle_is_general_plus_exam_lists() -> None:
     assert tags["cet6"] >= 3000
     assert tags["toefl"] >= 9000
     assert tags["ielts-academic"] >= 500
+    assert tags["ielts-core"] >= 1500
     pool = seed_words_pool(limit=5)
     assert pool == ["the", "of", "and", "to", "a"]
     assert seed_words_pool(limit=3, exclude={"the", "of", "and"}) == ["to", "a", "in"]

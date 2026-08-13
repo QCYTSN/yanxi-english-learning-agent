@@ -12,6 +12,8 @@ Six sources, all copyright-safe for public builds:
 - ``yanxi-ielts-academic.json`` — Academic Word List (Coxhead) 570-family
   headwords (TheoSeo93/Academic_Words_list, OSL-1.1), the recognised
   IELTS-academic core.
+- ``yanxi-ielts-core.json`` — IELTS core word forms from
+  hefengxian/ielts-vocabulary (MIT), word forms only.
 
 Word forms and a 言蹊 self-assessed level band only — no definitions,
 examples or commercial dictionary content. Definitions are generated live
@@ -32,6 +34,7 @@ _SEED_PATHS = (
     "words/yanxi-cet6.json",
     "words/yanxi-toefl.json",
     "words/yanxi-ielts-academic.json",
+    "words/yanxi-ielts-core.json",
 )
 
 

@@ -1,0 +1,11546 @@
+{
+ "seed_id": "yanxi-ielts-core",
+ "title": "言蹊雅思核心词表 · IELTS Core",
+ "version": 1,
+ "language": "en",
+ "level_note": "雅思核心词汇（主题分类整理，MIT 开源仓库）。言蹊自评分档：B1-B2。",
+ "source": {
+  "origin": "hefengxian/ielts-vocabulary (https://github.com/hefengxian/ielts-vocabulary), MIT License (c) 2023 Frank — 雅思真经词汇表整理",
+  "rights": "MIT",
+  "note": "仅取词形事实数据；释义、例句与主题编排均未包含。"
+ },
+ "bands": {
+  "1647": "B1-B2"
+ },
+ "words": [
+  {
+   "word": "atmosphere",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hydrosphere",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lithosphere",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oxygen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oxide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hydrogen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "core",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crust",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mantle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "longitude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "latitude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "horizon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "altitude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "disaster",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mishap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "catastrophic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "calamity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "endanger",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jeopardise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "destructive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "greenhouse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phenomenon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pebble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "magnet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ore",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mineral",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "marble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quartz",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "granite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gust",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "breeze",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "monsoon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gale",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hurricane",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tornado",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "typhoon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "volcano",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "erupt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "magma",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thermodynamic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "smog",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tsunami",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drought",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flooding",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "torrent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "earthquake",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "seismic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "avalanche",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "terrain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "landscape",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "continent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cave",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cliff",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "glacier",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "swamp",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "delta",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plateau",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oasis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "globe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hemisphere",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "equator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "arctic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "antarctic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pole",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "polar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "axis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deteriorate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aggravate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "degrade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "upgrade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "erode",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mediterranean",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "atlantic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pacific",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ocean",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "marine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "navigation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gulf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "beach",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "coast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shore",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "current",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brook",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stream",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "source",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shallow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "superficial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "smooth",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rough",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sandy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stony",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vertical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "steep",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "parallel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "narrow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oceania",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mainland",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "peninsula",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "climate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "weather",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "meteorology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mild",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "heating",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "moderate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "warm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thermal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tropics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "arid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "moist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "damp",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "humid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "snowy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frost",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thaw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chill",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "freeze",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frigid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tremble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shiver",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thunder",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lightning",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stormy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "downpour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rainfall",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sprinkle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rainbow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shower",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "celsius",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "temperature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "forecast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "peak",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mount",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mountain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "range",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ridge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "slope",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "valley",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hillside",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overlook",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "southern",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "southeast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "southwest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "northeast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "northwest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eastern",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oriental",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inevitable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "irreversible",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "irregularly",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inappropriate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "abnormal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sediment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "silt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "muddy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "clay",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dirt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rural",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "suburb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outskirts",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "remote",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "desolate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "distant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adjacent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "toxic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pollution",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pollutant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "contaminate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "geology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "border",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "margin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fringe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "debris",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crack",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "splendid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grand",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "magnificent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "super",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "interesting",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dramatic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wilderness",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "desert",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deforest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "barren",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fertile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fertilise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "solar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lunar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "calendar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sunrise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sunset",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eclipse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dusk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "heaven",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "paradise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sunshine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shadow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vapour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "evaporate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circulate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "precipitate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reservoir",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "waterfall",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fountain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spring",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dew",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drown",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "blow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "puff",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gush",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dense",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intensity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intensive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "emerge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flash",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "float",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "environment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "surrounding",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "condition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "situation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "natural",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "artificial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "synthetic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "petrol",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gas",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gasoline",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "petroleum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "photosynthesis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "respire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dioxide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vagetation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "herb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "perennial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "botany",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ecology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ecosystem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "horticulture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "organism",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "genetics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mutation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "variation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diversity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hybridisation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "classify",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reproduce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "evolve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fluctuate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reclaim",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cultivate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "harvest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pluck",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pick",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "yield",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rear",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "arable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plough",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rake",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stack",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "heap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bundle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bunch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vase",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sunlight",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fungus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mould",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pollen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "germinate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "seed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "burgeon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bud",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flower",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "blossom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bloom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aromatic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ripen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fruit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wither",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decompose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rot",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decay",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stale",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rainforest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jungle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plantation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "field",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "terrace",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "timber",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "charcoal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "log",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "logo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "forestry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "branch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trunk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bough",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "root",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hay",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "straw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thorn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "weed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grass",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "meadow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lawn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "olive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "violet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tulip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mint",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reef",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alga",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "enzyme",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "catalyst",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "release",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "emission",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "absorb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circulation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exceed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "uptake",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nutrient",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "energy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "surroundings",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mechanism",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "counterbalance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "protect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "preserve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "conservation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bushfire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "extinguish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "destruct",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ruin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "perish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "demolish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "infringe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "undermine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "extinction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pattern",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outcome",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "impact",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "seasonal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "experimental",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "favourable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "productive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "effective",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "efficient",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "considerable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "massive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "immense",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "maximal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "minimal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "optimal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "biologist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "zoologist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ecologist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "botanist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mammal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "primate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vertebrate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pretail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "amphibian",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "carnivore",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "herbivore",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "creature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wildlife",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fauna",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flora",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "species",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flock",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "herd",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "swarm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "throng",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crowd",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "beast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brute",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cruel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "originate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "derive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ancestor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "descendant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "offspring",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "subgroup",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "feed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "breed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "interbreed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hybridize",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "proliferate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sterility",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "courtship",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lay",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hatch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brood",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spawn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "skin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "claw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "paw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "beak",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wing",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "feather",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fur",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bristle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "curl",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "insect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "worm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "parasite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spider",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "butterfly",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mosquito",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cricket",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "penguin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "seal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tortoise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "turtle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "whale",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "kangaroo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "camel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "panda",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elephant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ivory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "horn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bear",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wolf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dragon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fox",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cub",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "calf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pup",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lamb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cattle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ox",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bull",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "buffalo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "horse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "zebra",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "donkey",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "saddle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "harness",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "falcon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hawk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eagle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "owl",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "swallow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sparrow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pigeon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "swan",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "goose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cock",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mouse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "squirrel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hare",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frog",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "behaviour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sting",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bark",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "roar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rub",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "creep",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crawl",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "habitat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cell",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "barn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hedge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "barrier",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "anatomy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "epidemic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gene",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "germ",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bacteria",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "virus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "microbe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "metabolism",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "protein",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vitamin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "secrete",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "excrete",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "devour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "instinct",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intuitive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "potential",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intelligence",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "functional",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sensitive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flexible",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "acoustic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "optical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nocturnal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dormant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hibernation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "track",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trace",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alternate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prey",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "predator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "victim",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "captive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "defensive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "undergo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "suffer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vulnerable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "subsistence",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exterminate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tame",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "keeper",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shepherd",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "galaxy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cosmos",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "universe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "interstellar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "terrestrial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "celestial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "astronomy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "astrology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "astronaut",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "comet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "meteorite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crater",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dust",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ash",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "envelope",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chunk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spacecraft",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spaceship",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "probe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "module",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "propulsion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pressure",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dynamics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "motion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "curve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exploration",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "expedition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flyby",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "observatory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "telescope",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spectacle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "orbit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ecliptic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diameter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "radius",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "substance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "composition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compound",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fossil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sample",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "specimen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "particle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "molecule",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "atom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "electron",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quantum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "liquid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fluid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "solid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "synthesis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "formation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "method",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spectrum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dimension",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frequency",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "signal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "antenna",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circuit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "refraction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ultraviolet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "radioactive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "distinct",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "discernible",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "invisible",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "collision",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "squash",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fragment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cataclysmic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overwhelming",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "despair",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "desperate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hopeless",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "education",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "primary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "secondary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "university",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "college",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "institute",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "academy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "learn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "study",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "acquire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knowledge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "expertise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "novice",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "recruit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "literate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "illiteracy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "numerate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "problem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "issue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "affair",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "controversial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "puzzle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "riddle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "obscure",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "instil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cram",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "emphasise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "enhance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "enable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inspire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "motive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "motivate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stimulate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spur",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "impetus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "indulge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spoil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "abuse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intelligent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "clever",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "smart",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "genius",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "idiot",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wisdom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aptitude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "capable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "excellent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outstanding",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brilliant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prestige",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reputation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eminent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "notorious",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "esteem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "respect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diligent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "painstaking",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "skill",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "approac",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scheme",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "headmaster",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "principal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dean",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "faculty",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "professor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scholar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scientist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mentor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tutor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lecturer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "assistant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "candidate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "degree",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "qualify",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "certify",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "license",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "permit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diploma",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diplomat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ambassador",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pupil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "graduate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ceremony",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bachelor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "master",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "doctor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fresher",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sophomore",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "junior",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "senior",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alumni",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "orientation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "platform",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "coed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "register",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "roster",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "enrol",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "matriculation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accommodation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dorm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "canteen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "laboratory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "experiment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "data",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quantity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quality",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "library",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "literature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "article",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "author",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tale",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fiction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "story",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "poetry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "magazine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "journal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "coverage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bibliography",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "encyclopedia",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "biography",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "documentary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "series",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "record",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "file",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "profile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "draft",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sketch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brochure",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "manual",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frame",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "index",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "catalogue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "category",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inventory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "content",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "context",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "list",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chapter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "volume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "subject",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "object",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "major",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "minor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sociology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "politics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "economics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "marketing",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accounting",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "audit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "statistics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "psychology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "philosophy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "logic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "biology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "physics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chemistry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "agriculture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "logistics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "geography",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "history",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "engineering",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mechanics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "electronics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "maths",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "arithmetic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "geometry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "algebra",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "calculus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "total",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "merger",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "equation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "identical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "minus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "substract",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "multiply",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "divide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dividend",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "remainder",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rational",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "parameter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "variable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "even",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "odd",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mean",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "double",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "triple",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quadruple",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "multiple",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "maximum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "minimum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "approximately",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chart",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "graph",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diagram",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "table",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "matrix",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rectangle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cube",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "angle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "triangle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diagonal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "straight",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "round",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dot",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sphere",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cone",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "extent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "width",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "length",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decimal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "percent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "proportion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ratio",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fraction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scale",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ounce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "density",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fahrenheit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mercury",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "battery",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "volt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "radiate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "emit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "transparent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hollow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ozone",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gravity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "friction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eccentric",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "displace",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "boil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "melt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dissolve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rust",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ferment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dilute",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "acid",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "noxious",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "static",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inert",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inherent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "formula",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "component",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mixture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "blend",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "theory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "empirical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pratical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "doctrine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "principle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "discipline",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "term",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "semester",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "timetable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "schedule",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deadline",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "course",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lesson",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "curriculum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "seminar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "forum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "syllabus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "system",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rudimentary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "basic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fundamental",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elementary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "profound",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "surface",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compulsory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prerequisite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "selective",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elective",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "assignment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "submit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "preview",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "review",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "revise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inspect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "consult",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "skim",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scan",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scrutinise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "recite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dictate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "examination",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "test",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quiz",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "presentation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plagiarise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "copy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "print",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thesis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "essay",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "paper",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dissertation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "project",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "heading",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outset",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outline",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "point",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "opinion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "introduce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reference",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elicit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quote",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "extract",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "abstract",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "summary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "assume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "presume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "suppose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hypothesis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "postulate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "speculate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "predict",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "perceive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "detect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "discern",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "recognise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "conscious",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reckon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "imply",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deliberate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "represent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "insist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "persist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "understand",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "comprehend",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "analyse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diagnose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "infer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "deduce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "conclude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "analogy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compare",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "contrast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overlap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "contradiction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "disagree",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "differ",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diverse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nuance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inductive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "detail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thorough",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "example",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "instance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "confirm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "demonstrate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "illustrate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "manifest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prove",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "determine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "resolve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "survey",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "research",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "observe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inquire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "query",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "questionnaire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "achieve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accomplish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "attain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "credit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "score",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mark",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rank",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "row",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "queue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "praise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "appreciate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "feedback",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "underestimate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overestimate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "apply",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fellowship",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scholarship",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reward",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "award",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prize",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fee",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "technology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "technique",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "polytechnic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "engineer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mechanic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "advance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "innovate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "breakthrough",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gizmo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "patent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "devise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "discover",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "disclose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reveal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "uncover",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "expose",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "domain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "realm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "foundation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "specialise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "concentrate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "focus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "utilise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "usage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tester",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "device",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "appliance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "facility",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "equipment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "instrument",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tool",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gauge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "measure",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "calculate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compute",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "count",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "estimate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "assess",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "evaluate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accessory",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "byproduct",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "auxiliary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "versatile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "add",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accumulate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "assemble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gather",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "attach",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "belong",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "optics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "microscope",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lens",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "radar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "echo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sensor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "multimedia",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "network",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "browser",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "microcomputer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "laptop",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "software",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "keyboard",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "screen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "loudspeaker",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "microphone",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cassette",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tape",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "binary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "digital",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wireless",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "audio",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vision",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fantasy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pump",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "generator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gear",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pivot",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hydraulic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drainage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sewage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ventilation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compress",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "condense",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "refine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "simplify",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "purify",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "filter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "distil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mode",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prototype",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "framework",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aspect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phase",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "operate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "facilitate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "transform",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "convert",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shift",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "turn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adapt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adjust",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pinpoint",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accurate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "precise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "correct",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "error",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mistake",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flaw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wrong",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fault",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stumble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "contingency",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circumstance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "culture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "civilization",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "renaissance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "epic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ideology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tradition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "convention",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "custom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "feudalism",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "slavery",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ethical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "moral",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tribe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aboriginal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inhabitant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "native",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "local",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exotic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "foreigner",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alien",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "anthropologist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "humanitarian",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "heritage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inherit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "antique",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "archaeology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "excavate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "museum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pottery",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "engrave",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decorate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "religion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ritual",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "etiquette",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "belief",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "soul",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spirit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sacred",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hallowed",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "holy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pope",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bishop",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "missionary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "priest",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bible",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "church",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cathedral",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "choir",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "monk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "temple",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pagoda",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "empire",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "imperial",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "royal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dynasty",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chronology",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "emperor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "king",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "queen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prince",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "princess",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "majesty",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nobility",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lord",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knight",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "guardian",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nostalgia",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "homesick",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "celebrity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "status",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "background",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "experience",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "anecdote",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accident",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "incident",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "thrive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prosperity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "setback",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adversity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "language",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "symbol",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sign",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gesture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "handwriting",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pictograph",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wedge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knot",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "linguistics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "semantic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "syntax",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grammar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phonetics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pronounce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "intonation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inflection",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dialect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "accent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "utterance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "oral",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "verbal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "syllable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phoneme",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vowel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "consonent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alphabet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "logogram",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vocabulary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dictionary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "idiom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phrase",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "clause",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "expression",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tense",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prefix",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "suffix",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "abbreviation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "synonym",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "antonym",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "noun",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "singular",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plural",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pronoun",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "verb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adjective",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adverb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "preposition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "conjunction",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "consistent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "complicated",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "complex",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "compile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "version",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "translate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "paraphrase",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "interpret",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "narrate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "illuminate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decipher",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "eloquence",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "communicate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "discussion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brainstorm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "debate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "commentary",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "negotiate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "contention",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "medium",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "press",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "journalist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "critic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "commentator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exponent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "announcer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "correspondent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "messenger",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "editor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "typist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "handout",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "leaflet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "propaganda",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "publish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "disseminate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "foresee",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "anticipate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "expect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "await",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pastime",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "entertain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "recreation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "amuse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gossip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rumour",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "consensus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "festival",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "feast",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "programme",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rehearsal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "perform",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "imitate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mimic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "simulate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "circus",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "magic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drama",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "concert",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "symphony",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "orchestra",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ballet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "opera",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "comedy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tragedy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "animation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "film",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "movie",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "artist",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "craftsman",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "painter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "role",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scene",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gallery",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exhibition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "aesthetic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "collect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "select",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "opt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "photograph",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "portrait",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "painting",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sculpture",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "draw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "depict",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "describe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "carve",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "improvise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "musical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "classical",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jazz",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rock",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pop",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lyric",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "band",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "solo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "melody",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rhythm",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tone",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tune",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "disc",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "piano",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "violin",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cello",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "guitar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "harmonica",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trumpet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flute",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "competition",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tournament",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "olympic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sponsor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "patron",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "athlete",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "champion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spectator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "volunteer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "famous",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "energetic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vigorous",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stadium",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gym",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "training",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exercise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "indoor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outdoor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mobile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "movement",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "yoga",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sprawl",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stretch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "strain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "chess",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "badminton",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "golf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "billiards",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "soccer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tennis",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "volleyball",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hockey",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "goal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "racket",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "kick",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knock",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pitch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "throw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "toss",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "slide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "slip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "glide",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tumble",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ski",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "skate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cycling",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dive",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drift",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jump",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "leap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plunge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hop",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bounce",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "camp",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "picnic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hunt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "race",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "marathon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pedestrian",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pace",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "step",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "excursion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cruise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trip",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vacation",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hike",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jog",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stride",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wander",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "linger",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lag",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "climb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pull",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drag",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bend",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stuff",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "item",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "merchandise",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "souvenir",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "artifact",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "material",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "raw",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crude",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "necessity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "outfit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "kit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "utensil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "garbage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rubbish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trash",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "recycle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "reuse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "litter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "waste",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "junk",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "landfill",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sewerage",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "detergent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lotion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shampoo",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "soap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tub",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plug",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pipe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tube",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mop",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "broom",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sweep",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mattress",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "carpet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rug",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cushion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pad",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "blanket",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "quilt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sheet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pillow",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sponge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "towel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "staple",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "razor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shave",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fuse",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cord",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "strand",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "match",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "candle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wax",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "portfolio",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "paperback",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pamphlet",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tissue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cover",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "xerox",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "duplicate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "memorandum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stationery",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "glue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ink",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rubber",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scissors",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shear",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "edge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "rim",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "element",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "factor",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "section",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tag",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "label",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "badge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bolt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knob",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "handle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shutter",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "curtain",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pane",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "opacity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jar",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "barrel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bucket",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "phone",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bell",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "camera",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "portable",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "spotlight",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lantern",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bulb",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "flashlight",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "refrigerator",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "frigde",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vacuum",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fan",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "switch",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hurdle",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fence",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "padal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "shelf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ladder",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lift",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "stool",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "drawer",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "umbrella",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "raincoat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dredge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "can",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mill",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "forge",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "alloy",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "metal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "iron",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lead",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brass",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "bronze",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cement",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lime",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plaster",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "leather",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "plastic",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fiber",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fabric",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "knit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "weave",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "canvas",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "linen",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cotton",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "nylon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lumber",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wooden",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "mine",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fuel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "lubricate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "diamond",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "crystal",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "inferior",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "counterfeit",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fake",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fragile",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "miniature",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "available",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fashion",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "style",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trend",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "tendency",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "popularity",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "vogue",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "prevail",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "model",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "icon",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "idol",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "luxury",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "extravagant",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jewelry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jewel",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gem",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "adorn",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ornament",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "embellish",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "embroider",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hairdressing",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pigment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dye",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "masquerade",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "veil",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "costume",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "fascinate",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "decent",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "exquisite",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "grace",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "elegance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "perfect",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "appearance",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cosmetics",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "handsome",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "charming",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "pretty",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "beautiful",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "ugly",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "dress",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "clothe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "uniform",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "garment",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "laundry",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "wardrobe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overall",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "overcoat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "robe",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "gown",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "sweater",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jacket",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "skirt",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "jeans",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "trousers",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "clasp",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "button",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "glove",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "hat",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "cap",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "brim",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  },
+  {
+   "word": "scarf",
+   "yanxi_level": "B1-B2",
+   "tags": [
+    "ielts-core"
+   ]
+  }
+ ]
+}
