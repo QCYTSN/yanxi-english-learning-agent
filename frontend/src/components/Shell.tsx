@@ -74,13 +74,10 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
         <Link className="brand" to="/today" aria-label="言蹊 首页">
-          <span className="brand-mark" aria-hidden="true">
-            <span className="mark-yan">言</span>
-            <span className="mark-xi">蹊</span>
-          </span>
+          <img className="brand-mark" src="/yanxi-seal.png" alt="" aria-hidden="true" />
           <span className="brand-copy">
             <strong>言蹊</strong>
-            <small>Yanxi</small>
+            <small>YANXI</small>
             <small className="brand-tagline">不言之教，自成其蹊</small>
           </span>
         </Link>

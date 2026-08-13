@@ -1,5 +1,9 @@
 # 言蹊 (Yanxi)
 
+<p align="center">
+  <img src="docs/assets/yanxi-logo.svg" alt="言蹊 logo · 现代印章风" width="340">
+</p>
+
 [![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)

@@ -149,52 +149,11 @@ code {
 
 .brand-mark {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
   width: 40px;
   height: 40px;
-  padding: 3px;
   border-radius: 6px;
-  background: var(--ink);
-  color: #f7faf8;
-  font-family: var(--font-logo);
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  width: 9px;
-  height: 9px;
-  border: 1px solid var(--surface-muted);
-  border-radius: 2px;
-  background: var(--seal);
-}
-
-.brand-mark span {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-}
-
-.brand-mark .mark-yan {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  justify-self: start;
-}
-
-.brand-mark .mark-xi {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-  justify-self: end;
-  color: #e6efe8;
+  object-fit: cover;
+  flex: 0 0 auto;
 }
 
 .brand-copy strong {
@@ -4759,12 +4718,9 @@ body {
 .brand-mark {
   width: 40px;
   height: 40px;
-  padding: 3px;
   border-radius: 6px;
-}
-
-.brand-mark::after {
-  content: none;
+  object-fit: cover;
+  flex: 0 0 auto;
 }
 
 .brand-copy strong {
