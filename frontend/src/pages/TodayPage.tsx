@@ -21,6 +21,7 @@ import {
 import { ErrorState } from '../components/Common'
 import { LearningCycleStrip } from '../components/LearningCycleStrip'
 import { MaterialComposer } from '../components/MaterialComposer'
+import { TodayReminderStrip } from '../components/TodayReminderStrip'
 import { dimensionLabel, objectiveStatusLabel } from '../learningPresentation'
 import { createStudyThreadWithMessage, requestRemoteProcessingConsent } from '../studyThreads'
 
@@ -83,6 +84,7 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
 
   return (
     <div className="today-start-page">
+      <TodayReminderStrip />
       <section className="learning-launcher" aria-labelledby="today-question">
         <header className="launcher-heading">
           <h1 id="today-question">今天想弄懂什么？</h1>

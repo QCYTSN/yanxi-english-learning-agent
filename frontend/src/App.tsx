@@ -71,7 +71,7 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
             <Route path="/vocabulary" element={<VocabularyPage />} />
             <Route path="/settings" element={<SettingsPage bootstrap={bootstrap.data} />} />
             <Route path="/settings/:section" element={<SettingsPage bootstrap={bootstrap.data} />} />
-            <Route path="*" element={<Navigate to="/conversations" replace />} />
+            <Route path="*" element={<Navigate to="/today" replace />} />
           </Routes>
         </Suspense>
       </RouteErrorBoundary>

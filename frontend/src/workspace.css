@@ -2933,7 +2933,7 @@ tbody tr:hover {
 }
 
 .study-launcher-composer > .material-composer textarea {
-  min-height: 118px;
+  min-height: 96px;
 }
 
 .study-launcher-composer .composer-tools > small,
@@ -4636,7 +4636,7 @@ body {
 }
 
 .today-start-page {
-  width: min(880px, calc(100% - 64px));
+  width: min(920px, calc(100% - 64px));
   min-height: calc(100dvh - 56px);
   margin: 0 auto;
   padding: clamp(60px, 9vh, 94px) 0 56px;
@@ -4668,14 +4668,15 @@ body {
 .intent-box {
   overflow: hidden;
   border: 1px solid #cbd5d0;
-  border-radius: 14px;
+  border-radius: 20px;
   background: var(--surface);
+  box-shadow: 0 1px 2px rgba(24, 33, 31, 0.03);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .intent-box:focus-within {
   border-color: #8ba69b;
-  box-shadow: 0 10px 28px rgba(24, 33, 31, 0.06);
+  box-shadow: 0 12px 32px rgba(24, 33, 31, 0.08);
 }
 
 .subject-shortcuts {

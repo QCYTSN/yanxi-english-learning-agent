@@ -1,34 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowRight,
-  BookOpenCheck,
   MessageSquareText,
   Paperclip,
   Plus,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, type ReviewTask, type StudyThread, type VocabularyItem } from '../api/client'
+import { api, type StudyThread } from '../api/client'
 import { ErrorState, LoadingState } from '../components/Common'
 import { ThreadActions } from '../components/ThreadActions'
+import { TodayReminderStrip } from '../components/TodayReminderStrip'
 
 export function ConversationsPage() {
   const [query, setQuery] = useState('')
   const threads = useQuery({
     queryKey: ['study-threads', 'all'],
     queryFn: () => api<StudyThread[]>('/api/v1/study-threads?limit=100'),
-  })
-  const dueReviews = useQuery({
-    queryKey: ['review-tasks', 'due'],
-    queryFn: () => api<ReviewTask[]>('/api/v1/review-tasks?status=pending&limit=10'),
-    staleTime: 60_000,
-  })
-  const dueWords = useQuery({
-    queryKey: ['vocabulary', 'due'],
-    queryFn: () => api<VocabularyItem[]>('/api/v1/vocabulary/due?limit=10'),
-    staleTime: 60_000,
   })
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase()
@@ -53,26 +42,7 @@ export function ConversationsPage() {
         </Link>
       </header>
 
-      {(dueReviews.data?.length || dueWords.data?.length) ? (
-        <section className="today-reminder-strip" aria-label="今日提醒">
-          <Sparkles size={16} aria-hidden="true" />
-          <span>
-            {dueWords.data && dueWords.data.length > 0 && (
-              <Link to="/vocabulary"><strong>{dueWords.data.length} 个单词</strong> 到期复习</Link>
-            )}
-            {dueWords.data && dueWords.data.length > 0 && dueReviews.data?.length ? <span className="reminder-separator">·</span> : null}
-            {dueReviews.data?.length ? (
-              <Link to="/history#review"><strong>{dueReviews.data.length} 项</strong> 学习复习到期</Link>
-            ) : null}
-          </span>
-          <Link className="today-reminder-action" to="/today">去看看 <ArrowRight size={14} /></Link>
-        </section>
-      ) : (
-        <section className="today-reminder-strip quiet" aria-label="今日提醒">
-          <BookOpenCheck size={16} aria-hidden="true" />
-          <span>今天没有到期的复习任务。有不懂的英文就直接在对话里问。</span>
-        </section>
-      )}
+      <TodayReminderStrip />
 
       <label className="conversation-search">
         <Search size={17} aria-hidden="true" />
