@@ -40,13 +40,23 @@ describe('learning presentation', () => {
   })
 
   it('keeps stable skill ids while localising learner-facing copy', () => {
+    // reading.inference exists in both tracks; the General English copy is
+    // the default, and IELTS copy remains reachable through the track table.
     expect(skillPresentation({
       skill_id: 'reading.inference',
       title: 'Inference and logical status',
       description: 'Technical source description',
     })).toEqual({
-      title: '推断与逻辑判断',
-      description: '区分原文明示、明确反驳和没有提供信息。',
+      title: '推断与语气',
+      description: '读出文字背后的意图和态度。',
+    })
+    expect(skillPresentation({
+      skill_id: 'reading.writer_position',
+      title: 'Writer position',
+      description: 'Technical source description',
+    })).toEqual({
+      title: '作者观点与态度',
+      description: '判断观点归属、作者立场和表达目的。',
     })
   })
 })
