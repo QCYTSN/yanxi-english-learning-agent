@@ -61,10 +61,15 @@ def test_skill_metadata_and_runtime_contract_stay_lightweight():
     router = (root / "ielts" / "SKILL.md").read_text(encoding="utf-8")
     assert "ielts-coach study-context" in router
     assert "Do not separately run summary" in router
-    for name in ("ielts-writing", "ielts-reading", "ielts-speaking"):
+    for name in ("ielts-writing", "ielts-reading"):
         specialist = (root / name / "SKILL.md").read_text(encoding="utf-8")
         assert "begin immediately" in specialist.lower()
         assert "study-context --module" in specialist
+    speaking = (root / "ielts-speaking" / "SKILL.md").read_text(encoding="utf-8")
+    assert "begin immediately" in speaking.lower()
+    assert "study-context --module" in speaking.lower()
+    assert "two-step" in speaking.lower()
+    assert "voice tool" in speaking.lower()
 
     # Prevent gradual prompt bloat across the thirteen focused Skill bodies
     # (six General English, seven IELTS). The dialogue Skills stay

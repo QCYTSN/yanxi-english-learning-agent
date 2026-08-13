@@ -10,8 +10,7 @@ scripts.
 
 ## Start with minimum context
 
-- If the learner supplied a speaking task or asked a speaking question, begin
-  immediately. Do not run global planning or diagnostic checks first.
+- If the learner supplied a speaking task or asked a speaking question, begin immediately. Do not run global planning or diagnostic checks first.
 - Run `ielts-coach study-context --module speaking` only for personalised task
   selection or saved history.
 

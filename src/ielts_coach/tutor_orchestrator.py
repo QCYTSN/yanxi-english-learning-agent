@@ -872,8 +872,10 @@ _MODULES = {"listening", "reading", "writing", "speaking"}
 _MODULE_WORDS = {
     "listening": ("听力", "听写", "listening", "audio", "transcript"),
     "reading": ("阅读", "reading", "passage", "true false", "not given"),
-    "writing": ("写作", "作文", "writing", "task 1", "task 2", "essay"),
+    "writing": ("写作", "作文", "writing", "task 1", "task 2", "essay", "邮件", "email"),
     "speaking": ("口语", "speaking", "part 1", "part 2", "part 3", "cue card"),
+    "vocabulary": ("词汇", "单词", "vocabulary", "word", "phrase"),
+    "grammar": ("语法", "grammar", "时态", "主谓一致"),
 }
 
 

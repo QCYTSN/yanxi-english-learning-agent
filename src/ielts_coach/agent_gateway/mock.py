@@ -65,7 +65,7 @@ class MockAdapter:
                         }
                     ],
                     "evidence": [],
-                    "limitations": ["Mock Adapter 不读取图片或判断 IELTS 内容。"],
+                    "limitations": ["Mock Adapter 不读取图片或判断英语内容。"],
                     "next_action": "选择已连接且支持当前材料的模型。",
                 }
             return {
@@ -82,7 +82,85 @@ class MockAdapter:
                     }
                 ],
                 "evidence": [],
-                "limitations": ["Mock Adapter 只验证工程管线，不会判断 IELTS 内容。"],
+                "limitations": ["Mock Adapter 只验证工程管线，不会判断英语内容。"],
+                "next_action": "选择已连接且支持当前材料的模型。",
+            }
+        if contract.startswith("general-"):
+            # General English contracts share the conversation pipeline: the
+            # mock returns a valid conversation-shaped result for the
+            # deterministic pipeline test.
+            module = "mixed"
+            request_kind = "teacher_dialogue"
+            if contract == "general-writing-feedback@1":
+                return {
+                    "contract_version": 1,
+                    "feedback_summary": "本地管线自检通过，未调用模型。",
+                    "priority_issues": [
+                        {
+                            "issue": "管线自检",
+                            "evidence": "Mock Adapter 未读取学习者文本。",
+                            "learner_action": "连接模型后重新提交。",
+                        }
+                    ],
+                    "strengths": [],
+                    "revised_example": "Pipeline test only.",
+                    "check_question": "连接模型后，试着改一版再发回来。",
+                    "limitations": ["Mock Adapter 只验证工程管线。"],
+                }
+            if contract == "general-speaking-prompt@1":
+                return {
+                    "contract_version": 1,
+                    "mode": "practice_prompt",
+                    "scenario": "Pipeline test",
+                    "role": "Examiner",
+                    "prompt": "Mock Adapter 只验证工程管线。",
+                    "follow_ups": [],
+                    "evaluation_dimensions": [],
+                    "limitations": ["Mock Adapter 只验证工程管线。"],
+                }
+            if contract == "general-vocabulary@1":
+                return {
+                    "contract_version": 1,
+                    "word": "pipeline",
+                    "meaning": "管线",
+                    "usage": "pipeline test",
+                    "example": "This is a pipeline test.",
+                    "collocations": [],
+                    "review_suggestion": {"suggested": False, "kind": "none"},
+                    "limitations": ["Mock Adapter 只验证工程管线。"],
+                }
+            if contract == "general-reading-coach@1":
+                return {
+                    "contract_version": 1,
+                    "summary": "管线自检。",
+                    "explanation": "Mock Adapter 未读取材料。",
+                    "evidence_quotes": [],
+                    "check_question": "连接模型后重试。",
+                    "limitations": ["Mock Adapter 只验证工程管线。"],
+                }
+            if contract == "general-grammar@1":
+                return {
+                    "contract_version": 1,
+                    "grammar_point": "pipeline",
+                    "rule": "Mock 不判断语法。",
+                    "correct_example": "The pipeline works.",
+                    "incorrect_example": "The pipeline work.",
+                    "check_question": "连接模型后重试。",
+                    "limitations": ["Mock Adapter 只验证工程管线。"],
+                }
+            return {
+                "contract_version": 1,
+                "module": module,
+                "request_kind": request_kind,
+                "summary": "你好！本地对话管线自检通过。",
+                "sections": [
+                    {
+                        "title": "管线状态",
+                        "content": "学习线程、结构化合同与保存流程可以正常工作；本次没有调用真实模型。",
+                    }
+                ],
+                "check_question": "连接模型后，试着用英语回答一个问题。",
+                "limitations": ["Mock Adapter 只验证工程管线。"],
                 "next_action": "选择已连接且支持当前材料的模型。",
             }
         session_id = str(request["study_session_id"])

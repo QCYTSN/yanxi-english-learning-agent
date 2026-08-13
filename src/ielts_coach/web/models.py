@@ -356,9 +356,7 @@ class StoryCreate(BaseModel):
 
 
 class AgentRunCreate(BaseModel):
-    adapter_id: Literal[
-        "mock", "manual", "opencode", "claude", "codex-managed"
-    ] | None = None
+    adapter_id: Literal["mock", "codex-managed"] | None = None
     model_provider_id: str | None = Field(default=None, max_length=120)
     execution_profile_id: str | None = Field(default=None, max_length=120)
     study_session_id: str | None = Field(default=None, max_length=120)
@@ -375,6 +373,12 @@ class AgentRunCreate(BaseModel):
         "diagnostic-summary@1",
         "weekly-coaching@1",
         "study-help@1",
+        "general-study-help@1",
+        "general-writing-feedback@1",
+        "general-speaking-prompt@1",
+        "general-vocabulary@1",
+        "general-reading-coach@1",
+        "general-grammar@1",
     ]
     timeout_seconds: int = Field(default=300, ge=5, le=1800)
     source_type: str | None = None
