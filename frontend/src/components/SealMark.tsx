@@ -15,10 +15,10 @@ export function SealMark({ size = 40 }: { size?: number }) {
         x="48"
         y="60"
         textAnchor="middle"
-        fontFamily="'YanxiLogo','YanxiKai',serif"
+        fontFamily="'KaiTi','STKaiti',serif"
         fontSize="34"
         fill="#F8F5EF"
-        letterSpacing="2"
+        letterSpacing="4"
       >
         言蹊
       </text>

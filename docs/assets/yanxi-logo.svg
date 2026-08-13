@@ -1,14 +1,14 @@
 <svg viewBox="0 0 680 500" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
-  <title>言蹊 logo · 现代印章风</title>
-  <desc>深青绿圆角印章，白字言蹊，金色内框与印泥点缀，下方 YANXI 与标语</desc>
+  <title>言蹊 logo 现代印章风</title>
+  <desc>深青绿圆角方块印章，白字楷体言蹊，金色内框与印泥点缀</desc>
   <rect x="140" y="40" width="400" height="440" rx="16" fill="#F8F5EF"/>
   <rect x="230" y="84" width="220" height="220" rx="26" fill="#14302C"/>
   <rect x="244" y="98" width="192" height="192" rx="18" fill="none" stroke="#C9A45C" stroke-width="1"/>
-  <text x="340" y="228" text-anchor="middle" font-family="'LXGW WenKai','LXGWWenKai',KaiTi,STKaiti,serif" font-size="92" font-weight="500" fill="#F8F5EF" letter-spacing="8">言蹊</text>
+  <text x="340" y="228" text-anchor="middle" font-family="KaiTi,STKaiti,serif" font-size="92" font-weight="500" fill="#F8F5EF" letter-spacing="4">言蹊</text>
   <rect x="408" y="262" width="14" height="14" rx="2" fill="#C9A45C"/>
-  <text x="340" y="356" text-anchor="middle" font-family="'EB Garamond','Times New Roman',serif" font-size="17" font-weight="500" fill="#14302C" letter-spacing="14">YANXI</text>
-  <line x1="282" y1="378" x2="328" y2="378" stroke="#C9A45C" stroke-width="1.5"/>
-  <path d="M340 371 L347 378 L340 385 L333 378 Z" fill="#C9A45C"/>
-  <line x1="352" y1="378" x2="398" y2="378" stroke="#C9A45C" stroke-width="1.5"/>
-  <text x="340" y="418" text-anchor="middle" font-family="SimSun,serif" font-size="13" fill="#6E6B64" letter-spacing="7">不言之教 · 自成其蹊</text>
+  <text x="340" y="356" text-anchor="middle" font-family="Microsoft YaHei,sans-serif" font-size="17" font-weight="500" fill="#14302C" letter-spacing="12">YANXI</text>
+  <line x1="290" y1="378" x2="328" y2="378" stroke="#C9A45C" stroke-width="1.5"/>
+  <path d="M340 372 L346 378 L340 384 L334 378 Z" fill="#C9A45C"/>
+  <line x1="352" y1="378" x2="390" y2="378" stroke="#C9A45C" stroke-width="1.5"/>
+  <text x="340" y="416" text-anchor="middle" font-family="SimSun,serif" font-size="13" fill="#6E6B64" letter-spacing="6">不言之教 · 自成其蹊</text>
 </svg>
