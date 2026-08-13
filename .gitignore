@@ -44,9 +44,10 @@ src/ielts_coach/resources/original-mocks/
 *.wav
 
 # Generated skill copies; source of truth is skills-source/
-.claude/skills/*
-!.claude/skills/.gitkeep
-.agents/skills/*
-!.agents/skills/.gitkeep
-.opencode/skills/*
-!.opencode/skills/.gitkeep
+.claude/
+.agents/
+.opencode/
+
+# Local coding-agent instruction files (not product assets)
+/AGENTS.md
+/CLAUDE.md
