@@ -152,7 +152,7 @@ export function ReadingWorkspace() {
         action={<div className="header-badges"><ConformanceBadge status={conformanceStatus} mode={practiceMode} /><SaveState state={saveState} /></div>}
       />
       <PhaseRail active={status === 'awaiting_revision' ? '复盘' : status === 'awaiting_feedback' ? '反馈' : '作答'} phases={['阅读', '作答', '反馈', '复盘', '完成']} />
-      {conformanceStatus !== 'verified' && <p className="conformance-note">当前材料可用于专项训练，但未被标记为可换算 IELTS Band 的完整套题。</p>}
+      {conformanceStatus !== 'verified' && <p className="conformance-note">当前材料可用于专项训练，但未被标记为可换算成绩的完整套题。</p>}
       <div className="reading-grid">
         <article className="passage-panel">
           <p className="eyebrow">{readingSet.data?.passage.passage_id}</p>

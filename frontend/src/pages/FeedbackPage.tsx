@@ -42,7 +42,7 @@ export function FeedbackPage() {
 function AgentIdentityCard({ run }: { run: AgentRun }) {
   const deterministic = run.launcher_kind === 'deterministic_local'
   return <section className="agent-identity-card">
-    <div><p className="eyebrow">Result provenance</p><h2>{deterministic ? '管线自检结果（不是评分）' : 'Agent 生成结果'}</h2>{deterministic && <p>没有连接模型；该结果不得作为雅思能力判断。</p>}</div>
+    <div><p className="eyebrow">Result provenance</p><h2>{deterministic ? '管线自检结果（不是评分）' : 'Agent 生成结果'}</h2>{deterministic && <p>没有连接模型；该结果不得作为能力判断。</p>}</div>
     <dl><div><dt>Adapter</dt><dd>{run.adapter_id}</dd></div><div><dt>Agent</dt><dd>{run.agent_provider ?? '未知'}</dd></div><div><dt>模型</dt><dd>{deterministic ? '未使用模型' : run.model_display_name ?? run.model_id ?? '未知'}</dd></div><div><dt>生成时间</dt><dd>{new Date(run.completed_at ?? run.created_at).toLocaleString('zh-CN')}</dd></div><div><dt>校准</dt><dd>{run.calibration_status}</dd></div></dl>
   </section>
 }
@@ -52,7 +52,7 @@ function WritingFeedback({ session, mockOnly }: { session: SessionSummary; mockO
   const versions = (session.versions as Array<{ label: string; content: string }> | undefined) ?? []
   const scored = versions.find((item) => item.label === session.scored_version) ?? versions.at(-1)
   if (!review || !scored) return <div className="empty-state feedback-empty"><h2>反馈尚未准备好</h2><p>这条 Session 已保留。返回写作工作区提交作文并生成经过验证的反馈。</p><Link className="button primary" to={`/practice/writing/${session.session_id}`}>返回写作工作区</Link></div>
-  if (mockOnly) return <section className="empty-state"><h2>这里没有有效雅思评分</h2><p>这是旧版 Mock 管线产生的占位结果，没有调用 Agent。6.0–6.5 等占位数字已被界面撤销，不会进入正式进度。</p><Link className="button primary" to="/practice">新建练习并选择真实 Agent</Link></section>
+  if (mockOnly) return <section className="empty-state"><h2>这里没有有效评分</h2><p>这是旧版 Mock 管线产生的占位结果，没有调用 Agent。6.0–6.5 等占位数字已被界面撤销，不会进入正式进度。</p><Link className="button primary" to="/practice">新建练习并选择真实 Agent</Link></section>
   const primaryAnchor = review.priority_issues.find((item) => item.anchor)?.anchor
   return (
     <>

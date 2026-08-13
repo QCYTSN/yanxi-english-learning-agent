@@ -121,6 +121,8 @@ Agent Kernel. See [Learning Agent Kernel](LEARNING_AGENT_KERNEL.md).
 
 ## Speaking boundary
 
-The internal Tutor supports text-based Speaking preparation, reflection and
-report review. Real-time audio conversation and Live timing remain external
-Voice/Live workflows until a separate STT/TTS product decision is made.
+Speaking practice is two-step: the Tutor prepares a scenario prompt (role,
+cue, follow-ups) that the learner takes to the voice tool of their choice,
+then evaluates the attempt the learner brings back. The product does not
+integrate STT/TTS; real-time audio conversation remains external until a
+separate product decision is made.

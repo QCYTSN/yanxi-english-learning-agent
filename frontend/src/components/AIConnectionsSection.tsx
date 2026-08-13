@@ -190,7 +190,7 @@ export function AIConnectionsSection() {
       </div>
       <p>
         系统可以按需安装一套隔离的官方 OpenAI Codex 运行时，然后使用你的 ChatGPT 账号登录。
-        这套登录只属于 IELTS AI Coach，不读取或修改其他终端的 Codex 配置。
+        这套登录只属于言蹊，不读取或修改其他终端的 Codex 配置。
       </p>
       {profiles.isPending && <LoadingState label="正在检查本地模型连接" />}
       {codex && (
@@ -214,7 +214,7 @@ export function AIConnectionsSection() {
                 <p>
                   首次使用需要约 {runtime.data?.download_estimate_mb ?? 150} MB 下载，
                   安装后约占 {runtime.data?.installed_size_estimate_mb ?? 430} MB。
-                  运行时与登录凭据都只保存在本机 IELTS 数据目录。
+                  运行时与登录凭据都只保存在本机数据目录。
                 </p>
                 {runtime.data && !runtime.data.npm_available && (
                   <p className="import-error">
@@ -386,7 +386,7 @@ export function AIConnectionsSection() {
                     autoComplete="off"
                     value={apiKey}
                     onChange={(event) => setApiKey(event.target.value)}
-                    placeholder="只发送给独立 Codex 运行时，不写入 IELTS 数据库"
+                    placeholder="只发送给独立 Codex 运行时，不写入本地数据库"
                   />
                 </label>
                 <button

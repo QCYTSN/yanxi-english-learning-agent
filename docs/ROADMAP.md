@@ -166,9 +166,10 @@ The remaining sequence is:
 2. exercise the implemented visual system and complete learning workflows with
    real material, then resolve the resulting accessibility, performance and
    interaction findings. `DESIGN.md` is the current visual authority.
-3. decide separately whether to author a hidden General English pilot Domain
-   Pack; it requires its own curriculum, Skills, contracts and evaluation set
-   and is not part of the current IELTS release.
+3. the General English track (track_id `general-english`) is now the default
+   product surface with its own curriculum, Skills, contracts and evaluation
+   set; the remaining sequence below assumes the conversation-first English
+   learning agent positioning (product name 言蹊 / Yanxi).
 
 ## Deferred product decisions
 

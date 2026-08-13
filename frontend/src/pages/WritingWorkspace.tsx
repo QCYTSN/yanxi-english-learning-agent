@@ -123,7 +123,7 @@ function MediaUpload({ sessionId }: { sessionId: string }) {
     mutationFn: async (file: File) => {
       const form = new FormData()
       form.append('image', file)
-      form.append('alt_text', 'Learner-provided IELTS Task 1 visual')
+      form.append('alt_text', 'Learner-provided Task 1 visual')
       form.append('owner_type', 'session')
       form.append('owner_id', sessionId)
       return api<{ media_id: string; alt_text: string }>('/api/v1/media', { method: 'POST', body: form })

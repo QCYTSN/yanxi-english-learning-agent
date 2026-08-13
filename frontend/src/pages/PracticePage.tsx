@@ -86,9 +86,35 @@ export function PracticePage() {
     <div className="page page-practice">
       <PageHeader
         eyebrow="练习中心"
-        title="选择一科，开始练习"
-        description="作答和进度由本地系统保存；需要解释、反馈或评价时，再交给当前 AI。"
+        title="选择一种练法"
+        description="通用英语：直接在对话里练写作、阅读和词汇；IELTS：按四科题库练习。作答和进度由本地系统保存。"
       />
+      <section className="general-practice-strip" aria-label="通用英语练习入口">
+        <article>
+          <div>
+            <p className="eyebrow">写作反馈</p>
+            <h3>把写好的英文交给老师</h3>
+            <p>邮件、消息、短段落都行；证据优先，先讲问题再讲改法。</p>
+          </div>
+          <Link className="button secondary" to="/today">去对话 <ArrowRight size={15} /></Link>
+        </article>
+        <article>
+          <div>
+            <p className="eyebrow">口语练习</p>
+            <h3>领取场景任务，用语音工具练</h3>
+            <p>两步式：先拿任务，练完带回来点评。</p>
+          </div>
+          <Link className="button secondary" to="/practice/speaking">口语练习 <ArrowRight size={15} /></Link>
+        </article>
+        <article>
+          <div>
+            <p className="eyebrow">词汇</p>
+            <h3>记下生词，间隔复习</h3>
+            <p>对话里遇到的词随手记，系统安排复习。</p>
+          </div>
+          <Link className="button secondary" to="/vocabulary">我的词表 <ArrowRight size={15} /></Link>
+        </article>
+      </section>
       <section className="practice-console">
         <aside className="practice-module-index">
           <p className="eyebrow">选择科目</p>

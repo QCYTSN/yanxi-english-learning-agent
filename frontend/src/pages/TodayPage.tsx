@@ -86,7 +86,7 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
       <section className="learning-launcher" aria-labelledby="today-question">
         <header className="launcher-heading">
           <h1 id="today-question">今天想弄懂什么？</h1>
-          <p>直接和 IELTS 老师交流，或上传题目、原文和作文；材料不是开始对话的前提。</p>
+          <p>直接和英语老师交流，或上传题目、原文和作文；材料不是开始对话的前提。</p>
         </header>
 
         <div className="intent-box study-launcher-composer">

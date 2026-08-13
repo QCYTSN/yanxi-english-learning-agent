@@ -1,15 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bot, CheckCircle2, Download, ExternalLink, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Bot, Briefcase, CheckCircle2, Download, ExternalLink, GraduationCap, KeyRound, RefreshCw, ShieldCheck, Sun } from 'lucide-react'
 import { useState } from 'react'
 import { api, jsonBody, type Bootstrap } from '../api/client'
 import { ErrorState, PageHeader } from '../components/Common'
 
 const modules = ['listening', 'reading', 'writing', 'speaking'] as const
 
+type StudyGoal = 'daily' | 'work' | 'ielts' | 'skip'
+
+const goalChoices: { id: StudyGoal; label: string; hint: string; icon: typeof Sun }[] = [
+  { id: 'daily', label: '日常英语', hint: '看剧、旅行、日常交流够用就好', icon: Sun },
+  { id: 'work', label: '工作英语', hint: '邮件、会议、汇报、客户沟通', icon: Briefcase },
+  { id: 'ielts', label: '备考 IELTS', hint: '按雅思学术标准系统备考', icon: GraduationCap },
+  { id: 'skip', label: '先不定目标', hint: '想学什么直接在对话里问', icon: ShieldCheck },
+]
+
 export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
   const queryClient = useQueryClient()
   const profile = bootstrap.profile
-  const [academicConfirmed, setAcademicConfirmed] = useState(false)
+  const [goal, setGoal] = useState<StudyGoal>('daily')
   const [testDate, setTestDate] = useState(profile?.test_date ?? '')
   const [target, setTarget] = useState<Record<string, number | null>>({ ...(profile?.target ?? {}) })
   const [minimum, setMinimum] = useState<Record<string, number | null>>({ ...(profile?.minimum_required ?? {}) })
@@ -19,7 +28,7 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
     allow_cloud_upload: profile?.privacy.allow_cloud_upload ?? false,
     store_raw_voice_audio: profile?.privacy.store_raw_voice_audio ?? false,
   })
-  const [next, setNext] = useState<'today' | 'diagnostic'>('today')
+  const [next, setNext] = useState<'conversations' | 'diagnostic'>('conversations')
   const existingPrimary = bootstrap.model_providers?.find((item) => item.role === 'primary')
   const [aiChoice, setAiChoice] = useState<'api' | 'oauth' | 'later'>(
     existingPrimary?.provider_kind === 'codex_oauth_bridge'
@@ -59,6 +68,7 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
       if (result.authUrl) window.open(result.authUrl, '_blank', 'noopener,noreferrer')
     },
   })
+  const isIelts = goal === 'ielts'
   const save = useMutation({
     mutationFn: async () => {
       if (aiChoice === 'oauth') {
@@ -82,22 +92,26 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
           }),
         })
       }
+      const updates: Record<string, unknown> = {
+        active_learning_track_id: isIelts ? 'ielts-academic' : 'general-english',
+        exam: { type: isIelts ? 'academic' : 'none', test_date: isIelts ? (testDate || null) : null },
+        privacy,
+      }
+      if (isIelts) {
+        updates.target = target
+        updates.minimum_required = minimum
+        updates.current = current
+      }
       return api('/api/v1/profile', {
         method: 'PUT',
         body: jsonBody({
           complete_onboarding: true,
-          updates: {
-            exam: { type: 'academic', test_date: testDate || null },
-            target,
-            minimum_required: minimum,
-            current,
-            privacy,
-          },
+          updates,
         }),
       })
     },
     onSuccess: async () => {
-      window.history.replaceState(null, '', next === 'diagnostic' ? '/diagnostic' : '/today')
+      window.history.replaceState(null, '', isIelts ? '/diagnostic' : '/conversations')
       await queryClient.invalidateQueries({ queryKey: ['bootstrap'] })
     },
   })
@@ -106,29 +120,37 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
     || (aiChoice === 'api' && Boolean(baseUrl && modelId && apiKey))
   return <div className="standalone-onboarding">
     <div className="page page-narrow">
-      <PageHeader eyebrow="First setup" title="建立你的 IELTS Academic 学习档案" description="这些信息只保存在本地，用于目标差距、训练分配和摸底状态判断；以后可在设置中修改。" />
+      <PageHeader eyebrow="First setup" title="欢迎使用言蹊" description="先选一个学习目标，马上就能开始；这些信息只保存在本地，以后可随时修改。" />
       <section className="settings-section onboarding-step">
-        <p className="eyebrow">1 · Exam</p><h2>考试与目标</h2>
-        <label className="consent"><input type="checkbox" checked={academicConfirmed} onChange={(event) => setAcademicConfirmed(event.target.checked)} />我确认准备的是 IELTS Academic；当前系统不把 General Training 题目混入训练。</label>
-        <label>考试日期（可留空）<input type="date" value={testDate} onChange={(event) => setTestDate(event.target.value)} /></label>
-        <ScoreGrid title="目标分" values={target} onChange={setTarget} includeOverall />
-        <ScoreGrid title="最低单项要求" values={minimum} onChange={setMinimum} includeOverall />
+        <p className="eyebrow">1 · Goal</p><h2>你的学习目标</h2>
+        <div className="onboarding-goal-grid">
+          {goalChoices.map(({ id, label, hint, icon: Icon }) => (
+            <label key={id} className={goal === id ? 'selected' : ''}>
+              <input type="radio" name="goal" checked={goal === id} onChange={() => setGoal(id)} />
+              <Icon size={20} /><span><strong>{label}</strong><small>{hint}</small></span>
+            </label>
+          ))}
+        </div>
+        {isIelts && (
+          <div className="onboarding-ielts-fields">
+            <label>考试日期（可留空）<input type="date" value={testDate} onChange={(event) => setTestDate(event.target.value)} /></label>
+            <ScoreGrid title="目标分" values={target} onChange={setTarget} includeOverall />
+            <ScoreGrid title="最低单项要求" values={minimum} onChange={setMinimum} includeOverall />
+            <p className="onboarding-baseline-hint">如果没有可靠成绩，请保持“未知”。不要凭感觉填写 Band；稍后可在摸底页附加真实成绩。</p>
+            <ScoreGrid title="已有成绩或可靠估分（可跳过）" values={current} onChange={setCurrent} allowUnknown />
+          </div>
+        )}
       </section>
       <section className="settings-section onboarding-step">
-        <p className="eyebrow">2 · Baseline</p><h2>当前基线（可跳过）</h2>
-        <p>如果没有可靠成绩，请保持“未知”。不要凭感觉填写 Band；稍后可在摸底页附加真实 Session。</p>
-        <ScoreGrid title="已有成绩或可靠估分" values={current} onChange={setCurrent} allowUnknown />
-      </section>
-      <section className="settings-section onboarding-step">
-        <p className="eyebrow">3 · Privacy</p><h2>隐私偏好</h2>
+        <p className="eyebrow">2 · Privacy</p><h2>隐私偏好</h2>
         <div className="import-boundary"><ShieldCheck /><p>这些偏好不会替代每次远程处理前的一次性确认。</p></div>
         <Toggle checked={privacy.allow_private_corpus} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, allow_private_corpus: value }))}>允许在本机登记私人题库</Toggle>
         <Toggle checked={privacy.allow_cloud_upload} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, allow_cloud_upload: value }))}>默认允许云端上传（仍需单次确认）</Toggle>
         <Toggle checked={privacy.store_raw_voice_audio} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, store_raw_voice_audio: value }))}>允许保存原始口语音频</Toggle>
       </section>
       <section className="settings-section onboarding-step">
-        <p className="eyebrow">4 · AI service</p><h2>选择智能反馈服务</h2>
-        <p>模型只负责需要推理的步骤；题库、计时、Session、进度和保存都在本地完成。</p>
+        <p className="eyebrow">3 · AI service</p><h2>选择智能反馈服务</h2>
+        <p>模型只负责需要推理的步骤；学习记录和保存都在本地完成。</p>
         <div className="onboarding-ai-choices">
           <label className={aiChoice === 'api' ? 'selected' : ''}>
             <input type="radio" name="ai-choice" checked={aiChoice === 'api'} onChange={() => setAiChoice('api')} />
@@ -168,8 +190,10 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
       {save.isError && <ErrorState error={save.error} />}
       {(runtime.error || account.error || installRuntime.error || login.error) && <ErrorState error={runtime.error ?? account.error ?? installRuntime.error ?? login.error} />}
       <div className="onboarding-actions">
-        <button className="button secondary" disabled={!academicConfirmed || !aiReady || save.isPending} onClick={() => { setNext('today'); save.mutate() }}>保存并进入首页</button>
-        <button className="button primary" disabled={!academicConfirmed || !aiReady || save.isPending} onClick={() => { setNext('diagnostic'); save.mutate() }}><CheckCircle2 size={18} />保存并开始摸底</button>
+        <button className="button primary" disabled={!aiReady || save.isPending} onClick={() => { setNext('conversations'); save.mutate() }}><CheckCircle2 size={18} />开始学习</button>
+        {isIelts && (
+          <button className="button secondary" disabled={!aiReady || save.isPending} onClick={() => { setNext('diagnostic'); save.mutate() }}>保存并开始摸底</button>
+        )}
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 ---
 name: ielts-speaking
-description: "IELTS Speaking coach. Use directly for Part 1-3 practice, full mocks, Cue Cards, personal story material, Voice or Live handoff, transcript review, structured report import, targeted drills, and cautious official-rubric feedback."
+description: "IELTS Speaking coach. Use directly for Part 1-3 question strategy, Cue Cards, personal story material, prompt-based practice, transcript review, targeted drills, and cautious official-rubric feedback."
 ---
 
 # IELTS Speaking coach
@@ -10,43 +10,41 @@ scripts.
 
 ## Start with minimum context
 
-- If the learner supplied a speaking task, begin immediately. Do not run global planning or
-  diagnostic checks first.
+- If the learner supplied a speaking task or asked a speaking question, begin
+  immediately. Do not run global planning or diagnostic checks first.
 - Run `ielts-coach study-context --module speaking` only for personalised task
-  selection, saved history, or a formal Session.
-- Load `references/mock-policy.md` only for a mock,
-  `references/voice-handoff.md` only for Voice/Live,
-  `references/evaluation-policy.md` only for scoring, and story/taxonomy/template
-  references only for those operations.
+  selection or saved history.
 
-## Practice contract
+## Practice contract (two-step speaking)
 
-- During a full mock, do not correct, coach, praise or evaluate between answers.
-- Keep Part 3 related to Part 2 and give feedback only after the mock.
-- Treat Voice/Live observations and scores as source evidence, not the system's
-  final evaluation.
+Speaking practice happens in two steps: the coach prepares practice, the
+learner practises with the voice tool of their choice, then brings the attempt
+back for evaluation.
+
+- **Prompt step**: choose a Part 1 / Part 2 / Part 3 task; give the examiner
+  role, the exact cue, and 2-3 follow-up questions. Tell the learner to
+  practise out loud with their voice tool and come back with what they said.
+- **Evaluation step**: evaluate only what the learner actually brought back.
+  Treat any Voice/Live observations as source evidence, not the system's final
+  evaluation.
+- During practice, never correct the learner mid-flow; feedback happens after
+  the attempt.
+
+## Scoring honesty
+
 - Evaluate only FC, LR, GRA and PRON against the official IELTS Speaking Band
-  Descriptors. A transcript can support LR, GRA and part of FC; it cannot support
-  PRON or a complete overall estimate without acoustic evidence.
+  Descriptors. A transcript can support LR, GRA and part of FC; it cannot
+  support PRON or a complete overall estimate without acoustic evidence.
 - Content development informs FC and appropriate wording informs LR; content is
   not a fifth criterion.
 - Before a numerical local evaluation, confirm the official Speaking rubric is
   registered with `ielts-coach rubric list`. If unavailable, keep feedback
   qualitative.
+- Band estimates are AI estimates with confidence labels, never official
+  examiner scores.
 
-## Voice and saving
+## Saving
 
-For a formal handoff, start one Session, run the uninterrupted Voice/Live mock,
-then independently review the returned evidence before import:
-
-```bash
-ielts-coach session start speaking
-ielts-coach speaking import-report <report-file>
-```
-
-Read `references/session-template.md` only when preparing the structured report.
-Save supported observations, local rubric evidence, recurring errors and next
-drills. Do not narrate routine storage steps.
-
-Before a private Voice/Live handoff, run `ielts-coach privacy check --remote
---question-id <id>` and require one-time consent if blocked.
+Save supported observations, recurring errors and next drills. Do not narrate
+routine storage steps. There is no Voice/Live handoff: the learner's voice tool
+is external, and the two-step prompt/evaluation flow happens in dialogue.

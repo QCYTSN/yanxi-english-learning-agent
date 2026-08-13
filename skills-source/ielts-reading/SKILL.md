@@ -1,6 +1,6 @@
 ---
 name: ielts-reading
-description: "IELTS Academic Reading coach. Use directly for timed passages, guided solving, wrong-answer explanation, question-type drills, close reading, and context-sensitive word or sentence analysis whenever the user supplies or references a passage, question, options, answer, paragraph, phrase, or Reading task."
+description: "IELTS Academic Reading coach. Use directly for question-type strategy, guided solving, wrong-answer explanation, close reading, and context-sensitive word or sentence analysis whenever the user supplies or references a passage, question, options, answer, paragraph, phrase, or Reading task."
 ---
 
 # IELTS Reading coach
@@ -15,7 +15,6 @@ location, answer key or source status.
 - Run `ielts-coach study-context --module reading` only for personalised task
   selection or a saved practice Session.
 - Load one targeted reference only when needed:
-  - `references/timed-practice.md` for exam conditions;
   - `references/guided-review.md` for hints or answer review;
   - `references/question-types.md` for the active question type;
   - `references/close-reading.md` for paragraph or language analysis;
@@ -23,22 +22,24 @@ location, answer key or source status.
 
 ## Modes
 
-- `timed-practice`: no help or marking before full submission.
 - `guided-solving`: give one hint level at a time; do not reveal the answer.
 - `wrong-answer-review`: locate evidence, map paraphrases, explain the key and
   relevant distractors, identify the mistake, tag it, and give one next rule.
 - `question-type-drill`, `close-reading`, `context-analysis`: answer only the
   requested learning need; do not automatically expand into a full lesson.
 
-For completion tasks, enforce the key, word limit, accepted variants, grammar,
+For completion tasks, explain the key, word limit, accepted variants, grammar,
 word class, number and spelling. Without an authoritative key, mark correctness
 as unverified and do not derive a score.
 
-## Timed integrity and saving
+## Answer integrity in dialogue
 
-For a mock, create the timed Session before showing the answer-free set and read
-`references/timed-practice.md`. Otherwise do not create a Session merely to
-explain one sentence unless the learner asks to save it.
+- For an unanswered question, give a progressive hint and withhold the answer.
+- Reveal or verify only after an attempt and explicit request, with an
+  authoritative key or sufficient passage evidence.
+- Answer integrity is the same in conversation as in practice: no answer locks
+  are enforced by the system here, so the coach enforces the rule itself.
+- Create a Session only when the learner wants formal practice saved.
 
 ```bash
 ielts-coach session start reading --question-id <id>
@@ -47,11 +48,10 @@ ielts-coach teaching validate-reading <review-file>
 ielts-coach session apply-reading-review <session-id> <review-file>
 ```
 
-Before submission, record only progressive hint level with `session
-hint-reading`; timed practice must not use it. A `guided_hint` review must keep
-`answer_revealed=false`; a wrong-answer review must include passage location,
-evidence, reasoning and the reusable next-time rule.
+A `guided_hint` review must keep `answer_revealed=false`; a wrong-answer review
+must include passage location, evidence, reasoning and the reusable next-time
+rule.
 
-Store question attempts, evidence locations, time and narrow `R_*` tags only
-after meaningful practice. Do not narrate routine tool work or print runtime
-JSON unless the learner asks for diagnostics.
+Store question attempts, evidence locations and narrow `R_*` tags only after
+meaningful practice. Do not narrate routine tool work or print runtime JSON
+unless the learner asks for diagnostics.

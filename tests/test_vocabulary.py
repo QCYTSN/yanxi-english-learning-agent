@@ -110,3 +110,38 @@ def test_vocabulary_functions_and_track_isolation(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError):
         set_vocabulary_status(home, "missing-item", status="learning")
+
+
+def test_onboarding_goal_sets_track_and_exam(tmp_path: Path) -> None:
+    from ielts_coach.onboarding import update_profile
+    from ielts_coach.config import load_profile
+
+    home = tmp_path / "home"
+    initialise_home(home)
+
+    # general goal: track general-english, exam none
+    result = update_profile(
+        home,
+        {
+            "active_learning_track_id": "general-english",
+            "exam": {"type": "none", "test_date": None},
+        },
+        mark_ready=True,
+    )
+    assert result["onboarding"]["status"] == "ready"
+    profile = load_profile(home)
+    assert profile["active_learning_track_id"] == "general-english"
+    assert profile["exam"]["type"] == "none"
+
+    # ielts goal: track ielts-academic, exam academic
+    result = update_profile(
+        home,
+        {
+            "active_learning_track_id": "ielts-academic",
+            "exam": {"type": "academic", "test_date": "2026-12-12"},
+        },
+    )
+    profile = load_profile(home)
+    assert profile["active_learning_track_id"] == "ielts-academic"
+    assert profile["exam"]["type"] == "academic"
+    assert profile["exam"]["test_date"] == "2026-12-12"

@@ -110,8 +110,24 @@ const IELTS_SKILL_COPY: Record<string, { title: string; description: string }> =
   'speaking.development': { title: '回答展开', description: '用相关解释和例子充分发展回答。' },
 }
 
+const GENERAL_SKILL_COPY: Record<string, { title: string; description: string }> = {
+  'listening.gist': { title: '日常对话理解', description: '听懂日常交谈和关键信息。' },
+  'listening.workplace': { title: '工作场景听力', description: '应对电话、会议和英文指令。' },
+  'reading.comprehension': { title: '文档理解', description: '读懂邮件、通知和短文。' },
+  'reading.inference': { title: '推断与语气', description: '读出文字背后的意图和态度。' },
+  'writing.expression': { title: '清晰表达', description: '在日常写作中把想法说清楚。' },
+  'writing.organization': { title: '组织与连贯', description: '把消息和段落组织得有逻辑。' },
+  'writing.revision': { title: '自我修改', description: '找出并改正自己写作中的错误。' },
+  'speaking.fluency': { title: '流利度', description: '对话不卡壳，表达自然。' },
+  'speaking.clarity': { title: '发音清晰', description: '通过清晰发音和重音被听懂。' },
+  'vocabulary.usage': { title: '词汇使用', description: '准确使用日常词汇。' },
+  'vocabulary.collocation': { title: '搭配', description: '像母语者一样自然地组合词汇。' },
+  'grammar.accuracy': { title: '句子准确性', description: '写出正确的句子结构。' },
+  'grammar.tense': { title: '时态与情态', description: '准确表达时间和可能性。' },
+}
+
 export function skillPresentation(skill: Pick<LearningSkill, 'skill_id' | 'title' | 'description'>) {
-  return IELTS_SKILL_COPY[skill.skill_id] ?? { title: skill.title, description: skill.description }
+  return GENERAL_SKILL_COPY[skill.skill_id] ?? IELTS_SKILL_COPY[skill.skill_id] ?? { title: skill.title, description: skill.description }
 }
 
 export function memoryTypeLabel(memory: Pick<LearnerMemory, 'memory_type' | 'scope'>) {

@@ -273,7 +273,7 @@ function ReadinessView({ data, pending, error }: { data?: Readiness; pending: bo
       <div><span>待结构化材料</span><strong>{data.imports.needs_structuring}</strong></div>
       <div><span>可执行结构化导入</span><strong>{data.imports.ready_to_import}</strong></div>
     </section>
-    <p className="conformance-note">库存目标是本产品的训练规划值，不是 IELTS 官方规定。只有结构、权利和本地审核均有效的完整套题才能进入可信评分池。</p>
+    <p className="conformance-note">库存目标是本产品的训练规划值，不是考试官方规定。只有结构、权利和本地审核均有效的完整套题才能进入可信评分池。</p>
     <div className="readiness-grid">
       {Object.entries(data.modules).map(([key, item]) => <section className="readiness-card" key={key}>
         <div className="section-heading"><div><p className="eyebrow">{key}</p><h2>{item.label}</h2></div><StatusBadge tone={item.ready_for_varied_practice ? 'success' : 'warning'}>{item.ready_for_varied_practice ? '库存充足' : '需要补充'}</StatusBadge></div>

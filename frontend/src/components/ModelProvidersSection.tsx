@@ -67,7 +67,7 @@ export function ModelProvidersSection() {
       <section className="settings-detail-intro">
         <p className="eyebrow">Models</p>
         <h2>主模型与备用模型</h2>
-        <p>IELTS 教学 Runtime 始终控制流程和保存；这里仅决定由哪个模型完成需要推理的步骤。</p>
+        <p>教学 Runtime 始终控制流程和保存；这里仅决定由哪个模型完成需要推理的步骤。</p>
       </section>
 
       <CustomProviderForm
@@ -314,7 +314,7 @@ function OpenAIProviderCard({ providers, refresh }: {
           </div>
           <p className="muted">账号：{account.data?.account?.email ?? account.data?.account?.type ?? 'ChatGPT'} · {runtime.data?.version ?? 'Codex runtime'}</p>
           {openai?.role === 'disabled' && !models.isPending && !models.error && (
-            <p className="inline-success"><Check size={16} />登录和模型列表连接正常；保存后即可用于 IELTS 教学任务。</p>
+            <p className="inline-success"><Check size={16} />登录和模型列表连接正常；保存后即可用于教学任务。</p>
           )}
         </>
       )}

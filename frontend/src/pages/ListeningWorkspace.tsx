@@ -70,7 +70,7 @@ export function ListeningWorkspace() {
   }
 
   return <div className="page listening-workspace-page">
-    <PageHeader eyebrow="Listening · high-frequency corpus" title="高频场景听辨" description="首批原创表达按十个高频场景组织；系统语音只用于听写训练，不冒充真实 IELTS 录音。" action={<div className="header-badges"><ConformanceBadge status="skill_only" mode="skill_drill" />{session && <button className="button secondary" onClick={() => finish.mutate()} disabled={finish.isPending}><CheckCircle2 size={17} />结束本轮</button>}</div>} />
+    <PageHeader eyebrow="Listening · high-frequency corpus" title="高频场景听辨" description="首批原创表达按十个高频场景组织；系统语音只用于听写训练，不冒充真实考试录音。" action={<div className="header-badges"><ConformanceBadge status="skill_only" mode="skill_drill" />{session && <button className="button secondary" onClick={() => finish.mutate()} disabled={finish.isPending}><CheckCircle2 size={17} />结束本轮</button>}</div>} />
     {sessionQuery.isError && <ErrorState error={sessionQuery.error} />}
     {!session && <section className="primary-card"><div><StatusBadge>{totals} 条原创表达</StatusBadge><h2>建立一次 Listening 高频训练 Session</h2><p>每次听写会记录正确率、错因和复习状态。</p></div><button className="button primary" onClick={() => create.mutate()} disabled={create.isPending}><Headphones size={18} />开始训练</button></section>}
     {create.isError && <ErrorState error={create.error} />}

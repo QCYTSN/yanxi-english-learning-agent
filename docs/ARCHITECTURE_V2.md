@@ -27,11 +27,6 @@ flowchart TD
     RESULT --> CHECK["Schema, semantic, privacy and revision validation"]
     CHECK --> CORE
 
-    RT -. "optional non-teaching delegation" .-> EXT["External Agent Gateway"]
-    EXT --> CODEX["Codex CLI"]
-    EXT --> CLAUDE["Claude Code"]
-    EXT --> OPENCODE["OpenCode"]
-    EXT --> MANUAL["Manual handoff"]
 ```
 
 FastAPI is the loopback application service. It serves the UI, exposes
@@ -69,20 +64,17 @@ provider kinds are:
 The system keeps exactly one enabled primary provider and zero or more ordered
 fallback providers. Provider selection is independent of IELTS capabilities.
 
-Built-in presets only prefill connection metadata. DeepSeek, Qwen/DashScope,
-GLM, Moonshot/Kimi and SiliconFlow all use the same
-`openai_compatible` implementation. A preset does not bypass testing,
-credential storage, Skill compilation or output validation.
+Provider presets were removed: learners configure one OpenAI-compatible
+connection (base URL, model, API key) for any vendor, or use the optional
+ChatGPT login bridge. A provider never bypasses testing, credential storage,
+Skill compilation or output validation.
 
 ### External Agent
 
-Claude Code, OpenCode, Codex CLI and Manual handoff are external tools. They
-are useful for corpus preparation, local file conversion, batch import and
-developer workflows. They are not eligible to become the primary teaching
-model.
-
-This separation prevents CLI discovery, login, PATH and terminal-output changes
-from breaking normal IELTS practice.
+External CLI Agents (Claude Code, OpenCode, Codex CLI and Manual handoff) were
+removed as a product decision. The managed Codex app-server bridge that backs
+ChatGPT login remains the only adapter beside the deterministic pipeline-test
+MockAdapter.
 
 ## 3. Capability and Skill compiler
 
@@ -299,11 +291,15 @@ Threads retain their own attachments and validated replies without becoming
 formal score Sessions; an explicit promotion action sends selected material to
 the OCR and local-review pipeline.
 
-On first use, the learner may choose:
+On first use, the learner chooses a study goal (daily English, workplace
+English, IELTS preparation, or skip) and a model route:
 
-1. ChatGPT login (recommended);
-2. their own OpenAI-compatible API;
+1. their own OpenAI-compatible API (recommended);
+2. ChatGPT login (optional advanced);
 3. configure AI later.
+
+The goal selects the active learning track: `general-english` (default) or
+`ielts-academic` (exam pack).
 
 Deterministic practice, corpus browsing and history remain usable without a
 model connection.

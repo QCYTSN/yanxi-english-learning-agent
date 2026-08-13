@@ -141,7 +141,7 @@ export function LearningMemorySection() {
   }
 
   function confirmForget(memory: LearnerMemory) {
-    if (window.confirm(`确定让 IELTS 老师忘记“${memory.statement}”吗？此操作会删除这条本地记忆。`)) {
+    if (window.confirm(`确定让老师忘记“${memory.statement}”吗？此操作会删除这条本地记忆。`)) {
       deleteMemory.mutate(memory.memory_id)
     }
   }
