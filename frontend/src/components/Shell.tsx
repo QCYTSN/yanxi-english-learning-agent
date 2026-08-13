@@ -12,6 +12,7 @@ import { useEffect, useRef, type PropsWithChildren } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api, type Bootstrap, type StudyThread } from '../api/client'
 import { ModelSwitcher } from './ModelSwitcher'
+import { SealMark } from './SealMark'
 import { ThreadActions } from './ThreadActions'
 
 const navigation = [
@@ -74,7 +75,7 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
         <Link className="brand" to="/today" aria-label="言蹊 首页">
-          <img className="brand-mark" src="/yanxi-seal.png" alt="" aria-hidden="true" />
+          <SealMark />
           <span className="brand-copy">
             <strong>言蹊</strong>
             <small>YANXI</small>

@@ -28,6 +28,7 @@ def _powershell(script: str, environment: dict[str, str]) -> str:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        errors="replace",
         env={**os.environ, **environment},
     )
     return completed.stdout.strip()

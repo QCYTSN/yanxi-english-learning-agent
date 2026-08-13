@@ -151,9 +151,9 @@ code {
   position: relative;
   width: 40px;
   height: 40px;
-  border-radius: 6px;
-  object-fit: cover;
   flex: 0 0 auto;
+  display: block;
+  overflow: visible;
 }
 
 .brand-copy strong {
@@ -4718,8 +4718,7 @@ body {
 .brand-mark {
   width: 40px;
   height: 40px;
-  border-radius: 6px;
-  object-fit: cover;
+  display: block;
   flex: 0 0 auto;
 }
 
