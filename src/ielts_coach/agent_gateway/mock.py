@@ -65,7 +65,8 @@ class MockAdapter:
                         }
                     ],
                     "evidence": [],
-                    "limitations": ["Mock Adapter 不读取图片或判断英语内容。"],
+                    "limitations": ["Mock Adapter 不读取图片或判断 IELTS 内容。"],
+                    "words_taught": [],
                     "next_action": "选择已连接且支持当前材料的模型。",
                 }
             return {
@@ -82,7 +83,8 @@ class MockAdapter:
                     }
                 ],
                 "evidence": [],
-                "limitations": ["Mock Adapter 只验证工程管线，不会判断英语内容。"],
+                "limitations": ["Mock Adapter 只验证工程管线，不会判断 IELTS 内容。"],
+                "words_taught": [],
                 "next_action": "选择已连接且支持当前材料的模型。",
             }
         if contract.startswith("general-"):
@@ -160,6 +162,7 @@ class MockAdapter:
                     }
                 ],
                 "check_question": "连接模型后，试着用英语回答一个问题。",
+                "words_taught": [],
                 "limitations": ["Mock Adapter 只验证工程管线。"],
                 "next_action": "选择已连接且支持当前材料的模型。",
             }

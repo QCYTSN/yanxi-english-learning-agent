@@ -57,3 +57,9 @@ forbids verification.
 Return one focused `study-help@1` JSON object. For general dialogue use
 `request_kind: teacher_dialogue`, `evidence_status: not_required` and
 `answer_status: not_applicable`.
+
+List every word or phrase you taught or explained in `words_taught` (usually
+1–3, max 6): the word, a one-line meaning, a typical usage and one short
+example. Omit learner-invented strings and words you merely quoted; include
+only words the learner should now recognise or reuse. If you taught none,
+return an empty array.

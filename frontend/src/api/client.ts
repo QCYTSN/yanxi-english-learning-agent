@@ -585,7 +585,9 @@ export type VocabularyItem = {
   usage: string | null
   example: string | null
   collocations: string[]
-  status: 'learning' | 'mastered' | 'dismissed'
+  source_type: string
+  source_id: string | null
+  status: 'candidate' | 'learning' | 'mastered' | 'known' | 'dismissed'
   review_kind: string
   next_review_at: string | null
   review_count: number

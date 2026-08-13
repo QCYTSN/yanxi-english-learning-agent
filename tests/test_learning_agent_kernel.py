@@ -107,7 +107,7 @@ def test_initialisation_seeds_generic_learning_model_without_user_content(
             "SELECT COUNT(*) FROM learning_skill_nodes WHERE track_id=?",
             ("general-english",),
         ).fetchone()[0]
-    assert version == "33"
+    assert version == "34"
     assert {
         "learning_skill_nodes",
         "learning_objectives",

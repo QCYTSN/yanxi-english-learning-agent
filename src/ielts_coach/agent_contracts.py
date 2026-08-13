@@ -12,6 +12,7 @@ from .study_runtime import (
 )
 from .validation import validate_data_semantics, validate_schema_data
 from .study_threads import add_assistant_message
+from .vocabulary import ingest_taught_words
 
 
 CONTRACT_SCHEMAS = {
@@ -153,6 +154,7 @@ def persist_agent_contract(
             result=result,
             agent_run_id=str(run["run_id"]),
         )
+        _ingest_taught_words(home, result, run)
         return {
             "artifact_id": artifact["artifact_id"],
             "message_id": message["message_id"],
@@ -182,6 +184,7 @@ def persist_agent_contract(
             result=result,
             agent_run_id=str(run["run_id"]),
         )
+        _ingest_taught_words(home, result, run)
         return {
             "artifact_id": artifact["artifact_id"],
             "message_id": message["message_id"],
@@ -274,6 +277,39 @@ def _persist_speaking_evaluation(
         "speaking_evaluation_applied",
         apply,
         **common,
+    )
+
+
+def _ingest_taught_words(
+    home: Path,
+    result: dict[str, Any],
+    run: dict[str, Any],
+) -> None:
+    """Auto-ingest words the tutor explained as candidates for confirmation.
+
+    Conversation contracts carry an optional ``words_taught`` list; the
+    dedicated vocabulary lesson carries a single ``word``. Ingestion is
+    idempotent and never demotes mastered, known or dismissed words.
+    """
+    words = list(result.get("words_taught") or [])
+    if not words and result.get("word"):
+        words = [
+            {
+                "word": result["word"],
+                "meaning": result.get("meaning"),
+                "usage": result.get("usage"),
+                "example": result.get("example"),
+                "collocations": result.get("collocations") or [],
+            }
+        ]
+    if not words:
+        return
+    track_id = str((run.get("request") or {}).get("track_id") or "general-english")
+    ingest_taught_words(
+        home,
+        words,
+        agent_run_id=str(run["run_id"]),
+        track_id=track_id,
     )
 
 

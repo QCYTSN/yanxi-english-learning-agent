@@ -63,7 +63,27 @@
       "type": "array",
       "items": {"type": "string", "minLength": 1}
     },
-    "next_action": {"type": ["string", "null"]}
+    "next_action": {"type": ["string", "null"]},
+    "words_taught": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["word"],
+        "properties": {
+          "word": {"type": "string", "minLength": 1},
+          "meaning": {"type": ["string", "null"]},
+          "usage": {"type": ["string", "null"]},
+          "example": {"type": ["string", "null"]},
+          "collocations": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {"type": "string", "minLength": 1}
+          }
+        },
+        "additionalProperties": false
+      }
+    }
   },
   "additionalProperties": false
 }

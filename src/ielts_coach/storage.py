@@ -15,7 +15,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 33
+SCHEMA_VERSION = 34
 
 _CACHE_LOCK = threading.RLock()
 _DB_FILENAME_CACHE: dict[Path, tuple[tuple[int, int] | None, str]] = {}

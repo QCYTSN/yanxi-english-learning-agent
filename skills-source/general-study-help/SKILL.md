@@ -66,3 +66,9 @@ require confirmation.
 Return one focused `general-study-help@1` JSON object. For general dialogue
 use `request_kind: teacher_dialogue` with `check_question` even for free chat
 (a simple "Does that make sense?" suffices).
+
+List every word or phrase you taught or explained in `words_taught` (usually
+1–3, max 6): the word, a one-line meaning, a typical usage and one short
+example. Omit learner-invented strings and words you merely quoted; include
+only words the learner should now recognise or reuse. If you taught none,
+return an empty array.

@@ -20,9 +20,11 @@ from ..validation import (
 from ..vocabulary import (
     add_vocabulary_item,
     due_vocabulary_reviews,
+    list_recent_ingests,
     list_vocabulary_items,
     schedule_vocabulary_review,
     set_vocabulary_status,
+    undo_vocabulary_ingest,
 )
 from fastapi import BackgroundTasks, Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -2116,6 +2118,19 @@ def create_app(
     ) -> dict[str, Any]:
         status = str(payload.get("status") or "learning")
         return set_vocabulary_status(target, item_id, status=status)
+
+    @app.get("/api/v1/vocabulary/ingested", dependencies=[Depends(require_session)])
+    def vocabulary_ingested(
+        track_id: str = Query("general-english"),
+        limit: int = Query(20, ge=1, le=100),
+    ) -> list[dict[str, Any]]:
+        """Recent dialogue-ingested candidates awaiting learner confirmation."""
+        return list_recent_ingests(target, track_id=track_id, limit=limit)
+
+    @app.post("/api/v1/vocabulary/ingested/{item_id}/undo", dependencies=[Depends(require_session)])
+    def vocabulary_ingest_undo(item_id: str) -> dict[str, Any]:
+        """Remove one still-unconfirmed word the tutor auto-ingested."""
+        return undo_vocabulary_ingest(target, item_id)
 
     @app.get("/api/v1/learning-objectives", dependencies=[Depends(require_session)])
     def learning_objectives(

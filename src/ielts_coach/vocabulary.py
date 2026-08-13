@@ -185,7 +185,7 @@ def set_vocabulary_status(
     *,
     status: str,
 ) -> dict[str, Any]:
-    if status not in {"learning", "mastered", "dismissed"}:
+    if status not in {"candidate", "learning", "mastered", "known", "dismissed"}:
         raise ValueError(f"Unsupported vocabulary status: {status}")
     initialise_database(home)
     with connect(home) as conn:
@@ -201,6 +201,145 @@ def set_vocabulary_status(
     return _row(row)
 
 
+def ingest_taught_words(
+    home: Path,
+    words: list[dict[str, Any]],
+    *,
+    agent_run_id: str,
+    track_id: str = "general-english",
+) -> list[dict[str, Any]]:
+    """Auto-ingest words the tutor explained in conversation as candidates.
+
+    Conversation-taught words enter the list with status ``candidate`` so the
+    learner can confirm, undo or mark them as already known. Idempotent per
+    (track, word): an existing row is never demoted — a mastered, known or
+    dismissed word stays as it is, and a candidate is refreshed with any
+    richer explanation from the newer turn.
+    """
+    ingested: list[dict[str, Any]] = []
+    for item in words:
+        word = str(item.get("word") or "").strip()
+        if not word:
+            continue
+        meaning = item.get("meaning") or None
+        usage = item.get("usage") or None
+        example = item.get("example") or None
+        collocations = [str(value) for value in (item.get("collocations") or [])]
+        initialise_database(home)
+        now = _now()
+        item_id = f"vocab:{word.casefold()[:120]}"
+        with connect(home) as conn:
+            existing = conn.execute(
+                "SELECT * FROM vocabulary_items WHERE track_id=? AND word=?",
+                (track_id, word),
+            ).fetchone()
+            if existing:
+                status = str(existing["status"])
+                if status in {"mastered", "known", "dismissed"}:
+                    continue
+                conn.execute(
+                    """
+                    UPDATE vocabulary_items
+                    SET meaning=COALESCE(?,meaning), usage=COALESCE(?,usage),
+                        example=COALESCE(?,example),
+                        collocations_json=?,
+                        source_type='agent_dialogue',
+                        source_id=?, status='candidate', updated_at=?
+                    WHERE item_id=?
+                    """,
+                    (
+                        meaning,
+                        usage,
+                        example,
+                        json.dumps(collocations, ensure_ascii=False),
+                        agent_run_id,
+                        now,
+                        existing["item_id"],
+                    ),
+                )
+                row = conn.execute(
+                    "SELECT * FROM vocabulary_items WHERE item_id=?",
+                    (existing["item_id"],),
+                ).fetchone()
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO vocabulary_items(
+                      item_id,track_id,word,meaning,usage,example,
+                      collocations_json,source_type,source_id,status,review_kind,
+                      next_review_at,review_count,created_at,updated_at
+                    ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """,
+                    (
+                        item_id,
+                        track_id,
+                        word,
+                        meaning,
+                        usage,
+                        example,
+                        json.dumps(collocations, ensure_ascii=False),
+                        "agent_dialogue",
+                        agent_run_id,
+                        "candidate",
+                        "sentence_recall",
+                        None,
+                        0,
+                        now,
+                        now,
+                    ),
+                )
+                row = conn.execute(
+                    "SELECT * FROM vocabulary_items WHERE item_id=?", (item_id,)
+                ).fetchone()
+        ingested.append(_row(row))
+    return ingested
+
+
+def list_recent_ingests(
+    home: Path,
+    *,
+    track_id: str = "general-english",
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Recent conversation-ingested candidates, newest first, for undo UI."""
+    initialise_database(home)
+    with connect(home) as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM vocabulary_items
+            WHERE track_id=? AND status='candidate' AND source_type='agent_dialogue'
+            ORDER BY updated_at DESC
+            LIMIT ?
+            """,
+            (track_id, limit),
+        ).fetchall()
+    return [_row(row) for row in rows]
+
+
+def undo_vocabulary_ingest(
+    home: Path,
+    item_id: str,
+    *,
+    track_id: str = "general-english",
+) -> dict[str, Any]:
+    """Remove a still-unconfirmed candidate that came from conversation."""
+    initialise_database(home)
+    with connect(home) as conn:
+        row = conn.execute(
+            "SELECT * FROM vocabulary_items WHERE item_id=? AND track_id=?",
+            (item_id, track_id),
+        ).fetchone()
+        if not row:
+            raise ValueError(f"Unknown vocabulary item: {item_id}")
+        if str(row["status"]) != "candidate":
+            raise ValueError("Only unconfirmed candidate words can be undone")
+        conn.execute(
+            "DELETE FROM vocabulary_items WHERE item_id=? AND status='candidate'",
+            (item_id,),
+        )
+    return {"item_id": item_id, "removed": True}
+
+
 def _row(row: Any) -> dict[str, Any]:
     return {
         "item_id": row["item_id"],
@@ -210,6 +349,8 @@ def _row(row: Any) -> dict[str, Any]:
         "usage": row["usage"],
         "example": row["example"],
         "collocations": json.loads(row["collocations_json"] or "[]"),
+        "source_type": row["source_type"],
+        "source_id": row["source_id"],
         "status": row["status"],
         "review_kind": row["review_kind"],
         "next_review_at": row["next_review_at"],

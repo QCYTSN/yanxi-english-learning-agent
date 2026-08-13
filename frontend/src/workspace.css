@@ -3944,6 +3944,11 @@ tbody tr:hover {
   box-shadow: 0 0 0 1px rgba(14, 116, 107, 0.15);
 }
 
+.vocabulary-card.candidate {
+  border-style: dashed;
+  border-color: var(--muted);
+}
+
 .vocabulary-card-head {
   display: flex;
   align-items: baseline;

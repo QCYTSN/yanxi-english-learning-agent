@@ -158,6 +158,60 @@ def _v33_vocabulary_and_general_track(conn: sqlite3.Connection) -> None:
     )
 
 
+def _v34_vocabulary_candidate_states(conn: sqlite3.Connection) -> None:
+    """Extend vocabulary statuses for dialogue auto-ingestion.
+
+    ``candidate`` marks words the tutor explained in conversation and stored
+    for learner confirmation; ``known`` lets a learner record "I already know
+    this word" so auto-ingestion stops offering it. SQLite cannot ALTER a
+    CHECK constraint, so the table is rebuilt with the same columns and data.
+    """
+    conn.execute("ALTER TABLE vocabulary_items RENAME TO vocabulary_items_v33")
+    conn.execute(
+        """
+        CREATE TABLE vocabulary_items (
+            item_id TEXT PRIMARY KEY,
+            track_id TEXT NOT NULL DEFAULT 'general-english',
+            word TEXT NOT NULL,
+            meaning TEXT,
+            usage TEXT,
+            example TEXT,
+            collocations_json TEXT NOT NULL DEFAULT '[]',
+            source_type TEXT NOT NULL,
+            source_id TEXT,
+            status TEXT NOT NULL DEFAULT 'learning'
+              CHECK(status IN
+                ('candidate','learning','mastered','known','dismissed')),
+            review_kind TEXT NOT NULL DEFAULT 'sentence_recall',
+            next_review_at TEXT,
+            review_count INTEGER NOT NULL DEFAULT 0,
+            last_reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(track_id, word)
+        )
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO vocabulary_items(
+          item_id,track_id,word,meaning,usage,example,collocations_json,
+          source_type,source_id,status,review_kind,next_review_at,review_count,
+          last_reviewed_at,created_at,updated_at
+        )
+        SELECT item_id,track_id,word,meaning,usage,example,collocations_json,
+          source_type,source_id,status,review_kind,next_review_at,review_count,
+          last_reviewed_at,created_at,updated_at
+        FROM vocabulary_items_v33
+        """
+    )
+    conn.execute("DROP TABLE vocabulary_items_v33")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_vocabulary_items_review "
+        "ON vocabulary_items(track_id,status,next_review_at)"
+    )
+
+
 MIGRATIONS = (
     Migration(
         28,
@@ -194,6 +248,12 @@ MIGRATIONS = (
         "v33-vocabulary-and-general-track",
         "Add learner vocabulary items with review scheduling for the General English track.",
         _v33_vocabulary_and_general_track,
+    ),
+    Migration(
+        34,
+        "v34-vocabulary-candidate-states",
+        "Add candidate and known statuses so dialogue-taught words can be auto-ingested with undo and already-known dedup.",
+        _v34_vocabulary_candidate_states,
     ),
 )
 
