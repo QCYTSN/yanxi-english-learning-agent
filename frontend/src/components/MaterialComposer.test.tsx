@@ -8,7 +8,7 @@ describe('MaterialComposer keyboard behaviour', () => {
   it('sends with Enter and keeps Shift+Enter for a new line', async () => {
     const onSend = vi.fn(async () => undefined)
     render(<MaterialComposer onSend={onSend} compact />)
-    const input = screen.getByRole('textbox', { name: '向 IELTS 教师提问' })
+    const input = screen.getByRole('textbox', { name: '向老师提问' })
 
     fireEvent.change(input, { target: { value: '第一行' } })
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
@@ -21,7 +21,7 @@ describe('MaterialComposer keyboard behaviour', () => {
   it('adds a pasted screenshot to the next message', async () => {
     const onSend = vi.fn(async () => undefined)
     render(<MaterialComposer onSend={onSend} compact />)
-    const input = screen.getByRole('textbox', { name: '向 IELTS 教师提问' })
+    const input = screen.getByRole('textbox', { name: '向老师提问' })
     const screenshot = new File(['pixels'], 'image.png', { type: 'image/png' })
 
     fireEvent.paste(input, {

@@ -268,7 +268,7 @@ export function StudyThreadPage() {
                 key={message.message_id}
               >
                 {message.role === 'assistant' && (
-                  <div className="message-role">IELTS 教师</div>
+                  <div className="message-role">老师</div>
                 )}
                 {message.role === 'assistant' && message.context.result
                   ? <StudyHelpAnswer result={message.context.result} />
@@ -561,7 +561,7 @@ function runProgressState(run: AgentRun, event: AgentRunEvent | null): RunProgre
   }
   if (eventType === 'context_preparing') return { title: '正在整理上下文', detail: '只准备本次回答需要的内容', icon: 'search' }
   if (eventType === 'context_ready' || eventType === 'skill_compiled') {
-    return { title: 'IELTS 教师已准备好', detail: '正在连接当前模型', icon: 'wait' }
+    return { title: '老师已准备好', detail: '正在连接当前模型', icon: 'wait' }
   }
   if (run.status === 'validating') return { title: '正在检查回答', detail: '确认内容完整且符合教学规则', icon: 'verify' }
   return { title: '正在准备回答', detail: '消息已保存，马上开始处理', icon: 'wait' }

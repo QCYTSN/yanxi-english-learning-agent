@@ -155,7 +155,13 @@ class InferenceBroker:
         """Compatibility view for old clients and persisted runs."""
         profiles = []
         for profile in list_execution_profiles(self.home):
-            adapter = get_adapter(str(profile["backend_id"]))
+            try:
+                adapter = get_adapter(str(profile["backend_id"]))
+            except ValueError:
+                # Legacy rows for removed adapters (claude/opencode/manual)
+                # stay in the database for migration compatibility but are no
+                # longer resolvable; skip them instead of failing the UI.
+                continue
             descriptor = {
                 **profile,
                 "capabilities": asdict(adapter.probe()),

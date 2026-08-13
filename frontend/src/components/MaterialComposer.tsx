@@ -18,7 +18,7 @@ export function MaterialComposer({
   onSend,
   pending = false,
   disabled = false,
-  placeholder = '和 IELTS 老师聊聊，或上传题目、原文和作文…',
+  placeholder = '和老师聊聊，或上传题目、原文和作文…',
   footer,
   autoFocus = false,
   compact = false,
@@ -98,7 +98,7 @@ export function MaterialComposer({
 
   return (
     <form className={`material-composer${compact ? ' compact' : ''}`} onSubmit={submit}>
-      <label className="sr-only" htmlFor={inputId}>向 IELTS 教师提问</label>
+      <label className="sr-only" htmlFor={inputId}>向老师提问</label>
       <textarea
         ref={textArea}
         id={inputId}
@@ -177,7 +177,7 @@ export function MaterialComposer({
         <button
           className="composer-send"
           type="submit"
-          aria-label="发送给 IELTS 教师"
+          aria-label="发送给老师"
           disabled={!content.trim() || pending || disabled}
         >
           <Send size={18} />
