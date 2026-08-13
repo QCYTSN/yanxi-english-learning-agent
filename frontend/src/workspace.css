@@ -1,4 +1,18 @@
-/* IELTS Study Desk V2 — learning ledger interface */
+/* 言蹊 (Yanxi) — learning ledger interface */
+
+@font-face {
+  font-family: "YanxiLogo";
+  src: url("./assets/fonts/yanxi-logo.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "YanxiKai";
+  src: url("./assets/fonts/yanxi-heading.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
 
 :root {
   color-scheme: light;
@@ -15,6 +29,7 @@
   --primary-soft: #e9f0f3;
   --evidence: #0d6b62;
   --evidence-soft: #e5f2ef;
+  --seal: #c0392b;
   --warning: #a4641b;
   --warning-soft: #fbf0df;
   --danger: #a33b35;
@@ -36,6 +51,8 @@
   --font-body: "Segoe UI Variable", "Microsoft YaHei UI", "Noto Sans CJK SC", "Segoe UI", sans-serif;
   --font-editorial: Charter, "Iowan Old Style", "Palatino Linotype", "Source Han Serif SC", "Songti SC", SimSun, serif;
   --font-reading: Charter, "Iowan Old Style", "Palatino Linotype", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, Georgia, serif;
+  --font-title: "YanxiKai", "Source Han Serif SC", "Songti SC", SimSun, serif;
+  --font-logo: "YanxiLogo", "YanxiKai", "Source Han Serif SC", serif;
   color: var(--ink);
   background: var(--paper);
   font-family: var(--font-body);
@@ -132,30 +149,52 @@ code {
 
 .brand-mark {
   position: relative;
-  width: 38px;
-  height: 42px;
-  overflow: visible;
-  border-radius: 2px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 40px;
+  height: 40px;
+  padding: 3px;
+  border-radius: 6px;
   background: var(--ink);
-  font-family: "Iowan Old Style", "Palatino Linotype", serif;
-  font-size: 1.35rem;
-  font-weight: 700;
+  color: #f7faf8;
+  font-family: var(--font-logo);
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .brand-mark::after {
   content: "";
   position: absolute;
-  right: -5px;
-  bottom: 6px;
-  width: 10px;
-  height: 16px;
-  border: 2px solid #e8ece9;
-  background: var(--evidence);
+  right: -4px;
+  bottom: -4px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--surface-muted);
+  border-radius: 2px;
+  background: var(--seal);
 }
 
 .brand-mark span {
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.brand-mark .mark-yan {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  justify-self: start;
+}
+
+.brand-mark .mark-xi {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  justify-self: end;
+  color: #e6efe8;
 }
 
 .brand-copy strong {
@@ -169,6 +208,16 @@ code {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.14em;
+}
+
+.brand-tagline {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-family: var(--font-title);
+  font-size: 0.66rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
 }
 
 .sidebar-section-label {
@@ -4708,19 +4757,14 @@ body {
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
-  overflow: hidden;
-  border-radius: 4px;
-  background: var(--ink);
+  width: 40px;
+  height: 40px;
+  padding: 3px;
+  border-radius: 6px;
 }
 
 .brand-mark::after {
   content: none;
-}
-
-.brand-mark svg {
-  color: #f7faf8;
 }
 
 .brand-copy strong {
@@ -5443,6 +5487,37 @@ button.resume-learning-row {
   color: var(--muted);
 }
 
+.onboarding-cefr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+
+.onboarding-cefr-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.onboarding-cefr-grid label.selected {
+  border-color: var(--evidence);
+  box-shadow: 0 0 0 1px rgba(13, 107, 98, 0.18);
+}
+
+.onboarding-cefr-grid strong {
+  font-size: 0.98rem;
+}
+
+.onboarding-cefr-grid small {
+  color: var(--muted);
+}
+
 .onboarding-ielts-fields {
   margin-top: 16px;
   padding-top: 14px;
@@ -5704,7 +5779,8 @@ button.resume-learning-row {
   .model-choice-row,
   .trust-boundaries,
   .system-metrics,
-  .onboarding-goal-grid {
+  .onboarding-goal-grid,
+  .onboarding-cefr-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
@@ -5734,6 +5810,37 @@ button.resume-learning-row {
 }
 
 .onboarding-goal-grid small {
+  color: var(--muted);
+}
+
+.onboarding-cefr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+
+.onboarding-cefr-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.onboarding-cefr-grid label.selected {
+  border-color: var(--evidence);
+  box-shadow: 0 0 0 1px rgba(13, 107, 98, 0.18);
+}
+
+.onboarding-cefr-grid strong {
+  font-size: 0.98rem;
+}
+
+.onboarding-cefr-grid small {
   color: var(--muted);
 }
 

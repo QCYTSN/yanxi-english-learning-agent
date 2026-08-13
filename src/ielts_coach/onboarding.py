@@ -27,7 +27,7 @@ def onboarding_status(home: Path) -> dict[str, Any]:
 
 
 ONBOARDING_FIELDS = {
-    "active_learning_track_id", "exam", "target", "minimum_required", "stretch_target", "current",
+    "active_learning_track_id", "cefr_level", "exam", "target", "minimum_required", "stretch_target", "current",
     "base_allocation", "allocation_policy", "preferences", "privacy",
 }
 

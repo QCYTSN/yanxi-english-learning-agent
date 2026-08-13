@@ -15,10 +15,22 @@ const goalChoices: { id: StudyGoal; label: string; hint: string; icon: typeof Su
   { id: 'skip', label: '先不定目标', hint: '想学什么直接在对话里问', icon: ShieldCheck },
 ]
 
+const cefrChoices: { id: string; label: string; hint: string }[] = [
+  { id: 'A1', label: 'A1 起步', hint: '认得常用词，能说简单句子' },
+  { id: 'A2', label: 'A2 基础', hint: '能应付日常对话与基本安排' },
+  { id: 'B1', label: 'B1 进阶', hint: '能聊熟悉话题，写简单邮件' },
+  { id: 'B2', label: 'B2 自如', hint: '能较流畅讨论，读一般文章' },
+  { id: 'C1', label: 'C1 熟练', hint: '能表达细微意思，几乎无障碍' },
+  { id: 'C2', label: 'C2 精熟', hint: '接近母语者的理解与表达' },
+]
+
 export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
   const queryClient = useQueryClient()
   const profile = bootstrap.profile
   const [goal, setGoal] = useState<StudyGoal>('daily')
+  const [cefrLevel, setCefrLevel] = useState<string | null>(
+    profile?.cefr_level ?? (goal === 'ielts' ? null : 'B1'),
+  )
   const [testDate, setTestDate] = useState(profile?.test_date ?? '')
   const [target, setTarget] = useState<Record<string, number | null>>({ ...(profile?.target ?? {}) })
   const [minimum, setMinimum] = useState<Record<string, number | null>>({ ...(profile?.minimum_required ?? {}) })
@@ -94,6 +106,7 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
       }
       const updates: Record<string, unknown> = {
         active_learning_track_id: isIelts ? 'ielts-academic' : 'general-english',
+        cefr_level: isIelts ? null : cefrLevel,
         exam: { type: isIelts ? 'academic' : 'none', test_date: isIelts ? (testDate || null) : null },
         privacy,
       }
@@ -141,16 +154,31 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
           </div>
         )}
       </section>
+      {!isIelts && (
+        <section className="settings-section onboarding-step">
+          <p className="eyebrow">2 · Level</p>
+          <h2>你的英语水平（自评即可）</h2>
+          <p>言蹊按 CEFR 调整讲解和选词；不确定就挑个大致接近的，后面随时可改。</p>
+          <div className="onboarding-cefr-grid">
+            {cefrChoices.map(({ id, label, hint }) => (
+              <label key={id} className={cefrLevel === id ? 'selected' : ''}>
+                <input type="radio" name="cefr" checked={cefrLevel === id} onChange={() => setCefrLevel(id)} />
+                <strong>{label}</strong><small>{hint}</small>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="settings-section onboarding-step">
-        <p className="eyebrow">2 · Privacy</p><h2>隐私偏好</h2>
+        <p className="eyebrow">{isIelts ? '2' : '3'} · Privacy</p><h2>隐私偏好</h2>
         <div className="import-boundary"><ShieldCheck /><p>这些偏好不会替代每次远程处理前的一次性确认。</p></div>
         <Toggle checked={privacy.allow_private_corpus} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, allow_private_corpus: value }))}>允许在本机登记私人题库</Toggle>
         <Toggle checked={privacy.allow_cloud_upload} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, allow_cloud_upload: value }))}>默认允许云端上传（仍需单次确认）</Toggle>
         <Toggle checked={privacy.store_raw_voice_audio} onChange={(value) => setPrivacy((currentValue) => ({ ...currentValue, store_raw_voice_audio: value }))}>允许保存原始口语音频</Toggle>
       </section>
       <section className="settings-section onboarding-step">
-        <p className="eyebrow">3 · AI service</p><h2>选择智能反馈服务</h2>
-        <p>模型只负责需要推理的步骤；学习记录和保存都在本地完成。</p>
+        <p className="eyebrow">{isIelts ? '3' : '4'} · AI service</p><h2>选择智能反馈服务</h2>
+        <p>模型只负责需要推理的步骤；学习记录和保存都在本地完成。暂时不接也能先用打字和词表。</p>
         <div className="onboarding-ai-choices">
           <label className={aiChoice === 'api' ? 'selected' : ''}>
             <input type="radio" name="ai-choice" checked={aiChoice === 'api'} onChange={() => setAiChoice('api')} />

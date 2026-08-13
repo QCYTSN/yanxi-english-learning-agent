@@ -1,6 +1,5 @@
 import {
   BookOpenText,
-  BookMarked,
   ChartNoAxesCombined,
   ChevronRight,
   LibraryBig,
@@ -74,8 +73,15 @@ export function Shell({ children, bootstrap }: PropsWithChildren<{ bootstrap?: B
       <a className="skip-link" href="#main-content">跳到主要内容</a>
       <aside className="sidebar">
         <Link className="brand" to="/today" aria-label="言蹊 首页">
-          <span className="brand-mark" aria-hidden="true"><BookMarked size={24} /></span>
-          <span className="brand-copy"><strong>言蹊</strong><small>Yanxi</small></span>
+          <span className="brand-mark" aria-hidden="true">
+            <span className="mark-yan">言</span>
+            <span className="mark-xi">蹊</span>
+          </span>
+          <span className="brand-copy">
+            <strong>言蹊</strong>
+            <small>Yanxi</small>
+            <small className="brand-tagline">不言之教，自成其蹊</small>
+          </span>
         </Link>
 
         <nav className="primary-nav" aria-label="学习导航">

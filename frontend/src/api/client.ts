@@ -42,6 +42,7 @@ export type Bootstrap = {
   onboarding: { status: string; baseline_status: string } | null
   profile: {
     active_learning_track_id: string
+    cefr_level?: string | null
     exam_type: string
     test_date?: string | null
     target: Record<string, number>

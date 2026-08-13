@@ -16,6 +16,10 @@
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9-]*$"
     },
+    "cefr_level": {
+      "type": ["string", "null"],
+      "enum": [null, "A1", "A2", "B1", "B2", "C1", "C2"]
+    },
     "onboarding": {
       "type": "object",
       "required": [
