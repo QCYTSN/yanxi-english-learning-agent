@@ -16,7 +16,7 @@ Prefer source references, current exercises, relevant paragraphs, local paths
 outside Git, redacted personal data, and no automatic private-corpus backup.
 
 Before a Skill intentionally sends indexed private material to a remote model,
-it must run `ielts-coach privacy check --remote` with a source, question or
+it must run `xiyan privacy check --remote` with a source, question or
 corpus identifier. When `allow_cloud_upload` is false, private sources are
 blocked unless the learner gives explicit one-time consent for that operation.
 Consent is not persisted.

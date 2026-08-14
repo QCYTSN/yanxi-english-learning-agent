@@ -46,7 +46,7 @@ $releasePython = Join-Path $releaseVenv "Scripts\python.exe"
 & $releasePython scripts/verify_release.py --source-only
 
 Remove-ReleaseBuildPath (Join-Path $repoRoot "build\ielts-study-desk")
-Remove-ReleaseBuildPath (Join-Path $repoRoot "dist\IELTS Study Desk")
+Remove-ReleaseBuildPath (Join-Path $repoRoot "dist\Yanxi")
 Remove-ReleaseBuildPath (Join-Path $repoRoot "release-artifacts")
 
 & $releasePython -m PyInstaller `

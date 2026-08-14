@@ -11,7 +11,7 @@ scripts.
 ## Start with minimum context
 
 - If the learner supplied a speaking task or asked a speaking question, begin immediately. Do not run global planning or diagnostic checks first.
-- Run `ielts-coach study-context --module speaking` only for personalised task
+- Run `xiyan study-context --module speaking` only for personalised task
   selection or saved history.
 
 ## Practice contract (two-step speaking)
@@ -37,7 +37,7 @@ back for evaluation.
 - Content development informs FC and appropriate wording informs LR; content is
   not a fifth criterion.
 - Before a numerical local evaluation, confirm the official Speaking rubric is
-  registered with `ielts-coach rubric list`. If unavailable, keep feedback
+  registered with `xiyan rubric list`. If unavailable, keep feedback
   qualitative.
 - Band estimates are AI estimates with confidence labels, never official
   examiner scores.

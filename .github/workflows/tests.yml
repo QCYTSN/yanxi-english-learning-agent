@@ -26,12 +26,12 @@ jobs:
           tests/test_sync_skills.py
           tests/test_v14_inference_architecture.py
           --durations=15
-      - run: ielts-coach init
-      - run: ielts-coach sync-skills
-      - run: ielts-coach doctor
+      - run: xiyan init
+      - run: xiyan sync-skills
+      - run: xiyan doctor
       - name: Agent contract regression gate
         run: >-
-          ielts-coach evaluation contracts
+          xiyan evaluation contracts
           --cases tests/fixtures/agent_contracts
           --home .evaluation-home
 
@@ -80,8 +80,8 @@ jobs:
       - name: Start packaged local service
         shell: bash
         run: |
-          launch_output="$(ielts-coach ui open --home "$IELTS_HOME" --no-open)"
-          launch_url="${launch_output#IELTS Study Desk ready: }"
+          launch_output="$(xiyan ui open --home "$IELTS_HOME" --no-open)"
+          launch_url="${launch_output#言蹊 (Yanxi) ready: }"
           test -n "$launch_url"
           echo "IELTS_E2E_LAUNCH_URL=$launch_url" >> "$GITHUB_ENV"
           echo "IELTS_E2E_BASE_URL=${launch_url%%/#*}" >> "$GITHUB_ENV"
@@ -90,7 +90,7 @@ jobs:
       - run: npm run test:e2e
         working-directory: frontend
       - if: always()
-        run: ielts-coach ui stop --home "$IELTS_HOME"
+        run: xiyan ui stop --home "$IELTS_HOME"
 
   package:
     runs-on: windows-latest
@@ -109,4 +109,5 @@ jobs:
           if (-not $wheel) { throw "Built wheel was not found." }
           python scripts\verify_release.py --wheel $wheel
           .\smoke-env\Scripts\python -m pip install "${wheel}[ui]"
+          .\smoke-env\Scripts\xiyan.exe --help
           .\smoke-env\Scripts\ielts-coach.exe --help

@@ -223,7 +223,7 @@ def _protect(home: Path, value: bytes) -> tuple[bytes, str]:
     kernel32 = ctypes.windll.kernel32
     ok = crypt32.CryptProtectData(
         ctypes.byref(data_blob),
-        "IELTS AI Coach provider credential",
+        "Yanxi provider credential",
         ctypes.byref(entropy_blob),
         None,
         None,

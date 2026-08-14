@@ -15,7 +15,7 @@ After the final Part 3 answer, return:
 - repeated fillers or long pauses you observed;
 - three priorities for the next session.
 If you provide a score, label it as the source voice model's provisional AI
-training estimate. Do not present it as the IELTS AI Coach's final evaluation.
+training estimate. Do not present it as Yanxi's final evaluation.
 ```
 
 The returned report should be saved under

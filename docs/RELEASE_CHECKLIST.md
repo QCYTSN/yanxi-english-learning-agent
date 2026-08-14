@@ -40,5 +40,5 @@
 Run the deterministic release gates locally with:
 
 ```powershell
-ielts-coach evaluation release --cases tests/fixtures/agent_contracts
+xiyan evaluation release --cases tests/fixtures/agent_contracts
 ```

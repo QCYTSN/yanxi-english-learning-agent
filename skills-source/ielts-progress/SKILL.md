@@ -10,8 +10,8 @@ Use local data as truth; never reconstruct history from conversation memory.
 ## Efficient workflow
 
 - For a narrow score entry or Listening question, perform only that operation.
-- For one-module personalisation, use `ielts-coach study-context --module <name>`.
-- For a daily or cross-module decision, use `ielts-coach study-context` once.
+- For one-module personalisation, use `xiyan study-context --module <name>`.
+- For a daily or cross-module decision, use `xiyan study-context` once.
 - Run full summary, trends, learning-profile, weekly-report, allocation or
   calibration commands only when the learner explicitly requests that view.
 - Do not narrate database reads or run several overlapping reports by default.

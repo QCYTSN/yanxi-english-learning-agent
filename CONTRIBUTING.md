@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve IELTS Study Desk.
+Thank you for helping improve 言蹊 (Yanxi).
 
 ## Before opening a change
 
@@ -31,7 +31,7 @@ Before a release-oriented change, also run:
 
 ```powershell
 python scripts/verify_release.py --source-only
-ielts-coach evaluation release --cases tests/fixtures/agent_contracts
+xiyan evaluation release --cases tests/fixtures/agent_contracts
 ```
 
 ## Pull requests

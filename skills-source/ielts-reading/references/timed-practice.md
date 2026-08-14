@@ -5,14 +5,14 @@
 1. Create the Session first so answer metadata is locked at the data layer:
 
 ```bash
-ielts-coach session start reading --passage-id <passage-id> \
+xiyan session start reading --passage-id <passage-id> \
   --mode timed-practice --time-limit-minutes 20
 ```
 
 2. Show the indexed passage set without answer metadata:
 
 ```bash
-ielts-coach question set <passage-id>
+xiyan question set <passage-id>
 ```
 
 Use 20 minutes for a one-passage drill and 60 minutes only for a complete

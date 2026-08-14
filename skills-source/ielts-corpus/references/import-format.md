@@ -51,7 +51,7 @@ not duplicate copyrighted source text; it references indexed local item IDs.
 ```
 
 The `question_ids` array above is abbreviated for readability; an importable
-full pack lists every referenced ID. Use `ielts-coach conformance pack <file>` before import. A full Reading pack
+full pack lists every referenced ID. Use `xiyan conformance pack <file>` before import. A full Reading pack
 must contain three passages and 40 questions; a full Listening pack four
 10-question parts; a full Writing pack both tasks with correct weighting; and a
 full Speaking pack Parts 1-3 with Part 2/3 linkage and official timings.

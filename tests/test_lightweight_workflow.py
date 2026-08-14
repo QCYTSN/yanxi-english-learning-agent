@@ -59,7 +59,7 @@ def test_skill_metadata_and_runtime_contract_stay_lightweight():
         total_body_chars += len(body)
 
     router = (root / "ielts" / "SKILL.md").read_text(encoding="utf-8")
-    assert "ielts-coach study-context" in router
+    assert "xiyan study-context" in router
     assert "Do not separately run summary" in router
     for name in ("ielts-writing", "ielts-reading"):
         specialist = (root / name / "SKILL.md").read_text(encoding="utf-8")

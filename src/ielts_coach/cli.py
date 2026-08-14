@@ -58,7 +58,7 @@ from .rubrics import list_rubrics, register_rubric
 from .privacy import check_processing_permission
 from .validation import validate_data
 
-app = typer.Typer(no_args_is_help=True, help="Local CLI for IELTS AI Coach")
+app = typer.Typer(no_args_is_help=True, help="Local CLI for Yanxi (言蹊) learning")
 session_app = typer.Typer(no_args_is_help=True, help="Create and complete structured practice sessions")
 corpus_app = typer.Typer(no_args_is_help=True, help="Register and index user-owned corpora")
 error_app = typer.Typer(no_args_is_help=True, help="Inspect and update recurring error status")
@@ -69,7 +69,7 @@ teaching_app = typer.Typer(no_args_is_help=True, help="Validate structured teach
 rubric_app = typer.Typer(no_args_is_help=True, help="Manage official scoring rubric references")
 privacy_app = typer.Typer(no_args_is_help=True, help="Check whether material may be sent for remote processing")
 telemetry_app = typer.Typer(no_args_is_help=True, help="Record metadata-only cost and latency observations")
-ui_app = typer.Typer(no_args_is_help=True, help="Run the optional local browser study desk")
+ui_app = typer.Typer(no_args_is_help=True, help="Run the local Yanxi (言蹊) browser learning UI")
 conformance_app = typer.Typer(no_args_is_help=True, help="Inspect IELTS content contracts and eligibility")
 backup_app = typer.Typer(no_args_is_help=True, help="Create, verify and restore local IELTS_HOME backups")
 evaluation_app = typer.Typer(no_args_is_help=True, help="Evaluate Agent contracts and provider reliability")
@@ -301,7 +301,7 @@ def ui_start(
     port: int = typer.Option(0, min=0, max=65535),
     no_open: bool = typer.Option(False, help="Print the URL without opening a browser"),
 ) -> None:
-    """Start the token-protected local Study Desk on 127.0.0.1."""
+    """Start the token-protected Yanxi (言蹊) UI on 127.0.0.1."""
     try:
         from .web.server import serve_ui
     except ImportError as exc:
@@ -320,7 +320,7 @@ def ui_open(
     port: int = typer.Option(0, min=0, max=65535),
     no_open: bool = typer.Option(False, help="Start or reuse the service without opening a browser"),
 ) -> None:
-    """Start or reuse the background Study Desk and open a fresh authenticated tab."""
+    """Start or reuse the background Yanxi (言蹊) UI and open a fresh authenticated tab."""
     try:
         from .web.server import open_ui
 
@@ -333,7 +333,7 @@ def ui_open(
 
 @ui_app.command("stop")
 def ui_stop(home: Optional[Path] = typer.Option(None)) -> None:
-    """Stop the background Study Desk for this IELTS_HOME."""
+    """Stop the background Yanxi (言蹊) UI for this data home."""
     from .web.server import stop_ui
 
     typer.echo("Stopping 言蹊 (Yanxi)." if stop_ui(resolve_home(home)) else "言蹊 (Yanxi) is not running.")

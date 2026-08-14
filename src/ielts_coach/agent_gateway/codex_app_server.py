@@ -227,7 +227,7 @@ class CodexAppServerClient:
             {
                 "clientInfo": {
                     "name": "ielts_ai_coach",
-                    "title": "IELTS AI Coach",
+                    "title": "Yanxi",
                     "version": __version__,
                 }
             },

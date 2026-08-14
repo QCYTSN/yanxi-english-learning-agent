@@ -150,8 +150,8 @@ Python 3.10–3.12 is required. Node.js is needed only to rebuild the frontend.
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"
-ielts-coach init
-ielts-coach ui open
+xiyan init
+xiyan ui open
 ```
 
 Optional local OCR dependencies:
@@ -163,7 +163,7 @@ python -m pip install -e ".[ui,ocr]"
 Install a developer desktop shortcut:
 
 ```powershell
-ielts-coach ui shortcut-install
+xiyan ui shortcut-install
 ```
 
 The shortcut starts or reuses the local service and opens the browser UI.
@@ -197,7 +197,7 @@ Before publishing:
 
 ```powershell
 python scripts/verify_release.py --source-only
-ielts-coach evaluation release --cases tests/fixtures/agent_contracts
+xiyan evaluation release --cases tests/fixtures/agent_contracts
 ```
 
 The release command runs contract conformance, the built-in positive/negative

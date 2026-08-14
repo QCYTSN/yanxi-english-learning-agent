@@ -14,10 +14,10 @@ It does not make an AI an official examiner.
    pass rate.
 
 ```bash
-ielts-coach calibration case-import <case.yaml>
-ielts-coach calibration prepare --model <client-model-label> --output <run.yaml>
-ielts-coach calibration import-run <run.yaml>
-ielts-coach calibration report
+xiyan calibration case-import <case.yaml>
+xiyan calibration prepare --model <client-model-label> --output <run.yaml>
+xiyan calibration import-run <run.yaml>
+xiyan calibration report
 ```
 
 Use neutral response filenames so the official Band is not leaked through a

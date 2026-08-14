@@ -604,7 +604,7 @@ def create_app(
             agent_jobs.shutdown()
 
     app = FastAPI(
-        title="IELTS AI Coach Local UI",
+        title="Yanxi (言蹊) Local UI",
         version=__version__,
         docs_url=None,
         redoc_url=None,

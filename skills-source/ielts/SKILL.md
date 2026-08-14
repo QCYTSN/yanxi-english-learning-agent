@@ -13,12 +13,12 @@ Route; do not teach specialist content here.
   answer, transcript, score, or corpus operation, hand off immediately to the
   matching specialist. Do not run global status checks first.
 - For a generic start, plan, goal, or first-use request, run exactly one read-only
-  preflight: `ielts-coach study-context`.
+  preflight: `xiyan study-context`.
 - Do not separately run summary, allocation, learning-profile, onboarding status,
   and diagnostic status in the same turn; the compact context replaces them.
 - Do not narrate routine file reads or CLI calls. Report only information that
   changes the learner's next action.
-- Before creating another formal Session, use `ielts-coach session resume` and
+- Before creating another formal Session, use `xiyan session resume` and
   continue an active one when it matches the learner's intent.
 
 ## Routing
@@ -32,7 +32,7 @@ Route; do not teach specialist content here.
 ## First use and diagnostic
 
 If onboarding is pending, ask once for the missing setup information and save it
-with `ielts-coach onboarding complete --setup-file <file>`. Do not repeatedly ask
+with `xiyan onboarding complete --setup-file <file>`. Do not repeatedly ask
 for stored targets.
 
 A missing baseline does not block direct practice. For a generic start, offer a

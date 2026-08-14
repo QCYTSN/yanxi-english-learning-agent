@@ -61,15 +61,15 @@ stale when the reviewed material changes.
 Import and inspect:
 
 ```powershell
-ielts-coach corpus import manifest.yaml
-ielts-coach corpus stats --corpus-id my-private-reading
-ielts-coach question search "keyword" --module reading
+xiyan corpus import manifest.yaml
+xiyan corpus stats --corpus-id my-private-reading
+xiyan question search "keyword" --module reading
 ```
 
 Reindex after editing the JSONL:
 
 ```powershell
-ielts-coach corpus reindex my-private-reading
+xiyan corpus reindex my-private-reading
 ```
 
 Duplicate content is detected by hash. The importer deliberately does not bulk

@@ -2,7 +2,7 @@
 
 ## Academic-only scope
 
-IELTS AI Coach supports IELTS Academic. It does not treat General Training as a
+Yanxi (言蹊) supports IELTS Academic. It does not treat General Training as a
 cosmetic setting: General Training uses different Reading material and a letter
 for Writing Task 1. A General Training Profile is therefore rejected rather than
 silently evaluated against Academic workflows.
@@ -17,13 +17,13 @@ The quick diagnostic is the recommended first-use baseline:
 - one uninterrupted three-part Speaking mock.
 
 ```powershell
-ielts-coach diagnostic start --mode quick
-ielts-coach diagnostic attach <diagnostic-id> <completed-session-id>
-ielts-coach diagnostic status <diagnostic-id>
-ielts-coach diagnostic complete <diagnostic-id>
+xiyan diagnostic start --mode quick
+xiyan diagnostic attach <diagnostic-id> <completed-session-id>
+xiyan diagnostic status <diagnostic-id>
+xiyan diagnostic complete <diagnostic-id>
 ```
 
-Only one diagnostic can be active. Use `ielts-coach diagnostic cancel
+Only one diagnostic can be active. Use `xiyan diagnostic cancel
 <diagnostic-id>` when abandoning a run.
 
 Completing all components means the diagnostic has enough task coverage. It does
@@ -43,8 +43,8 @@ is supplied by the user and is not bundled with this repository.
 Start the Session before displaying the passage set:
 
 ```powershell
-ielts-coach session start reading --passage-id START-RP-001 --mode timed-practice --time-limit-minutes 20
-ielts-coach question set START-RP-001
+xiyan session start reading --passage-id START-RP-001 --mode timed-practice --time-limit-minutes 20
+xiyan question set START-RP-001
 ```
 
 Before submission the Agent gives no hints, vocabulary help, partial marking or
@@ -62,9 +62,9 @@ declares `reference_kind: official_scored_sample` so informal tutor scores are
 not silently mixed into the official-reference calibration set:
 
 ```powershell
-ielts-coach calibration case-import case.yaml
-ielts-coach calibration case-list
-ielts-coach calibration prepare --model codex-model-label --output blind-run.yaml
+xiyan calibration case-import case.yaml
+xiyan calibration case-list
+xiyan calibration prepare --model codex-model-label --output blind-run.yaml
 ```
 
 The prepared worksheet contains the response path, hash and empty prediction
@@ -72,8 +72,8 @@ fields, but no official score. The active Agent applies the official IELTS Band
 Descriptors and fills the prediction. Then import and report:
 
 ```powershell
-ielts-coach calibration import-run blind-run.yaml
-ielts-coach calibration report
+xiyan calibration import-run blind-run.yaml
+xiyan calibration report
 ```
 
 Calibration reports model error; it does not certify the model as an examiner.

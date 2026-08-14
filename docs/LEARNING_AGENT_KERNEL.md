@@ -15,7 +15,7 @@ collection of IELTS-only progress queries. The architecture is:
 
 ```mermaid
 flowchart TD
-    UI["IELTS Study Desk UI"] --> TUTOR["Bounded Tutor Agent"]
+    UI["言蹊 (Yanxi) UI"] --> TUTOR["Bounded Tutor Agent"]
     UI --> PRACTICE["Formal Practice Runtime"]
 
     TUTOR --> PACK["IELTS Academic Domain Pack"]

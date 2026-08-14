@@ -30,6 +30,6 @@ Exclude partial Speaking profiles, low-confidence AI estimates and source-model
 provisional scores. Legacy records with unspecified provenance may remain visible,
 but reports should identify them as legacy rather than silently relabel them.
 
-Use `ielts-coach allocation` to persist one recommendation per planning cycle.
+Use `xiyan allocation` to persist one recommendation per planning cycle.
 Do not manually make a larger change unless the user explicitly overrides the
 policy with a reason.

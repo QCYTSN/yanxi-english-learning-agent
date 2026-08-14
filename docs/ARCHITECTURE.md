@@ -4,7 +4,7 @@ The CLI/Skill surface and browser application are two clients of the same
 authoritative IELTS Runtime:
 
 ```text
-Terminal Agent -> Skill -> ielts-coach CLI ------┐
+Terminal Agent -> Skill -> xiyan CLI ------┐
                                                  ├-> IELTS Runtime -> local data
 Browser UI -> Capability -> Inference Broker ----┘
 ```
@@ -44,10 +44,10 @@ without reading global history. When personalisation is useful, one command
 returns a compact module-specific payload:
 
 ```text
-ielts-coach study-context --module writing
+xiyan study-context --module writing
 ```
 
-Generic planning uses `ielts-coach study-context` once. It replaces the former
+Generic planning uses `xiyan study-context` once. It replaces the former
 sequence of separate onboarding, summary, allocation, learning-profile and
 diagnostic calls. Detailed references are loaded only at the stage that needs
 them; for example, a Writing scoring policy is not loaded during simple question

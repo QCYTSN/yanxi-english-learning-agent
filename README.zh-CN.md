@@ -127,8 +127,8 @@ Windows 安装包。
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"
-ielts-coach init
-ielts-coach ui open
+xiyan init
+xiyan ui open
 ```
 
 可选本地 OCR 依赖：
@@ -140,7 +140,7 @@ python -m pip install -e ".[ui,ocr]"
 安装开发者桌面快捷方式：
 
 ```powershell
-ielts-coach ui shortcut-install
+xiyan ui shortcut-install
 ```
 
 快捷方式会启动或复用本地服务并打开浏览器界面。
@@ -173,7 +173,7 @@ npm run build
 
 ```powershell
 python scripts/verify_release.py --source-only
-ielts-coach evaluation release --cases tests/fixtures/agent_contracts
+xiyan evaluation release --cases tests/fixtures/agent_contracts
 ```
 
 发布命令会运行契约符合性检查、内置的正/负向教学质量套件与本地规模性能门。

@@ -56,7 +56,11 @@
 - optional provider prompt-caching marker for OpenAI-compatible
   connections; docx extraction rejects oversized zip members;
 - Practice and Settings copy now describe the two-step speaking flow;
-  no Voice/Live task-package residue remains.
+  no Voice/Live task-package residue remains;
+- the user-facing CLI and installer are renamed to Yanxi (言蹊): run
+  `xiyan` for all commands, install "言蹊 (Yanxi)" from the Setup wizard,
+  and build `Yanxi-<version>-Windows-x64-Setup.exe`; `ielts-coach` remains a
+  compatibility alias.
 
 ### Brand
 
@@ -73,12 +77,12 @@
 - Install the new version over v1.4 — the runtime auto-migrates the
   database (backward-compatible with V0.1 data) and keeps a pre-migration
   snapshot under `home/backups` before touching anything.
-- Run `ielts-coach doctor` afterwards to confirm schema, skills and
+- Run `xiyan doctor` afterwards to confirm schema, skills and
   question-bank state.
 - Learning data lives under `%LOCALAPPDATA%\Yanxi\data` (Windows) and
   survives both upgrades and uninstalls; model connections in
   `settings.yaml` are preserved too.
-- Desktop shortcut: `ielts-coach ui shortcut-install` refreshes it; Inno
+- Desktop shortcut: `xiyan ui shortcut-install` refreshes it; Inno
   Setup uninstall now removes the shortcut as well.
 
 # 言蹊 (Yanxi) v1.4.0

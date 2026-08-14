@@ -2,7 +2,7 @@
 
 ## Windows: recommended installation
 
-Download `IELTS-Study-Desk-<version>-Windows-x64-Setup.exe` from the GitHub
+Download `Yanxi-<version>-Windows-x64-Setup.exe` from the GitHub
 Release page and run it. The installer contains the Python runtime, local web
 service and browser UI. A clean Windows computer does **not** need Python,
 Node.js, Git, Docker, WSL, Claude Code, Codex CLI or OpenCode.
@@ -18,7 +18,7 @@ The installer:
 Default data location:
 
 ```text
-%LOCALAPPDATA%\IELTS Study Desk\data
+%LOCALAPPDATA%\Yanxi\data
 ```
 
 Existing users who set `IELTS_HOME` continue to use that location. Existing
@@ -26,7 +26,7 @@ legacy `~/.ielts` homes are also detected before the new default is selected.
 
 ## First launch
 
-1. Open **IELTS Study Desk** from the desktop or Start menu.
+1. Open **言蹊 (Yanxi)** from the desktop or Start menu.
 2. Complete the target and privacy setup.
 3. Choose an AI connection, or skip it and use deterministic local features.
 4. Import legally obtained questions or personal materials through Library.
@@ -58,8 +58,8 @@ cd ielts-ai-coach
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"
-ielts-coach init
-ielts-coach ui open
+xiyan init
+xiyan ui open
 ```
 
 OCR is optional:
@@ -71,7 +71,7 @@ python -m pip install -e ".[ui,ocr]"
 Install or update the developer shortcut:
 
 ```powershell
-ielts-coach ui shortcut-install
+xiyan ui shortcut-install
 ```
 
 ## Upgrade and uninstall

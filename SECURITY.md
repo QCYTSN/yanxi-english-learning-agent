@@ -19,7 +19,7 @@ credentials, privacy consent and Session persistence.
 
 ## Local data model
 
-IELTS Study Desk is a local single-user application. The service binds to
+言蹊 (Yanxi) is a local single-user application. The service binds to
 `127.0.0.1`, learning data lives outside the installation directory and model
 credentials are stored outside SQLite. Users remain responsible for securing
 their operating-system account and for importing only material they are

@@ -12,7 +12,7 @@ location, answer key or source status.
 
 - If the learner supplied the necessary passage or question, begin immediately;
   do not run global status, diagnostic, allocation or corpus checks.
-- Run `ielts-coach study-context --module reading` only for personalised task
+- Run `xiyan study-context --module reading` only for personalised task
   selection or a saved practice Session.
 - Load one targeted reference only when needed:
   - `references/guided-review.md` for hints or answer review;
@@ -42,10 +42,10 @@ as unverified and do not derive a score.
 - Create a Session only when the learner wants formal practice saved.
 
 ```bash
-ielts-coach session start reading --question-id <id>
-ielts-coach session submit-reading <session-id> <answers-file>
-ielts-coach teaching validate-reading <review-file>
-ielts-coach session apply-reading-review <session-id> <review-file>
+xiyan session start reading --question-id <id>
+xiyan session submit-reading <session-id> <answers-file>
+xiyan teaching validate-reading <review-file>
+xiyan session apply-reading-review <session-id> <review-file>
 ```
 
 A `guided_hint` review must keep `answer_revealed=false`; a wrong-answer review

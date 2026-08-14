@@ -14,11 +14,11 @@ Recommend this for first use. It requires:
 Start and track it with:
 
 ```bash
-ielts-coach diagnostic start --mode quick
-ielts-coach diagnostic attach <diagnostic-id> <completed-session-id>
-ielts-coach diagnostic status <diagnostic-id>
-ielts-coach diagnostic complete <diagnostic-id>
-ielts-coach diagnostic cancel <diagnostic-id>
+xiyan diagnostic start --mode quick
+xiyan diagnostic attach <diagnostic-id> <completed-session-id>
+xiyan diagnostic status <diagnostic-id>
+xiyan diagnostic complete <diagnostic-id>
+xiyan diagnostic cancel <diagnostic-id>
 ```
 
 Only one diagnostic may be active at a time. Cancel an abandoned run before

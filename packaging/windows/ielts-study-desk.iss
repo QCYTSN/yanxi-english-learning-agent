@@ -2,21 +2,21 @@
   #define MyAppVersion "1.5.0"
 #endif
 
-#define MyAppName "IELTS Study Desk"
-#define MyAppPublisher "IELTS Study Desk contributors"
-#define MyAppExeName "IELTS Study Desk.exe"
+#define MyAppName "言蹊 (Yanxi)"
+#define MyAppPublisher "Yanxi contributors"
+#define MyAppExeName "Yanxi.exe"
 
 [Setup]
 AppId={{C31F0558-5C74-4B8B-962F-F1C0B3A0A4B8}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={localappdata}\Programs\IELTS Study Desk
+DefaultDirName={localappdata}\Programs\Yanxi
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\..\release-artifacts
-OutputBaseFilename=IELTS-Study-Desk-{#MyAppVersion}-Windows-x64-Setup
+OutputBaseFilename=Yanxi-{#MyAppVersion}-Windows-x64-Setup
 SetupIconFile=..\..\src\ielts_coach\resources\assets\app-icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/max
@@ -37,7 +37,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "快捷方式"; Flags: checkedonce
 
 [Files]
-Source: "..\..\dist\IELTS Study Desk\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\dist\Yanxi\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

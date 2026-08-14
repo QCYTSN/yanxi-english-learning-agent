@@ -28,6 +28,6 @@ def find_project_root(start: Path | None = None) -> Path:
         if (candidate / "pyproject.toml").exists() and (candidate / "skills-source").exists():
             return candidate
     raise FileNotFoundError(
-        "Could not find the IELTS AI Coach project root. Run this command from "
+        "Could not find the Yanxi project root. Run this command from "
         "the cloned repository or pass --project-root."
     )

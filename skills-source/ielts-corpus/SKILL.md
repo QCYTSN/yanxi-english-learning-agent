@@ -16,10 +16,10 @@ Use deterministic CLI results; never claim a question exists from memory.
 - Do not load all three references for a routine search.
 
 ```bash
-ielts-coach corpus import <manifest.yaml>
-ielts-coach question search "urban" --module reading
-ielts-coach question show <question-id>
-ielts-coach question draw --module writing --task task2 --exclude-completed
+xiyan corpus import <manifest.yaml>
+xiyan question search "urban" --module reading
+xiyan question show <question-id>
+xiyan question draw --module writing --task task2 --exclude-completed
 ```
 
 Preserve corpus ID, source type, authenticity, review status and content hash.
@@ -27,8 +27,8 @@ Reveal keys only when permitted. Never bundle pirated material, infer
 authenticity from availability, or label reported/synthetic items official.
 The importer accepts prepared JSONL, not PDF/OCR.
 
-Conformance is separate from provenance. Run `ielts-coach conformance pack`;
+Conformance is separate from provenance. Run `xiyan conformance pack`;
 only a reviewed, verified `full_mock` may support Band conversion.
 
-Before remote processing of private material, run `ielts-coach privacy check
+Before remote processing of private material, run `xiyan privacy check
 --remote --question-id <id>`; require informed one-time consent if blocked.

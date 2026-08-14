@@ -30,7 +30,7 @@ from a drill or an incomplete pack.
 ## Pinned full-module contracts
 
 The runtime exposes the current profile at
-`GET /api/v1/standards/ielts-academic` and `ielts-coach conformance standard`.
+`GET /api/v1/standards/ielts-academic` and `xiyan conformance standard`.
 
 - Listening: four parts, ten questions per part, recording played once.
 - Academic Reading: three passages, 40 questions, 60 minutes, total source-text

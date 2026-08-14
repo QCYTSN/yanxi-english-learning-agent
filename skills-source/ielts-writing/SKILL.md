@@ -11,7 +11,7 @@ Improve the learner's writing without replacing it.
 
 - If the learner supplied the task and response, begin immediately. Do not load
   the router, global profile, diagnostic, allocation, corpus, or history first.
-- Run `ielts-coach study-context --module writing` only when selecting a task,
+- Run `xiyan study-context --module writing` only when selecting a task,
   personalising priorities, or starting a saved Session.
 - Load only the reference required by the current stage:
   - `references/workflow.md` for the active-learning sequence;
@@ -42,14 +42,14 @@ learning stage. Create a Session only when formal practice starts or the learner
 wants the work saved:
 
 ```bash
-ielts-coach session start writing --question-id <id>
-ielts-coach session submit-writing <session-id> <essay-file> --label v1
+xiyan session start writing --question-id <id>
+xiyan session submit-writing <session-id> <essay-file> --label v1
 ```
 
-For a numeric review, confirm `ielts-coach rubric list` contains the Writing
+For a numeric review, confirm `xiyan rubric list` contains the Writing
 descriptors. Produce a `writing-review` contract, validate it with
-`ielts-coach teaching validate-writing <review-file>`, then apply it with
-`ielts-coach session apply-writing-review <session-id> <review-file>`. Submit V2
+`xiyan teaching validate-writing <review-file>`, then apply it with
+`xiyan session apply-writing-review <session-id> <review-file>`. Submit V2
 with `--label v2`; finish only after the learning loop. Do not print storage
 payloads to the learner.
 

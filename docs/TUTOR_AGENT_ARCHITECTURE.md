@@ -4,7 +4,7 @@ Status: frozen product decision and implementation boundary.
 
 ## Product core
 
-IELTS Study Desk has three connected learning surfaces:
+言蹊 (Yanxi) has three connected learning surfaces:
 
 ```text
 Tutor conversation <-> Formal practice and assessment -> Review and progress

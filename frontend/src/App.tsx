@@ -86,7 +86,7 @@ export function App({ startupError = null }: { startupError?: Error | null }) {
 function StandaloneError({ error }: { error: unknown }) {
   return (
     <div className="standalone-state">
-      <ErrorState error={error} action={<p>请从终端重新运行 <code>ielts-coach ui start</code>。</p>} />
+      <ErrorState error={error} action={<p>请从终端重新运行 <code>xiyan ui start</code>。</p>} />
     </div>
   )
 }

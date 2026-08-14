@@ -1,4 +1,4 @@
-# IELTS AI Coach architecture V2
+# Yanxi (言蹊) architecture V2
 
 Status: implemented. This document is the authority for AI execution,
 credentials, Skill compilation, persistence and the boundary between teaching
@@ -6,7 +6,7 @@ models and external Agents.
 
 ## 1. Product boundary
 
-IELTS AI Coach is a local learning application. The product owns the teaching
+Yanxi (言蹊) is a local learning application. The product owns the teaching
 workflow; a model supplies constrained inference inside that workflow.
 
 ```mermaid
@@ -96,7 +96,7 @@ historical feedback can be traced to the policy used at generation time.
 
 Compiled destinations under `.claude/skills`, `.agents/skills` and
 `.opencode/skills` are not used as the source. They remain generated artifacts
-of `ielts-coach sync-skills`.
+of `xiyan sync-skills`.
 
 Wheel builds copy the canonical `skills-source/` tree into package resources at
 build time. Installed applications read that generated package copy; developers
@@ -181,7 +181,7 @@ For Sessions, the authority is the Runtime commit rather than either storage
 medium independently. Markdown is the durable learner-readable projection and
 SQLite is the indexed operational projection. Both carry the same revisioned
 payload hash. A mismatch blocks normal mutation and backup verification;
-`ielts-coach session reconcile` is the explicit recovery path. Equal-revision
+`xiyan session reconcile` is the explicit recovery path. Equal-revision
 forks require the user to choose the Markdown or SQLite projection.
 
 Docker is not a database choice and is not a runtime dependency. Adding

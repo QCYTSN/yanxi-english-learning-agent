@@ -1,6 +1,6 @@
 # Speaking report template
 
-The report passed to `ielts-coach speaking import-report` may be Markdown with
+The report passed to `xiyan speaking import-report` may be Markdown with
 YAML frontmatter. Keep source observations, the Voice model's estimate and the
 local rubric evaluation separate.
 
