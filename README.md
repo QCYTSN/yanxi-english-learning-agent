@@ -9,6 +9,8 @@
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
 [![Release: 1.5.0](https://img.shields.io/badge/release-1.5.0-334155.svg)](RELEASE_NOTES.md)
 
+> **中文文档：[README.zh-CN.md](README.zh-CN.md)** · This document is also available in Chinese.
+
 Local-first, agent-native English learning software.
 
 言蹊 combines a browser learning workspace, a local Python Teaching Runtime,
@@ -33,6 +35,13 @@ first optional exam Domain Pack with its own curriculum and band policies.
 - auto-ingested vocabulary: words the tutor explains in conversation become
   confirmable candidates with undo and already-known dedup, feeding spaced
   review;
+- rich word cards: bundled offline presets for ~2900 high-frequency words
+  (IPA, part of speech, definitions and inflections) plus on-demand model
+  enrichment for every other word, stored with provenance;
+- adaptive spaced review: recalled words climb a 1-2-4-7-14-30-60 day ladder,
+  missed words return the next day;
+- automatic local backups: weekly freshness check with the five most recent
+  automatic backups kept, alongside manual and pre-migration snapshots;
 - first-class typing and listening practice (打词 / 听言) over your own words
   plus a bundled public-domain starter-100 word list;
 - Reading, Writing, Speaking and Listening learning workflows plus vocabulary
@@ -99,6 +108,8 @@ Agent:
   four-module graph, evidence mappings and band policies;
 - the Runtime derives objectives, activities, mastery evidence and review
   timing from validated learning records;
+- Skills load only the reference documents the current teaching phase needs;
+  a failed planner degrades to one direct answer instead of failing the turn;
 - learner memory is local, revisioned, expirable and withheld from the Tutor
   whenever statements conflict;
 - teaching cycles move through explicit diagnose, teach, guided-practice,

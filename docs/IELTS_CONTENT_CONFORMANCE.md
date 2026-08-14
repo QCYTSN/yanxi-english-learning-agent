@@ -72,6 +72,6 @@ PDF/OCR conversion is a separate preprocessing workflow and must preserve page
 and source references.
 
 The local UI content workbench records raw files, hashes and processing status.
-It also reports the gap between current verified content and the adjustable
-inventory targets documented in `CONTENT_ACQUISITION_PLAN.md`. These planning
-targets never override the IELTS structural contract.
+It also reports the gap between current verified content and the learner's
+adjustable readiness targets. These planning targets never override the
+IELTS structural contract.

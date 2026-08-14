@@ -1,8 +1,8 @@
 # Roadmap
 
-System completeness work after V0.7 is tracked authoritatively in
-[SYSTEM_COMPLETENESS_PLAN.md](SYSTEM_COMPLETENESS_PLAN.md). Content inventory
-targets remain in [CONTENT_ACQUISITION_PLAN.md](CONTENT_ACQUISITION_PLAN.md).
+Historical completeness and content-inventory plans (V0.7 era) have been
+retired with the General English pivot; current scope lives in
+[00_PRODUCT_SCOPE.md](00_PRODUCT_SCOPE.md) and [PRODUCT.md](../PRODUCT.md).
 
 ## Delivered through the current local build
 
@@ -162,7 +162,7 @@ Delivered in the current content-engineering increment:
 The remaining sequence is:
 
 1. import and human-review enough user-owned or redistributable four-module
-   material to reach the minimum inventory in `CONTENT_ACQUISITION_PLAN.md`;
+   material for the learner's own readiness targets;
 2. exercise the implemented visual system and complete learning workflows with
    real material, then resolve the resulting accessibility, performance and
    interaction findings. `DESIGN.md` is the current visual authority.
