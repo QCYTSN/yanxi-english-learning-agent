@@ -61,6 +61,7 @@ jobs:
       - name: Build Python source and wheel
         shell: pwsh
         run: |
+          python -m pip install build
           python -m build
           $wheel = (Get-ChildItem dist\ielts_ai_coach-*.whl | Select-Object -First 1).FullName
           python scripts\verify_release.py --wheel $wheel
