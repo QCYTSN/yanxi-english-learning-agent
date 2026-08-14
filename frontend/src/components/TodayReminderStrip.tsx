@@ -19,12 +19,7 @@ export function TodayReminderStrip() {
   const wordCount = dueWords.data?.length ?? 0
 
   if (!reviewCount && !wordCount) {
-    return (
-      <section className="today-reminder-strip quiet" aria-label="今日提醒">
-        <BookOpenCheck size={16} aria-hidden="true" />
-        <span>今天没有到期的复习任务。有不懂的英文就直接在对话里问。</span>
-      </section>
-    )
+    return null
   }
   return (
     <section className="today-reminder-strip" aria-label="今日提醒">

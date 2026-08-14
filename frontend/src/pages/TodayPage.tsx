@@ -91,88 +91,93 @@ export function TodayPage({ bootstrap }: { bootstrap: Bootstrap }) {
           <p>直接和英语老师交流，或上传题目、原文和作文；材料不是开始对话的前提。</p>
         </header>
 
-        <div className="intent-box study-launcher-composer">
-          <MaterialComposer
-            onSend={async (content, files) => {
-              if (!primary) return false
-              const explicitConsent = requestRemoteProcessingConsent(primary)
-              if (explicitConsent === null) return false
-              await ask.mutateAsync({ content, files, explicitConsent })
-            }}
-            pending={ask.isPending}
-            disabled={!primary}
-          />
+        <div className="today-composer-zone">
+          <div className="intent-box study-launcher-composer">
+            <MaterialComposer
+              onSend={async (content, files) => {
+                if (!primary) return false
+                const explicitConsent = requestRemoteProcessingConsent(primary)
+                if (explicitConsent === null) return false
+                await ask.mutateAsync({ content, files, explicitConsent })
+              }}
+              pending={ask.isPending}
+              disabled={!primary}
+            />
+          </div>
           <div className="subject-shortcuts" aria-label="四科快捷入口">
             {subjects.map(({ module, label, icon: Icon }) => (
               <button
                 key={module}
                 type="button"
+                className="subject-shortcut-btn"
                 onClick={() => navigate(`/practice?module=${module}`)}
               >
-                <Icon size={19} strokeWidth={1.65} aria-hidden="true" />
+                <Icon size={17} strokeWidth={1.7} aria-hidden="true" />
                 <span>{label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {active ? (
-          <Link className="resume-learning-row" to={sessionDestination(active)}>
-            <span className="resume-icon"><ModuleGlyph module={active.module} /></span>
-            <span className="resume-copy">
-              <small>继续上次学习</small>
-              <strong>{activeTitle(active.module, active.status)}</strong>
-            </span>
-            <span className="resume-time"><Clock3 size={15} />进度已保存</span>
-            <span className="resume-action">继续 <ArrowRight size={16} /></span>
-          </Link>
-        ) : recommendation ? (
-          <button
-            className="resume-learning-row recommendation-row"
-            type="button"
-            onClick={() => materialise.mutate()}
-            disabled={materialise.isPending}
-          >
-            <span className="resume-icon"><ModuleGlyph module={recommendation.module} /></span>
-            <span className="resume-copy">
-              <small>今日推荐</small>
-              <strong>{recommendation.title}</strong>
-            </span>
-            <span className="resume-time"><Clock3 size={15} />约 {recommendation.estimated_minutes} 分钟</span>
-            <span className="resume-action">开始 <ArrowRight size={16} /></span>
-          </button>
-        ) : null}
+        <div className="today-secondary-deck">
+          {active ? (
+            <Link className="resume-learning-row" to={sessionDestination(active)}>
+              <span className="resume-icon"><ModuleGlyph module={active.module} /></span>
+              <span className="resume-copy">
+                <small>继续上次学习</small>
+                <strong>{activeTitle(active.module, active.status)}</strong>
+              </span>
+              <span className="resume-time"><Clock3 size={15} />进度已保存</span>
+              <span className="resume-action">继续 <ArrowRight size={16} /></span>
+            </Link>
+          ) : recommendation ? (
+            <button
+              className="resume-learning-row recommendation-row"
+              type="button"
+              onClick={() => materialise.mutate()}
+              disabled={materialise.isPending}
+            >
+              <span className="resume-icon"><ModuleGlyph module={recommendation.module} /></span>
+              <span className="resume-copy">
+                <small>今日推荐</small>
+                <strong>{recommendation.title}</strong>
+              </span>
+              <span className="resume-time"><Clock3 size={15} />约 {recommendation.estimated_minutes} 分钟</span>
+              <span className="resume-action">开始 <ArrowRight size={16} /></span>
+            </button>
+          ) : null}
 
-        {currentCycle ? (
-          <div className="today-learning-direction">
-            <div className="today-learning-direction-heading">
-              <span>当前学习方向</span>
-              <Link to="/settings/learning">管理目标与记忆</Link>
+          {currentCycle ? (
+            <div className="today-learning-direction">
+              <div className="today-learning-direction-heading">
+                <span>当前学习方向</span>
+                <Link to="/settings/learning">管理目标与记忆</Link>
+              </div>
+              <LearningCycleStrip cycle={currentCycle} />
             </div>
-            <LearningCycleStrip cycle={currentCycle} />
-          </div>
-        ) : currentObjective ? (
-          <div className="today-learning-direction objective-only">
-            <div className="today-learning-direction-heading">
-              <span>当前学习目标</span>
-              <Link to="/settings/learning">管理</Link>
+          ) : currentObjective ? (
+            <div className="today-learning-direction objective-only">
+              <div className="today-learning-direction-heading">
+                <span>当前学习目标</span>
+                <Link to="/settings/learning">管理</Link>
+              </div>
+              <div className="today-objective-line">
+                <span>{dimensionLabel(currentObjective.dimension_id)}</span>
+                <strong>{currentObjective.title}</strong>
+                <small>{objectiveStatusLabel(currentObjective.status)}</small>
+              </div>
             </div>
-            <div className="today-objective-line">
-              <span>{dimensionLabel(currentObjective.dimension_id)}</span>
-              <strong>{currentObjective.title}</strong>
-              <small>{objectiveStatusLabel(currentObjective.status)}</small>
-            </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        <div className="today-guidance">
-          <Lightbulb size={18} aria-hidden="true" />
-          <p>
-            <strong>今日建议：</strong>
-            {active
-              ? `先完成${moduleLabel(active.module)}练习，再开始新的任务。`
-              : recommendation?.reason ?? '先完成一项高价值练习，不必把计划排满。'}
-          </p>
+          <div className="today-guidance">
+            <Lightbulb size={17} aria-hidden="true" />
+            <p>
+              <strong>今日建议：</strong>
+              {active
+                ? `先完成${moduleLabel(active.module)}练习，再开始新的任务。`
+                : recommendation?.reason ?? '先完成一项高价值练习，不必把计划排满。'}
+            </p>
+          </div>
         </div>
 
         {!primary && (

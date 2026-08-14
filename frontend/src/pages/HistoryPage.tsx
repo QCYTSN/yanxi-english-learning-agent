@@ -28,6 +28,8 @@ export function HistoryPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [days, setDays] = useState(90)
+  const [activeTab, setActiveTab] = useState<'trends' | 'reviews' | 'skills'>('trends')
+
   const sessions = useQuery({
     queryKey: ['sessions'],
     queryFn: () => api<SessionSummary[]>('/api/v1/sessions?limit=100'),
@@ -69,6 +71,9 @@ export function HistoryPage() {
     },
   })
 
+  const pendingReviewCount = reviewTasks.data?.length ?? 0
+  const nextActionsCount = dashboard.data?.next_actions.length ?? 0
+
   return (
     <div className="page page-progress">
       <PageHeader
@@ -77,98 +82,222 @@ export function HistoryPage() {
         description="只用符合证据规则的成绩判断趋势；训练观察保留可见，但不会冒充正式进步。"
       />
 
-      <div className="progress-toolbar" aria-label="趋势时间范围">
-        <span>趋势范围</span>
-        {[30, 90, 180].map((value) => (
-          <button
-            className={days === value ? 'active' : ''}
-            key={value}
-            onClick={() => setDays(value)}
-            type="button"
-          >
-            {value} 天
-          </button>
-        ))}
-      </div>
-
-      {dashboard.isPending && <LoadingState label="正在汇总本地学习证据" />}
-      {dashboard.isError && <ErrorState error={dashboard.error} />}
-      {dashboard.data && (
-        <>
-          <section className="progress-module-grid" aria-label="四科进步趋势">
-            {Object.entries(dashboard.data.modules).map(([module, item]) => (
-              <article className="trend-card" key={module}>
-                <div className="trend-card-heading">
-                  <div>
-                    <span>{MODULE_LABELS[module] ?? module}</span>
-                    <strong>{item.average_band?.toFixed(1) ?? '—'}</strong>
-                  </div>
-                  <TrendDirection
-                    direction={item.trend_summary.direction}
-                    delta={item.trend_summary.delta}
-                  />
-                </div>
-                <TrendChart
-                  samples={item.trend}
-                  target={item.target}
-                  label={`${MODULE_LABELS[module] ?? module} ${days} 天成绩趋势`}
-                />
-                <div className="trend-evidence">
-                  <span>可信成绩 <strong>{item.eligible_samples}</strong></span>
-                  <span>训练观察 <strong>{item.observation_samples}</strong></span>
-                  <span>{item.gap == null ? '目标差距待建立' : `距目标 ${item.gap.toFixed(2)}`}</span>
-                </div>
-              </article>
+      {/* 顶部学情概貌卡片 */}
+      <section className="progress-overview-hero" aria-label="学情概貌">
+        <div className="overview-hero-scores">
+          <span className="overview-label">四科当前表现</span>
+          <div className="overview-score-pills">
+            {Object.entries(dashboard.data?.modules ?? {}).map(([modKey, modData]) => (
+              <span className="score-pill" key={modKey}>
+                <small>{MODULE_LABELS[modKey] ?? modKey}</small>
+                <strong>{modData.average_band ? modData.average_band.toFixed(1) : '—'}</strong>
+              </span>
             ))}
-          </section>
+          </div>
+        </div>
+        <div className="overview-hero-stats">
+          <div>
+            <small>待处理复习</small>
+            <strong>{pendingReviewCount} 项</strong>
+          </div>
+          <div>
+            <small>建议动作</small>
+            <strong>{nextActionsCount} 项</strong>
+          </div>
+        </div>
+      </section>
 
-          <section className="decision-grid">
-            <article className="settings-section weekly-report">
-              <div className="section-heading">
-                <div><p className="eyebrow">Weekly Review</p><h2>本周证据摘要</h2></div>
-                <StatusBadge tone="neutral">{weekly.data?.period_key ?? '生成中'}</StatusBadge>
-              </div>
-              {weekly.isPending && <LoadingState label="正在生成结构化周报" />}
-              {weekly.isError && <ErrorState error={weekly.error} />}
-              {weekly.data && <WeeklySummary report={weekly.data} />}
-            </article>
+      {/* 三级分类选项卡 */}
+      <nav className="progress-tab-nav" aria-label="进步档案分类">
+        <button
+          type="button"
+          className={`progress-tab-btn${activeTab === 'trends' ? ' active' : ''}`}
+          onClick={() => setActiveTab('trends')}
+        >
+          📈 成绩走势与行动
+        </button>
+        <button
+          type="button"
+          className={`progress-tab-btn${activeTab === 'reviews' ? ' active' : ''}`}
+          onClick={() => setActiveTab('reviews')}
+        >
+          🎯 错题与复盘队列 {pendingReviewCount > 0 && <span className="tab-counter-badge">{pendingReviewCount}</span>}
+        </button>
+        <button
+          type="button"
+          className={`progress-tab-btn${activeTab === 'skills' ? ' active' : ''}`}
+          onClick={() => setActiveTab('skills')}
+        >
+          📑 能力图谱与周报
+        </button>
+      </nav>
 
-            <article className="settings-section next-action-panel">
-              <div className="section-heading">
-                <div><p className="eyebrow">Next Actions</p><h2>把判断变成学习动作</h2></div>
-                <StatusBadge tone="success">{dashboard.data.next_actions.length} 项</StatusBadge>
-              </div>
-              <p>每个动作都会创建或复用正式 PracticeUnit，完成后才能进入学习历史。</p>
-              {startAction.isError && <ErrorState error={startAction.error} />}
-              <div className="progress-action-list">
-                {dashboard.data.next_actions.map((action) => (
-                  <article key={action.action_id}>
-                    <div>
-                      <div className="row-actions">
-                        <StatusBadge tone={action.action_kind === 'review' ? 'warning' : 'neutral'}>
-                          {action.module ? MODULE_LABELS[action.module] : '全科'}
-                        </StatusBadge>
-                        <small>{action.estimated_minutes} 分钟</small>
+      {/* TAB 1: 成绩走势与下一步动作 */}
+      {activeTab === 'trends' && (
+        <section className="progress-tab-pane">
+          <div className="progress-toolbar" aria-label="趋势时间范围">
+            <span>趋势时间范围</span>
+            {[30, 90, 180].map((value) => (
+              <button
+                className={days === value ? 'active' : ''}
+                key={value}
+                onClick={() => setDays(value)}
+                type="button"
+              >
+                {value} 天
+              </button>
+            ))}
+          </div>
+
+          {dashboard.isPending && <LoadingState label="正在汇总本地学习证据" />}
+          {dashboard.isError && <ErrorState error={dashboard.error} />}
+          {dashboard.data && (
+            <>
+              <section className="progress-module-grid" aria-label="四科进步趋势">
+                {Object.entries(dashboard.data.modules).map(([module, item]) => (
+                  <article className="trend-card" key={module}>
+                    <div className="trend-card-heading">
+                      <div>
+                        <span>{MODULE_LABELS[module] ?? module}</span>
+                        <strong>{item.average_band?.toFixed(1) ?? '—'}</strong>
                       </div>
-                      <h3>{action.title}</h3>
-                      <p>{action.reason}</p>
+                      <TrendDirection
+                        direction={item.trend_summary.direction}
+                        delta={item.trend_summary.delta}
+                      />
                     </div>
-                    <button
-                      className="button primary"
-                      disabled={startAction.isPending}
-                      onClick={() => startAction.mutate(action)}
-                      type="button"
-                    >
-                      开始 <ArrowRight size={16} />
-                    </button>
+                    <TrendChart
+                      samples={item.trend}
+                      target={item.target}
+                      label={`${MODULE_LABELS[module] ?? module} ${days} 天成绩趋势`}
+                    />
+                    <div className="trend-evidence">
+                      <span>可信成绩 <strong>{item.eligible_samples}</strong></span>
+                      <span>训练观察 <strong>{item.observation_samples}</strong></span>
+                      <span>{item.gap == null ? '目标差距待建立' : `距目标 ${item.gap.toFixed(2)}`}</span>
+                    </div>
                   </article>
                 ))}
-              </div>
-            </article>
+              </section>
+
+              <section className="settings-section next-action-panel">
+                <div className="section-heading">
+                  <div><p className="eyebrow">Next Actions</p><h2>把判断变成学习动作</h2></div>
+                  <StatusBadge tone="success">{dashboard.data.next_actions.length} 项建议</StatusBadge>
+                </div>
+                <p>每个动作都会创建或复用正式 PracticeUnit，完成后才能进入学习历史。</p>
+                {startAction.isError && <ErrorState error={startAction.error} />}
+                <div className="progress-action-list">
+                  {dashboard.data.next_actions.map((action) => (
+                    <article key={action.action_id}>
+                      <div>
+                        <div className="row-actions">
+                          <StatusBadge tone={action.action_kind === 'review' ? 'warning' : 'neutral'}>
+                            {action.module ? MODULE_LABELS[action.module] : '全科'}
+                          </StatusBadge>
+                          <small>{action.estimated_minutes} 分钟</small>
+                        </div>
+                        <h3>{action.title}</h3>
+                        <p>{action.reason}</p>
+                      </div>
+                      <button
+                        className="button primary"
+                        disabled={startAction.isPending}
+                        onClick={() => startAction.mutate(action)}
+                        type="button"
+                      >
+                        开始 <ArrowRight size={16} />
+                      </button>
+                    </article>
+                  ))}
+                  {dashboard.data.next_actions.length === 0 && (
+                    <p className="muted">当前没有待推荐的学习动作，可以自由安排练习。</p>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* TAB 2: 错题复盘与队列 */}
+      {activeTab === 'reviews' && (
+        <section className="progress-tab-pane">
+          <section className="settings-section">
+            <div className="section-heading">
+              <div><p className="eyebrow">Review Queue</p><h2>待复习任务</h2></div>
+              <StatusBadge tone={reviewTasks.data?.length ? 'warning' : 'success'}>{reviewTasks.data?.length ?? 0} 项</StatusBadge>
+            </div>
+            <p>Writing V2、Reading 错题、到期听力语料和活跃错误会从正式记录自动汇总。</p>
+            {reviewTasks.isPending && <LoadingState label="正在整理复习队列" />}
+            {reviewTasks.isError && <ErrorState error={reviewTasks.error} />}
+            {(startReview.isError || completeReview.isError) && <ErrorState error={startReview.error ?? completeReview.error} />}
+            <div className="adapter-list">
+              {reviewTasks.data?.map((task) => (
+                <article key={task.review_task_id}>
+                  <div>
+                    <div className="row-actions">
+                      <StatusBadge tone={task.priority >= 80 ? 'warning' : 'neutral'}>{MODULE_LABELS[task.module] ?? task.module}</StatusBadge>
+                      <small>{reviewKindLabel(task.review_kind)}</small>
+                    </div>
+                    <h3>{task.title}</h3><p>{task.action}</p>
+                  </div>
+                  <div className="row-actions">
+                    <button className="button primary" disabled={startReview.isPending} onClick={() => startReview.mutate(task.review_task_id)}><Play size={16} />开始</button>
+                    <button className="button secondary" disabled={completeReview.isPending} onClick={() => completeReview.mutate(task.review_task_id)}><CheckCircle2 size={16} />标记完成</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            {reviewTasks.data?.length === 0 && <p className="muted">当前没有待复习任务，已全部掌握！</p>}
           </section>
 
-          <section className="progress-detail-grid">
-            <article className="panel">
+          {dashboard.data && (
+            <section className="progress-detail-grid">
+              <article className="panel error-inbox">
+                <h2>错误收件箱</h2>
+                {dashboard.data.errors.items.length ? dashboard.data.errors.items.slice(0, 8).map((item) => (
+                  <p className="progress-row" key={`${item.module}-${item.tag}-${item.status}`}>
+                    <strong>{item.tag}</strong>
+                    <span>{MODULE_LABELS[item.module]} · {item.count} 次 · {errorStatusLabel(item.status)}</span>
+                  </p>
+                )) : <p className="muted">当前没有已记录错误。</p>}
+              </article>
+              <article className="panel">
+                <h2>听力场景与错因</h2>
+                {dashboard.data.listening.error_types.length ? dashboard.data.listening.error_types.map((item) => (
+                  <p className="progress-row" key={item.type}><strong>{item.type}</strong><span>{item.count} 次</span></p>
+                )) : <p className="muted">暂无拼写、定位或干扰项错因记录。</p>}
+              </article>
+              <article className="panel">
+                <h2>阅读题型正确率</h2>
+                {dashboard.data.reading_question_types.length ? dashboard.data.reading_question_types.map((item) => (
+                  <p className="progress-row" key={item.question_type}>
+                    <strong>{item.question_type}</strong>
+                    <span>{Math.round(item.accuracy * 100)}% · {item.attempts} 题 · {item.average_seconds == null ? '未记录耗时' : `${item.average_seconds}s/题`}</span>
+                  </p>
+                )) : <p className="muted">暂无已判分的题型记录。</p>}
+              </article>
+            </section>
+          )}
+        </section>
+      )}
+
+      {/* TAB 3: 能力图谱与历史周报 */}
+      {activeTab === 'skills' && (
+        <section className="progress-tab-pane">
+          <article className="settings-section weekly-report">
+            <div className="section-heading">
+              <div><p className="eyebrow">Weekly Review</p><h2>本周证据摘要</h2></div>
+              <StatusBadge tone="neutral">{weekly.data?.period_key ?? '生成中'}</StatusBadge>
+            </div>
+            {weekly.isPending && <LoadingState label="正在生成结构化周报" />}
+            {weekly.isError && <ErrorState error={weekly.error} />}
+            {weekly.data && <WeeklySummary report={weekly.data} />}
+          </article>
+
+          {dashboard.data && (
+            <article className="panel criteria-panel">
               <h2>写作 / 口语分项证据</h2>
               {(['writing', 'speaking'] as const).map((module) => (
                 <div key={module} className="criterion-group">
@@ -182,98 +311,53 @@ export function HistoryPage() {
                 </div>
               ))}
             </article>
-            <article className="panel">
-              <h2>阅读题型</h2>
-              {dashboard.data.reading_question_types.length ? dashboard.data.reading_question_types.map((item) => (
-                <p className="progress-row" key={item.question_type}>
-                  <strong>{item.question_type}</strong>
-                  <span>{Math.round(item.accuracy * 100)}% · {item.attempts} 题 · {item.average_seconds == null ? '未记录耗时' : `${item.average_seconds}s/题`}</span>
-                </p>
-              )) : <p className="muted">暂无已判分的题型记录。</p>}
-            </article>
-            <article className="panel">
-              <h2>听力场景与错因</h2>
-              {dashboard.data.listening.error_types.length ? dashboard.data.listening.error_types.map((item) => (
-                <p className="progress-row" key={item.type}><strong>{item.type}</strong><span>{item.count} 次</span></p>
-              )) : <p className="muted">暂无拼写、定位或干扰项错因记录。</p>}
-            </article>
-            <article className="panel error-inbox">
-              <h2>错误收件箱</h2>
-              {dashboard.data.errors.items.length ? dashboard.data.errors.items.slice(0, 8).map((item) => (
-                <p className="progress-row" key={`${item.module}-${item.tag}-${item.status}`}>
-                  <strong>{item.tag}</strong>
-                  <span>{MODULE_LABELS[item.module]} · {item.count} 次 · {errorStatusLabel(item.status)}</span>
-                </p>
-              )) : <p className="muted">当前没有已记录错误。</p>}
-            </article>
+          )}
+
+          <LearningSkillMapSection />
+
+          <section className="settings-section">
+            <div className="section-heading">
+              <div><p className="eyebrow">Report Archive</p><h2>周报历史</h2></div>
+              <CalendarDays size={20} />
+            </div>
+            {weeklyHistory.isError && <ErrorState error={weeklyHistory.error} />}
+            <div className="weekly-history">
+              {weeklyHistory.data?.map((report) => (
+                <article key={report.report_id}>
+                  <strong>{report.period_key}</strong>
+                  <span>{report.source_counts.completed_sessions} Sessions</span>
+                  <span>{report.source_counts.completed_reviews} 次复习</span>
+                  <span>{report.source_counts.estimated_minutes} 分钟</span>
+                </article>
+              ))}
+              {weeklyHistory.data?.length === 0 && <p className="muted">还没有历史周报记录。</p>}
+            </div>
           </section>
-        </>
+
+          <section className="settings-section">
+            <div className="section-heading">
+              <div><p className="eyebrow">Session Logs</p><h2>历史作答记录</h2></div>
+            </div>
+            {sessions.isPending && <LoadingState />}
+            {sessions.isError && <ErrorState error={sessions.error} />}
+            <div className="session-table table-scroll" tabIndex={0}>
+              <table>
+                <thead><tr><th>Session</th><th>科目</th><th>状态</th><th>水平</th><th>日期</th><th><span className="sr-only">操作</span></th></tr></thead>
+                <tbody>{sessions.data?.map((session) => (
+                  <tr key={session.session_id}>
+                    <td>{session.session_id}</td>
+                    <td>{MODULE_LABELS[session.module] ?? session.module}</td>
+                    <td><StatusBadge tone={session.status === 'completed' ? 'success' : 'neutral'}>{session.status}</StatusBadge></td>
+                    <td>{session.band ?? '—'}</td>
+                    <td>{formatDate(session.occurred_at)}</td>
+                    <td>{sessionDestination(session) ? <Link to={sessionDestination(session)!}>查看</Link> : <span className="muted">已记录</span>}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </section>
+        </section>
       )}
-
-      <LearningSkillMapSection />
-
-      <section className="settings-section">
-        <div className="section-heading">
-          <div><p className="eyebrow">Review Queue</p><h2>待复习任务</h2></div>
-          <StatusBadge tone={reviewTasks.data?.length ? 'warning' : 'success'}>{reviewTasks.data?.length ?? 0} 项</StatusBadge>
-        </div>
-        <p>Writing V2、Reading 错题、到期听力语料和活跃错误会从正式记录自动汇总。</p>
-        {reviewTasks.isPending && <LoadingState label="正在整理复习队列" />}
-        {reviewTasks.isError && <ErrorState error={reviewTasks.error} />}
-        {(startReview.isError || completeReview.isError) && <ErrorState error={startReview.error ?? completeReview.error} />}
-        <div className="adapter-list">{reviewTasks.data?.map((task) => (
-          <article key={task.review_task_id}>
-            <div>
-              <div className="row-actions">
-                <StatusBadge tone={task.priority >= 80 ? 'warning' : 'neutral'}>{MODULE_LABELS[task.module] ?? task.module}</StatusBadge>
-                <small>{reviewKindLabel(task.review_kind)}</small>
-              </div>
-              <h3>{task.title}</h3><p>{task.action}</p>
-            </div>
-            <div className="row-actions">
-              <button className="button primary" disabled={startReview.isPending} onClick={() => startReview.mutate(task.review_task_id)}><Play size={16} />开始</button>
-              <button className="button secondary" disabled={completeReview.isPending} onClick={() => completeReview.mutate(task.review_task_id)}><CheckCircle2 size={16} />标记完成</button>
-            </div>
-          </article>
-        ))}</div>
-        {reviewTasks.data?.length === 0 && <p className="muted">当前没有待复习任务。</p>}
-      </section>
-
-      <section className="settings-section">
-        <div className="section-heading">
-          <div><p className="eyebrow">Report Archive</p><h2>周报历史</h2></div>
-          <CalendarDays size={20} />
-        </div>
-        {weeklyHistory.isError && <ErrorState error={weeklyHistory.error} />}
-        <div className="weekly-history">
-          {weeklyHistory.data?.map((report) => (
-            <article key={report.report_id}>
-              <strong>{report.period_key}</strong>
-              <span>{report.source_counts.completed_sessions} Sessions</span>
-              <span>{report.source_counts.completed_reviews} 次复习</span>
-              <span>{report.source_counts.estimated_minutes} 分钟</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {sessions.isPending && <LoadingState />}
-      {sessions.isError && <ErrorState error={sessions.error} />}
-      <div className="session-table table-scroll" tabIndex={0}>
-        <table>
-          <thead><tr><th>Session</th><th>科目</th><th>状态</th><th>水平</th><th>日期</th><th><span className="sr-only">操作</span></th></tr></thead>
-          <tbody>{sessions.data?.map((session) => (
-            <tr key={session.session_id}>
-              <td>{session.session_id}</td>
-              <td>{MODULE_LABELS[session.module] ?? session.module}</td>
-              <td><StatusBadge tone={session.status === 'completed' ? 'success' : 'neutral'}>{session.status}</StatusBadge></td>
-              <td>{session.band ?? '—'}</td>
-              <td>{formatDate(session.occurred_at)}</td>
-              <td>{sessionDestination(session) ? <Link to={sessionDestination(session)!}>查看</Link> : <span className="muted">已记录</span>}</td>
-            </tr>
-          ))}</tbody>
-        </table>
-      </div>
     </div>
   )
 }

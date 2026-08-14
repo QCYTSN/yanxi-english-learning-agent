@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, CheckCircle2, ClipboardCheck, FileArchive, FolderCog, FolderInput, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardCheck, FileArchive, FolderCog, FolderInput, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, type Question } from '../api/client'
@@ -296,16 +296,86 @@ function LibraryView({ module, query, setModule, setQuery, questions, pending, e
   loadingMore: boolean
   loadMoreQuestions: () => void
 }) {
-  return <>
-    <div className="filter-bar">
-      <label>科目<select value={module} onChange={(event) => setModule(event.target.value)}><option value="">全部</option><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></label>
-      <label>搜索<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="主题或题目内容" /></label>
+  const moduleOptions = [
+    { key: '', label: '全部' },
+    { key: 'writing', label: '写作' },
+    { key: 'reading', label: '阅读' },
+    { key: 'listening', label: '听力' },
+    { key: 'speaking', label: '口语' },
+  ]
+
+  return (
+    <div className="library-bookshelf-container">
+      <div className="library-toolbar">
+        <div className="library-module-pills" role="group" aria-label="科目筛选">
+          {moduleOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              className={`library-pill-btn${module === opt.key ? ' active' : ''}`}
+              onClick={() => setModule(opt.key)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <label className="library-search-input">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索题干、篇章或主题…"
+          />
+        </label>
+      </div>
+
+      {pending && <LoadingState label="正在载入资料库…" />}
+      {error ? <ErrorState error={error} /> : null}
+
+      <div className="section-heading library-question-heading">
+        <div>
+          <h2>已收录材料与题目</h2>
+        </div>
+        {questions && <span>共 {questions.length} 项</span>}
+      </div>
+
+      <div className="library-grid">
+        {questions?.map((question) => (
+          <article className="library-item" key={question.question_id}>
+            <div className="library-item-copy">
+              <div className="question-meta">
+                <StatusBadge tone="neutral">{question.source_type ?? '本地材料'}</StatusBadge>
+                <span>{question.task ?? question.question_type ?? question.module}</span>
+              </div>
+              <h2>{question.content}</h2>
+              <p>{question.module} · {question.task ?? question.question_type ?? 'practice'} · 内容已通过本地审核</p>
+            </div>
+            <Link
+              className="library-open-action button primary"
+              to={`/practice?module=${question.module}`}
+              aria-label={`练习 ${question.content}`}
+            >
+              去练习 <ArrowRight size={15} />
+            </Link>
+          </article>
+        ))}
+        {!pending && !questions?.length && (
+          <p className="muted library-empty-hint">当前分类下没有匹配的练习材料，可尝试清空搜索词或到「管理本地材料」中导入。</p>
+        )}
+      </div>
+
+      {hasMoreQuestions && (
+        <button
+          className="button secondary load-more"
+          disabled={loadingMore}
+          onClick={loadMoreQuestions}
+        >
+          {loadingMore ? '正在加载…' : '加载更多题目'}
+        </button>
+      )}
     </div>
-    {pending && <LoadingState />}{error && <ErrorState error={error} />}
-    <div className="section-heading library-question-heading"><div><h2>单题与练习材料</h2></div></div>
-    <div className="library-grid">{questions?.map((question) => <article className="library-item" key={question.question_id}><div className="library-item-copy"><div className="question-meta"><StatusBadge>{question.source_type ?? '本地材料'}</StatusBadge><span>{question.task ?? question.question_type ?? question.module}</span></div><h2>{question.content}</h2><p>{question.module} · {question.task ?? question.question_type ?? 'practice'} · 内容已通过本地审核</p></div><Link className="library-open-action" to={`/practice?module=${question.module}`} aria-label={`练习 ${question.content}`}>去练习 <ArrowRight size={16} /></Link></article>)}</div>
-    {hasMoreQuestions && <button className="button secondary load-more" disabled={loadingMore} onClick={loadMoreQuestions}>加载更多题目</button>}
-  </>
+  )
 }
 
 function PackAssemblyView() {

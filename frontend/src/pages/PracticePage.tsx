@@ -1,5 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpen, Headphones, Mic2, PenLine } from 'lucide-react'
+import {
+  ArrowRight,
+  BookMarked,
+  BookOpen,
+  Headphones,
+  Keyboard,
+  Mic2,
+  PenLine,
+  Volume2,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, idempotencyKey, jsonBody, type Question, type SessionSummary } from '../api/client'
@@ -17,7 +26,7 @@ const MODULES = {
   writing: { label: 'Writing', name: '写作', icon: PenLine, summary: '独立作答、证据化估分与主动修订', boundary: '反馈按证据与评分标准组织；学习者先完成 V2，之后才显示模型替代版本。' },
   reading: { label: 'Reading', name: '阅读', icon: BookOpen, summary: '完整篇章、题型专项与逐级提示', boundary: '引导练习先给定位提示，再开放答案；解释必须回到原文证据。' },
   listening: { label: 'Listening', name: '听力', icon: Headphones, summary: '高频场景语料与间隔复习', boundary: '先听辨和输入，再核对答案与错因；场景表达进入统一复习队列。' },
-  speaking: { label: 'Speaking', name: '口语', icon: Mic2, summary: 'Voice / Live 模考任务包与报告导回', boundary: '完整模考中不中途纠错；结束后再导入转写或结构化报告。' },
+  speaking: { label: 'Speaking', name: '口语', icon: Mic2, summary: '两步口语练习：领场景任务、贴回转写点评', boundary: '练习过程中不中途纠错；练完贴回转写，再从清晰度、自然度和语法三方面点评。' },
 } as const
 
 export function PracticePage() {
@@ -86,132 +95,147 @@ export function PracticePage() {
     <div className="page page-practice">
       <PageHeader
         eyebrow="练习中心"
-        title="选择一种练法"
-        description="通用英语：直接在对话里练写作、阅读和词汇；IELTS：按四科题库练习。作答和进度由本地系统保存。"
+        title="选择科目与专项练习"
+        description="按四科题库进行证据化训练，或使用下方的听言与打词微练习强化词汇记忆。"
       />
-      <section className="general-practice-strip" aria-label="通用英语练习入口">
-        <article>
-          <div>
-            <p className="eyebrow">写作反馈</p>
-            <h3>把写好的英文交给老师</h3>
-            <p>邮件、消息、短段落都行；证据优先，先讲问题再讲改法。</p>
-          </div>
-          <Link className="button secondary" to="/today">去对话 <ArrowRight size={15} /></Link>
-        </article>
-        <article>
-          <div>
-            <p className="eyebrow">口语练习</p>
-            <h3>领取场景任务，用语音工具练</h3>
-            <p>两步式：先拿任务，练完带回来点评。</p>
-          </div>
-          <Link className="button secondary" to="/practice/speaking">口语练习 <ArrowRight size={15} /></Link>
-        </article>
-        <article>
-          <div>
-            <p className="eyebrow">打字练习</p>
-            <h3>把词打出来</h3>
-            <p>我的词表优先，起步词表兜底；打对亮印章，打错描墨痕。</p>
-          </div>
-          <Link className="button secondary" to="/practice/typing">开始打词 <ArrowRight size={15} /></Link>
-        </article>
-        <article>
-          <div>
-            <p className="eyebrow">听言练习</p>
-            <h3>先听，再写出来</h3>
-            <p>系统语音读词你拼写；先让耳朵认识它，再让手指记住它。</p>
-          </div>
-          <Link className="button secondary" to="/practice/listen">开始听言 <ArrowRight size={15} /></Link>
-        </article>
-        <article>
-          <div>
-            <p className="eyebrow">词汇</p>
-            <h3>记下生词，间隔复习</h3>
-            <p>对话里遇到的词随手记，系统安排复习。</p>
-          </div>
-          <Link className="button secondary" to="/vocabulary">我的词表 <ArrowRight size={15} /></Link>
-        </article>
+
+      {/* 微练习快捷工具条 */}
+      <section className="practice-quick-drills" aria-label="微练习与词表">
+        <span className="quick-drills-label">专项微练习：</span>
+        <Link className="quick-drill-chip" to="/practice/typing">
+          <Keyboard size={15} />
+          <span>打字练习</span>
+        </Link>
+        <Link className="quick-drill-chip" to="/practice/listen">
+          <Volume2 size={15} />
+          <span>听言练习</span>
+        </Link>
+        <Link className="quick-drill-chip" to="/vocabulary">
+          <BookMarked size={15} />
+          <span>我的词表</span>
+        </Link>
+        <Link className="quick-drill-chip" to="/today">
+          <PenLine size={15} />
+          <span>自由向老师提问</span>
+        </Link>
       </section>
-      <section className="practice-console">
-        <aside className="practice-module-index">
-          <p className="eyebrow">选择科目</p>
-          <ModuleTabs module={module} setModule={chooseModule} />
-          <div className="practice-boundary">
-            <span>训练规则</span>
-            <p>{moduleMeta.boundary}</p>
-          </div>
-        </aside>
-        <div className="practice-catalog">
-          <header className="catalog-heading">
-            <div className="practice-vocab-entry">
-              <Link to="/vocabulary">我的词表 <ArrowRight size={14} /></Link>
+
+      {/* 四科核心大卡片选择器 */}
+      <section className="practice-module-deck" aria-label="选择练习科目">
+        {Object.entries(MODULES).map(([key, item]) => {
+          const Icon = item.icon
+          const isSelected = module === key
+          return (
+            <button
+              key={key}
+              type="button"
+              className={`practice-module-card${isSelected ? ' active' : ''}`}
+              onClick={() => chooseModule(key)}
+              aria-pressed={isSelected}
+            >
+              <div className="module-card-head">
+                <span className="module-card-icon">
+                  <Icon size={20} strokeWidth={1.8} />
+                </span>
+                <span className="module-card-titles">
+                  <strong>{item.name}</strong>
+                  <small>{item.label}</small>
+                </span>
+              </div>
+              <p className="module-card-summary">{item.summary}</p>
+            </button>
+          )
+        })}
+      </section>
+
+      {/* 当前科目练习工作区 */}
+      <section className="practice-workbench-section">
+        <header className="practice-workbench-header">
+          <div className="workbench-title-group">
+            <span className="workbench-icon"><ModuleIcon size={20} /></span>
+            <div>
+              <h2>{moduleMeta.name} · {moduleMeta.label} 练习</h2>
+              <small className="workbench-boundary">{moduleMeta.boundary}</small>
             </div>
-            <div className="catalog-icon"><ModuleIcon size={24} strokeWidth={1.7} /></div>
-            <div><p>{moduleMeta.name}</p><h2>{moduleMeta.label}</h2><span>{moduleMeta.summary}</span></div>
-          </header>
+          </div>
+        </header>
 
-
-          {module === 'listening' ? (
-            <section className="workspace-entry">
-              <div>
-                <p className="eyebrow">{moduleMeta.name}工作区</p>
-                <h2>进入高频场景听辨语料库</h2>
-                <p>按场景听写高频表达，记录拼写、定位与干扰项错因。</p>
-              </div>
-              <button className="button primary" onClick={() => navigate(`/practice/${module}${practiceUnitId ? `?practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)}>
-                进入工作区 <ArrowRight size={17} />
-              </button>
-            </section>
-          ) : (
-            <>
-              {module === 'speaking' && (
-                <section className="workspace-entry">
-                  <div>
-                    <p className="eyebrow">口语工作区</p>
-                    <h2>选择 Part 和话题，再交给 Voice / Live 主持</h2>
-                    <p>系统负责选题、流程与复盘；外部语音页面负责真实口语互动。</p>
-                  </div>
-                  <button
-                    className="button primary"
-                    onClick={() => {
-                      const mode = category.startsWith('part') ? category : 'full_mock'
-                      navigate(`/practice/speaking?mode=${mode}${practiceUnitId ? `&practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)
-                    }}
-                  >
-                    进入口语工作区 <ArrowRight size={17} />
-                  </button>
-                </section>
-              )}
-              {filters.length > 0 && (
-                <div className="practice-filters" role="group" aria-label={`${moduleMeta.name}练习分类`}>
-                  {filters.map((filter) => (
-                    <button
-                      className={category === filter.key || (category === 'all' && filter.key === 'all') ? 'active' : ''}
-                      key={filter.key}
-                      onClick={() => chooseCategory(filter.key)}
-                      type="button"
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
+        {module === 'listening' ? (
+          <section className="workspace-entry-card">
+            <div className="entry-card-copy">
+              <p className="eyebrow">{moduleMeta.name}工作区</p>
+              <h2>进入高频场景听辨语料库</h2>
+              <p>按场景听写高频表达，系统自动记录拼写、定位与干扰项错因，生成复习队列。</p>
+            </div>
+            <button
+              className="button primary"
+              type="button"
+              onClick={() => navigate(`/practice/${module}${practiceUnitId ? `?practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)}
+            >
+              <Headphones size={17} />
+              进入听辨工作区 <ArrowRight size={17} />
+            </button>
+          </section>
+        ) : (
+          <>
+            {module === 'speaking' && (
+              <section className="workspace-entry-card speaking-entry">
+                <div className="entry-card-copy">
+                  <p className="eyebrow">口语工作区</p>
+                  <h2>选择 Part 和话题，由外部语音页面完成主持</h2>
+                  <p>言蹊负责选题、流程与标准复盘；你可以使用顺手的语音工具开口练习，再带回转写点评。</p>
                 </div>
-              )}
-              <div className="catalog-section-heading">
-                <div><p className="eyebrow">练习目录</p><h2>按主题选择想学的内容</h2></div>
-                <span>{displayUnits.length} {module === 'reading' ? '篇' : '项'}可见内容</span>
+                <button
+                  className="button primary"
+                  type="button"
+                  onClick={() => {
+                    const mode = category.startsWith('part') ? category : 'full_mock'
+                    navigate(`/practice/speaking?mode=${mode}${practiceUnitId ? `&practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)
+                  }}
+                >
+                  <Mic2 size={17} />
+                  进入口语工作区 <ArrowRight size={17} />
+                </button>
+              </section>
+            )}
+
+            {/* 题型胶囊过滤器 */}
+            {filters.length > 0 && (
+              <div className="practice-filters" role="group" aria-label={`${moduleMeta.name}练习分类`}>
+                {filters.map((filter) => (
+                  <button
+                    className={category === filter.key || (category === 'all' && filter.key === 'all') ? 'active' : ''}
+                    key={filter.key}
+                    onClick={() => chooseCategory(filter.key)}
+                    type="button"
+                  >
+                    {filter.label}
+                  </button>
+                ))}
               </div>
-              {questions.isPending && <LoadingState />}
-              {questions.isError && <ErrorState error={questions.error} />}
-              {create.isError && <ErrorState error={create.error} />}
-              {!questions.isPending && displayUnits.length === 0 && (
-                <EmptyState title="这个分类暂时没有可用练习">
-                  可以切换其他分类，或先到内容题库导入和审核自有材料。
-                </EmptyState>
-              )}
-              <div className="question-list">
-                {visibleUnits.map((unit) => {
-                  const question = unit.question
-                  const title = questionDisplayTitle(question)
-                  return (
+            )}
+
+            <div className="catalog-section-heading">
+              <div>
+                <h2>{category === 'all' ? '全部题目' : filters.find(f => f.key === category)?.label ?? '题目列表'}</h2>
+              </div>
+              <span>共 {displayUnits.length} {module === 'reading' ? '篇' : '项'}练习</span>
+            </div>
+
+            {questions.isPending && <LoadingState label="正在载入题库" />}
+            {questions.isError && <ErrorState error={questions.error} />}
+            {create.isError && <ErrorState error={create.error} />}
+            {!questions.isPending && displayUnits.length === 0 && (
+              <EmptyState title="这个分类暂时没有可用练习">
+                可以切换其他分类，或先到资料库导入自有材料。
+              </EmptyState>
+            )}
+
+            <div className="question-list">
+              {visibleUnits.map((unit) => {
+                const question = unit.question
+                const title = questionDisplayTitle(question)
+                return (
                   <article key={unit.key} className="question-row">
                     <span className="question-kind-icon">
                       {module === 'writing' ? <PenLine size={18} /> : module === 'speaking' ? <Mic2 size={18} /> : <BookOpen size={18} />}
@@ -225,53 +249,61 @@ export function PracticePage() {
                               ? `${unit.count} 题 · ${unit.types.map(questionTypeLabel).join(' / ')}`
                               : questionTypeLabel(question.task ?? question.question_type ?? module)}
                         </span>
+                        <ConformanceBadge status={question.conformance_status} mode={question.practice_mode} />
                       </div>
                       <h2>{title}</h2>
                       <p className="question-summary">{questionSummary(question)}</p>
-                      <ConformanceBadge status={question.conformance_status} mode={question.practice_mode} />
                     </div>
                     <div className="row-actions question-actions">
-                      {module === 'reading' && <button className="button secondary" onClick={() => create.mutate({ question, mode: 'timed-practice' })} disabled={question.conformance_status === 'rejected'}>20 分钟计时</button>}
-                      {module === 'speaking'
-                        ? <button
-                            className="button primary"
-                            onClick={() => {
-                              const ids = unit.questionIds.join(',')
-                              navigate(`/practice/speaking?mode=part${question.part}&question_ids=${encodeURIComponent(ids)}${practiceUnitId ? `&practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)
-                            }}
-                          >
-                            练习本组 <ArrowRight size={16} />
-                          </button>
-                        : <button className="button primary" onClick={() => create.mutate({ question })} disabled={create.isPending || question.conformance_status === 'rejected'}>{module === 'reading' ? '引导练习' : '开始写作'} <ArrowRight size={16} /></button>}
+                      {module === 'reading' && (
+                        <button
+                          className="button secondary"
+                          onClick={() => create.mutate({ question, mode: 'timed-practice' })}
+                          disabled={question.conformance_status === 'rejected'}
+                        >
+                          20 分钟计时
+                        </button>
+                      )}
+                      {module === 'speaking' ? (
+                        <button
+                          className="button primary"
+                          onClick={() => {
+                            const ids = unit.questionIds.join(',')
+                            navigate(`/practice/speaking?mode=part${question.part}&question_ids=${encodeURIComponent(ids)}${practiceUnitId ? `&practice_unit_id=${encodeURIComponent(practiceUnitId)}` : ''}`)
+                          }}
+                        >
+                          练习本组 <ArrowRight size={16} />
+                        </button>
+                      ) : (
+                        <button
+                          className="button primary"
+                          onClick={() => create.mutate({ question })}
+                          disabled={create.isPending || question.conformance_status === 'rejected'}
+                        >
+                          {module === 'reading' ? '引导练习' : '开始写作'} <ArrowRight size={16} />
+                        </button>
+                      )}
                     </div>
                   </article>
-                )})}
-              </div>
-              {visibleUnits.length < displayUnits.length && (
-                <button
-                  className="catalog-load-more"
-                  type="button"
-                  onClick={() => setVisibleLimit((value) => value + 12)}
-                >
-                  再显示 12 项
-                  <span>还有 {displayUnits.length - visibleUnits.length} 项</span>
-                </button>
-              )}
-            </>
-          )}
-        </div>
+                )
+              })}
+            </div>
+
+            {visibleUnits.length < displayUnits.length && (
+              <button
+                className="catalog-load-more"
+                type="button"
+                onClick={() => setVisibleLimit((value) => value + 12)}
+              >
+                再显示 12 项
+                <span>还有 {displayUnits.length - visibleUnits.length} 项</span>
+              </button>
+            )}
+          </>
+        )}
       </section>
     </div>
   )
-}
-
-function ModuleTabs({ module, setModule }: { module: string; setModule: (module: string) => void }) {
-  return <div className="module-tabs" role="group" aria-label="练习科目">
-    {Object.entries(MODULES).map(([key, item]) => {
-      const Icon = item.icon
-      return <button className={module === key ? 'active' : ''} key={key} onClick={() => setModule(key)} type="button"><Icon size={18} /><span><strong>{item.label}</strong><small>{item.name}</small></span><ArrowRight size={15} /></button>
-    })}
-  </div>
 }
 
 type DisplayUnit = {
