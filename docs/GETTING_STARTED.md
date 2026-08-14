@@ -14,7 +14,7 @@ and uninstall behaviour.
 ## Source installation
 
 ```powershell
-cd <path-to-ielts-ai-coach>
+cd <path-to-yanxi-english-learning-agent>
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"

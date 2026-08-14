@@ -4,7 +4,7 @@
   <img src="docs/assets/yanxi-logo.svg" alt="言蹊 logo · 现代印章风" width="340">
 </p>
 
-[![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
+[![Tests](https://github.com/QCYTSN/yanxi-english-learning-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/yanxi-english-learning-agent/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
 [![Release: 1.5.0](https://img.shields.io/badge/release-1.5.0-334155.svg)](RELEASE_NOTES.md)
@@ -104,7 +104,7 @@ Windows 安装包。
 
 ## Windows 安装
 
-发布版本请从 [GitHub Releases 页面](https://github.com/QCYTSN/ielts-ai-coach/releases)
+发布版本请从 [GitHub Releases 页面](https://github.com/QCYTSN/yanxi-english-learning-agent/releases)
 下载 Windows x64 安装程序并双击安装。安装包自带 Python 运行时，普通用户无需
 安装 Python、Node.js、Git、Docker、WSL 或 CLI Agent。若暂未列出安装包版本，
 请使用下方的源码安装方式。

@@ -54,7 +54,7 @@ Requirements:
 
 ```powershell
 git clone <repository-url>
-cd ielts-ai-coach
+cd yanxi-english-learning-agent
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[ui]"

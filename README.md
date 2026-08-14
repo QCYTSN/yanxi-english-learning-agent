@@ -4,7 +4,7 @@
   <img src="docs/assets/yanxi-logo.svg" alt="言蹊 logo · 现代印章风" width="340">
 </p>
 
-[![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
+[![Tests](https://github.com/QCYTSN/yanxi-english-learning-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/yanxi-english-learning-agent/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
 [![Release: 1.5.0](https://img.shields.io/badge/release-1.5.0-334155.svg)](RELEASE_NOTES.md)
@@ -127,7 +127,7 @@ evaluation set.
 ## Install on Windows
 
 For a tagged release, download the Windows x64 Setup executable from the
-[GitHub Releases page](https://github.com/QCYTSN/ielts-ai-coach/releases) and
+[GitHub Releases page](https://github.com/QCYTSN/yanxi-english-learning-agent/releases) and
 double-click it. The installer includes its own Python runtime. A normal user
 does not need to install Python, Node.js, Git, Docker, WSL or a CLI Agent. If no
 installer release is listed yet, use the source installation below.
