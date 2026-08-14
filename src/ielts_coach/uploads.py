@@ -5,6 +5,7 @@ import os
 import shutil
 import time
 import uuid
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -13,6 +14,7 @@ from .storage_quota import local_storage_status
 
 
 UPLOAD_CHUNK_BYTES = 1024 * 1024
+MAX_ZIP_MEMBER_BYTES = 64 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -95,6 +97,27 @@ async def stage_uploads(
                 pass
         cleanup_staging(stage)
         raise
+
+
+def read_zip_member(
+    path: Path,
+    member: str,
+    *,
+    max_bytes: int = MAX_ZIP_MEMBER_BYTES,
+) -> bytes:
+    """Read one zip member with a decompressed-size guard.
+
+    Zip-bomb defence: members whose declared uncompressed size exceeds
+    max_bytes are rejected before any bytes are read into memory.
+    """
+    with zipfile.ZipFile(path) as archive:
+        info = archive.getinfo(member)
+        if info.file_size > max_bytes:
+            raise ValueError(
+                f"Zip member {member!r} is {info.file_size} bytes; "
+                f"the limit is {max_bytes} bytes"
+            )
+        return archive.read(member)
 
 
 def hash_file(path: Path, *, chunk_size: int = UPLOAD_CHUNK_BYTES) -> str:

@@ -65,6 +65,9 @@ def verify_wheel(wheel: Path) -> None:
     ]
     if missing:
         raise SystemExit("Bundled word lists missing from the wheel: " + ", ".join(missing))
+    preset = "ielts_coach/resources/words/enrichments/yanxi-presets-high-freq.jsonl"
+    if preset not in names:
+        raise SystemExit("Bundled vocabulary presets missing from the wheel")
 
 
 def verify_empty_home() -> None:

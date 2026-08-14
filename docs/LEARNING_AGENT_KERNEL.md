@@ -5,9 +5,10 @@ reusable learning kernel and the IELTS Academic product domain.
 
 ## 1. Product decision
 
-IELTS Study Desk remains an IELTS Academic product. The current release does
-not expose a subject marketplace, a generic course builder or an unfinished
-General English mode.
+言蹊 (Yanxi) ships with General English as the default learning track;
+IELTS Academic is the first optional exam Domain Pack on the same reusable
+kernel. The product does not expose a subject marketplace or a generic
+course builder.
 
 Internally, however, longitudinal learning state is no longer hard-coded as a
 collection of IELTS-only progress queries. The architecture is:

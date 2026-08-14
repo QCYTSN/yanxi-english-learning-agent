@@ -19,13 +19,19 @@ CONTRACT_SCHEMAS = {
     contract: contract.partition("@")[0]
     for contract in CAPABILITIES_BY_CONTRACT
 }
-INTERNAL_CONTRACT_SCHEMAS = {"tutor-turn-plan@1": "tutor-turn-plan"}
+INTERNAL_CONTRACT_SCHEMAS = {
+    "tutor-turn-plan@1": "tutor-turn-plan",
+    "vocab-enrichment@1": "vocab-enrichment",
+}
 
 CONTRACT_SKILLS = {
     contract: capability.skill
     for contract, capability in CAPABILITIES_BY_CONTRACT.items()
 }
-INTERNAL_CONTRACT_SKILLS = {"tutor-turn-plan@1": "ielts-study-help"}
+INTERNAL_CONTRACT_SKILLS = {
+    "tutor-turn-plan@1": "ielts-study-help",
+    "vocab-enrichment@1": "general-vocabulary",
+}
 
 
 class AgentContractValidationError(ValueError):

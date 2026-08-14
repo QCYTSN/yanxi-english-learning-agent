@@ -5,7 +5,9 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 
-DEFAULT_TRACK_ID = "ielts-academic"
+IELTS_TRACK_ID = "ielts-academic"
+# Product default for fresh installs; existing profiles keep their own track.
+DEFAULT_TRACK_ID = "general-english"
 
 
 @dataclass(frozen=True, slots=True)
@@ -318,7 +320,7 @@ IELTS_EVIDENCE_MAPPINGS = (
 
 
 IELTS_ACADEMIC_PACK = DomainPackSpec(
-    track_id=DEFAULT_TRACK_ID,
+    track_id=IELTS_TRACK_ID,
     title="IELTS Academic",
     short_title="IELTS",
     description="Evidence-led preparation for IELTS Academic Listening, Reading, Writing and Speaking.",
@@ -504,12 +506,16 @@ def domain_pack_descriptors(
     include_capabilities: bool = True,
     include_skills: bool = False,
 ) -> list[dict[str, object]]:
+    ordered = sorted(
+        DOMAIN_PACKS.values(),
+        key=lambda pack: (pack.track_id != DEFAULT_TRACK_ID, pack.title),
+    )
     return [
         pack.descriptor(
             include_capabilities=include_capabilities,
             include_skills=include_skills,
         )
-        for pack in DOMAIN_PACKS.values()
+        for pack in ordered
         if pack.status != "disabled"
     ]
 

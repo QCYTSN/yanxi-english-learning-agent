@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from ..domain_packs import DEFAULT_TRACK_ID
+
 
 class AuthExchange(BaseModel):
     token: str = Field(min_length=20, max_length=256)
@@ -87,7 +89,7 @@ class StudyThreadCreate(BaseModel):
     title: str = Field(default="新的 IELTS 学习对话", min_length=1, max_length=120)
     module: Literal["listening", "reading", "writing", "speaking", "mixed"] = "mixed"
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",
@@ -102,7 +104,7 @@ class StudyThreadUpdate(BaseModel):
 
 class LearnerMemoryCreate(BaseModel):
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",
@@ -140,7 +142,7 @@ class LearnerMemoryConflictDecision(BaseModel):
 class LearningObjectiveCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",
@@ -174,7 +176,7 @@ class LearningActivityCreate(BaseModel):
     activity_type: str = Field(min_length=1, max_length=100)
     title: str = Field(min_length=1, max_length=200)
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",
@@ -198,7 +200,7 @@ class LearningActivityUpdate(BaseModel):
 
 class MasteryEvidenceCreate(BaseModel):
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",
@@ -235,7 +237,7 @@ class LearningReviewStatusUpdate(BaseModel):
 class TeachingCycleCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     track_id: str = Field(
-        default="ielts-academic",
+        default=DEFAULT_TRACK_ID,
         min_length=1,
         max_length=120,
         pattern=r"^[a-z0-9][a-z0-9-]*$",

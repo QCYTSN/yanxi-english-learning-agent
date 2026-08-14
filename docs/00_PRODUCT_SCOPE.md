@@ -1,11 +1,13 @@
-# Current product scope — V1.4
+# Current product scope — V1.5
 
 ## Identity
 
-IELTS Study Desk is a local-first IELTS Academic learning product. The browser
-UI and Python Teaching Runtime own the learning workflow. A configured Model
-Provider supplies constrained inference; optional External Agents support
-advanced local-material workflows.
+言蹊 (Yanxi) is a local-first, Tutor-led English learning product. General
+English (daily and workplace) is the default learning track; IELTS Academic
+ships as the first optional exam Domain Pack on the same Teaching Runtime.
+The browser UI and Python Teaching Runtime own the learning workflow. A
+configured Model Provider supplies constrained inference; external CLI
+Agents are optional non-teaching tools.
 
 The application is not a redistribution channel for IELTS books or commercial
 questions. Public installs start with an empty question bank and use BYOC:

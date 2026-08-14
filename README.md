@@ -7,7 +7,7 @@
 [![Tests](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml/badge.svg)](https://github.com/QCYTSN/ielts-ai-coach/actions/workflows/tests.yml)
 [![Python 3.10–3.12](https://img.shields.io/badge/Python-3.10--3.12-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/Code-MIT-0f766e.svg)](LICENSE)
-[![Release: 1.4.0](https://img.shields.io/badge/release-1.4.0-334155.svg)](RELEASE_NOTES.md)
+[![Release: 1.5.0](https://img.shields.io/badge/release-1.5.0-334155.svg)](RELEASE_NOTES.md)
 
 Local-first, agent-native English learning software.
 
@@ -195,7 +195,7 @@ teaching-quality suite and the configured local scale-performance gate.
 Windows release builds are produced with:
 
 ```powershell
-.\scripts\build-windows-release.ps1 -Version 1.4.0
+.\scripts\build-windows-release.ps1 -Version 1.5.0
 ```
 
 See [Release checklist](docs/RELEASE_CHECKLIST.md).

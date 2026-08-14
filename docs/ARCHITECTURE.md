@@ -25,8 +25,8 @@ Provider/runtime details and the Codex managed-runtime boundary are defined in
 
 ## Skill layer
 
-`skills-source/` is the single source of truth. `sync-skills` copies all six
-Skills to:
+`skills-source/` is the single source of truth. `sync-skills` copies all
+thirteen Skills (seven IELTS-domain and six General English) to:
 
 ```text
 .claude/skills/

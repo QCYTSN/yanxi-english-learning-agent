@@ -19,10 +19,15 @@ from ..validation import (
 )
 from ..vocabulary import (
     add_vocabulary_item,
+    apply_adaptive_vocabulary_review,
+    deterministic_word_forms,
     due_vocabulary_reviews,
+    ensure_deterministic_enrichment,
+    get_vocabulary_item,
     list_recent_ingests,
     list_vocabulary_items,
     record_typing_mistake,
+    run_vocabulary_enrichment,
     schedule_vocabulary_review,
     set_vocabulary_status,
     undo_vocabulary_ingest,
@@ -43,7 +48,14 @@ from ..capability_evaluation import (
     provider_reliability_report,
 )
 from ..allocation import recommend_allocation
-from ..backups import backup_download_path, create_backup, list_backups, restore_backup, verify_backup
+from ..backups import (
+    backup_download_path,
+    create_backup,
+    list_backups,
+    restore_backup,
+    run_automatic_backup_sweep,
+    verify_backup,
+)
 from ..config import load_profile
 from ..conformance import standard_profile
 from ..content_imports import (
@@ -73,6 +85,8 @@ from ..data_lifecycle import cleanup_deleted_thread_storage, wipe_learner_data
 from ..errors import CoachError, PrivateProcessingBlockedError, SessionNotFoundError
 from ..execution_profiles import update_execution_profile
 from ..model_providers import (
+    ModelProviderError,
+    active_model_route,
     create_model_provider,
     delete_model_provider,
     list_model_providers,
@@ -145,6 +159,7 @@ from ..paths import resolve_home
 from ..privacy import build_privacy_receipt, check_processing_permission
 from ..performance import RequestPerformanceMonitor, database_performance_status
 from ..pedagogy import (
+    get_active_teaching_cycle,
     get_teaching_cycle,
     list_teaching_cycles,
     recommend_teaching_transition,
@@ -539,6 +554,15 @@ def _module_title(module: str) -> str:
     }[module]
 
 
+def _safe_automatic_backup(home: Path) -> None:
+    """Run the automatic backup sweep without ever breaking the service."""
+    try:
+        run_automatic_backup_sweep(home)
+    except Exception:
+        # A failed opportunistic backup must not block the learning service.
+        pass
+
+
 def create_app(
     *,
     home: Path | None = None,
@@ -565,6 +589,13 @@ def create_app(
         recover_ocr_runtime_install(target)
         if local_jobs is not None:
             local_jobs.recover()
+        if not test_mode:
+            threading.Thread(
+                target=_safe_automatic_backup,
+                args=(target,),
+                name="automatic-backup",
+                daemon=True,
+            ).start()
         try:
             yield
         finally:
@@ -2138,8 +2169,80 @@ def create_app(
         item_id: str,
         payload: dict[str, Any],
     ) -> dict[str, Any]:
+        outcome = str(payload.get("outcome") or "").strip()
+        if outcome:
+            return apply_adaptive_vocabulary_review(
+                target, item_id, outcome=outcome
+            )
         days = int(payload.get("days") or 3)
         return schedule_vocabulary_review(target, item_id, days=days)
+
+    @app.get(
+        "/api/v1/vocabulary/{item_id}/enrichment",
+        dependencies=[Depends(require_session)],
+    )
+    def vocabulary_enrichment_get(item_id: str) -> dict[str, Any]:
+        item = get_vocabulary_item(target, item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Vocabulary item not found")
+        enrichment = ensure_deterministic_enrichment(target, item_id)
+        if enrichment is None:
+            return {
+                "item_id": item_id,
+                "word": item["word"],
+                "status": "pending",
+                "forms": deterministic_word_forms(str(item["word"])),
+                "definitions": [],
+                "examples": [],
+                "synonyms": [],
+                "antonyms": [],
+                "ipa_uk": None,
+                "ipa_us": None,
+                "pos": None,
+                "source": None,
+            }
+        return {"status": "available", "word": item["word"], **enrichment}
+
+    @app.post(
+        "/api/v1/vocabulary/{item_id}/enrich",
+        dependencies=[Depends(require_session)],
+    )
+    def vocabulary_enrich_trigger(
+        item_id: str,
+        background_tasks: BackgroundTasks,
+    ) -> dict[str, Any]:
+        item = get_vocabulary_item(target, item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Vocabulary item not found")
+        enrichment = ensure_deterministic_enrichment(target, item_id)
+        try:
+            active_model_route(target)
+        except ModelProviderError:
+            return {
+                "item_id": item_id,
+                "word": item["word"],
+                "status": "deterministic_only",
+                "enrichment": enrichment,
+            }
+        if local_jobs is not None:
+            job = local_jobs.submit(
+                "vocab_enrich",
+                {"item_id": item_id},
+                priority=40,
+                dedupe_key=f"vocab-enrich:{item_id}",
+            )
+            status = job["status"]
+        else:
+            background_tasks.add_task(
+                run_vocabulary_enrichment, target, item_id
+            )
+            status = "queued"
+        return {
+            "item_id": item_id,
+            "word": item["word"],
+            "status": status,
+            "enrichment": enrichment,
+        }
 
     @app.patch("/api/v1/vocabulary/{item_id}/status", dependencies=[Depends(require_session)])
     def vocabulary_status_update(
@@ -2627,8 +2730,14 @@ def create_app(
         adapter_id = str(profile["backend_id"])
         primary_provider = prepared.primary_model_provider
         capability = capability_for_contract(payload.output_contract)
-        skill_envelope = compile_skill_envelope(capability)
         is_study_help = payload.output_contract in ("study-help@1",) or payload.output_contract.startswith("general-")
+        teaching_stage: str | None = None
+        if is_study_help and payload.study_thread_id:
+            cycle = get_active_teaching_cycle(
+                target, str(payload.study_thread_id)
+            )
+            teaching_stage = str(cycle["phase"]) if cycle else None
+        skill_envelope = compile_skill_envelope(capability, stage=teaching_stage)
         if is_study_help and (
             not payload.study_thread_id or not payload.user_message_id
         ):

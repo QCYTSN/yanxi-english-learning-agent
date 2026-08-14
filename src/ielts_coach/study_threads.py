@@ -26,7 +26,7 @@ from .storage import (
 from .storage_quota import assert_local_storage_capacity, invalidate_storage_usage
 from .text_anchor import create_text_anchor
 from .tutor_state import get_thread_learning_state, list_tutor_proposals
-from .uploads import StagedUpload, copy_file_atomic, hash_file
+from .uploads import StagedUpload, copy_file_atomic, hash_file, read_zip_member
 
 
 ALLOWED_ATTACHMENT_SUFFIXES = {
@@ -671,7 +671,7 @@ def refresh_study_thread_summary(
         if str(row["message_id"]) not in anchor_ids and not recent_heading_added:
             parts.append("【最近的阶段性进展】")
             recent_heading_added = True
-        role = "学习者" if row["role"] == "user" else "IELTS 教师"
+        role = "学习者" if row["role"] == "user" else "英语教师"
         content = " ".join(str(row["content"]).split())
         excerpt = content[: min(320, remaining)]
         if not excerpt:
@@ -907,8 +907,7 @@ def _extract_text(path: Path, suffix: str) -> tuple[str, str]:
                 :MAX_EXTRACTED_TEXT
             ], "text_available"
         if suffix == ".docx":
-            with zipfile.ZipFile(path) as archive:
-                xml = archive.read("word/document.xml")
+            xml = read_zip_member(path, "word/document.xml")
             root = ElementTree.fromstring(xml)
             text = "\n".join(
                 item.text or ""

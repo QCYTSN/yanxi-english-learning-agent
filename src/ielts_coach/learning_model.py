@@ -1235,8 +1235,11 @@ def ingest_session_mastery_evidence(
     session score already accepted by the Teaching Runtime.
     """
 
-    track_id = str(data.get("track_id") or DEFAULT_TRACK_ID)
-    if track_id != DEFAULT_TRACK_ID:
+    # IELTS Session evidence projects only onto the IELTS Academic track.
+    # Keep the guard explicit: the product default track may change without
+    # silently disabling IELTS mastery projection.
+    track_id = str(data.get("track_id") or "ielts-academic")
+    if track_id != "ielts-academic":
         return
     pack = get_domain_pack(track_id)
     _ensure_skill_nodes_conn(conn, pack)

@@ -6,7 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from ielts_coach.backups import backup_download_path, create_backup, list_backups, restore_backup, verify_backup
+from ielts_coach.backups import (
+    backup_download_path,
+    create_backup,
+    list_backups,
+    restore_backup,
+    run_automatic_backup_sweep,
+    verify_backup,
+)
 from ielts_coach.init_home import initialise_home
 
 
@@ -74,6 +81,53 @@ def test_backup_manifest_does_not_include_runtime_exports_or_prior_backups(tmp_p
         manifest = json.loads(archive.read("manifest.json"))
     assert manifest["backup_format_version"] == 1
     assert manifest["backup_id"] == created["backup_id"]
+
+
+def test_automatic_sweep_creates_when_stale_and_respects_freshness(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    (home / "story-bank" / "marker.txt").write_text("kept", encoding="utf-8")
+
+    # Nothing recent yet: the sweep creates one automatic backup.
+    created = run_automatic_backup_sweep(home, interval_seconds=3600)
+    assert created is not None
+    assert created["kind"] == "automatic"
+
+    # The fresh backup satisfies the interval: no new backup is created.
+    assert run_automatic_backup_sweep(home, interval_seconds=3600) is None
+
+    # A fresh manual backup also satisfies freshness (any kind counts).
+    create_backup(home, kind="test-manual")
+    assert run_automatic_backup_sweep(home, interval_seconds=3600) is None
+
+
+def test_automatic_sweep_prunes_only_automatic_beyond_keep(tmp_path: Path):
+    home = tmp_path / "home"
+    initialise_home(home)
+    create_backup(home, kind="test-manual")
+
+    # interval 0 forces every sweep to create, so pruning is exercised.
+    for _ in range(7):
+        run_automatic_backup_sweep(home, interval_seconds=0, keep=3)
+    automatic = [
+        item
+        for item in list_backups(home)
+        if item.get("kind") == "automatic" and item.get("status") == "available"
+    ]
+    manual = [
+        item
+        for item in list_backups(home)
+        if item.get("kind") == "test-manual" and item.get("status") == "available"
+    ]
+    assert len(automatic) == 3
+    assert len(manual) == 1
+
+
+def test_automatic_sweep_skips_without_database(tmp_path: Path):
+    home = tmp_path / "home"
+    home.mkdir()
+    # No database file yet: nothing to back up, no crash.
+    assert run_automatic_backup_sweep(home) is None
 
 
 def test_backup_download_path_resolves_stored_id(tmp_path: Path):

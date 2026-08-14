@@ -206,7 +206,7 @@ def test_v10_today_progress_and_background_agent_lifecycle(tmp_path: Path):
 def test_current_schema_and_restart_recovery(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 34
+    assert SCHEMA_VERSION == 35
     create_agent_run(
         home,
         {
@@ -253,7 +253,7 @@ def test_current_schema_and_restart_recovery(tmp_path: Path):
                 "SELECT name FROM sqlite_master WHERE type='table'"
             )
         }
-        assert version == "34"
+        assert version == "35"
     assert {
         "timeout_seconds",
         "attempt_count",

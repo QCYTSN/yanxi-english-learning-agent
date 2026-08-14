@@ -656,16 +656,32 @@ class TutorOrchestrator:
         teaching_goal = str(canonical.get("user_request") or "IELTS learning support")[:500]
         rounds = 0
         last_plan_status = "not_planned"
+        planning_degraded = False
 
         if route == "bounded_tool_loop":
             for round_number in range(1, MAX_TOOL_ROUNDS + 1):
                 rounds = round_number
                 emit("tutor_planning", {"stage": "tutor_planning", "round": round_number, "label": "Planning the next teaching step"})
                 plan_request = _planner_request(request, initial, observations, round_number)
-                plan = validate_agent_contract(
-                    "tutor-turn-plan@1",
-                    _invoke_adapter(self.home, adapter, plan_request, emit),
-                )
+                try:
+                    plan = validate_agent_contract(
+                        "tutor-turn-plan@1",
+                        _invoke_adapter(self.home, adapter, plan_request, emit),
+                    )
+                except Exception as exc:
+                    # A failed planner must never fail the learner's turn:
+                    # degrade to one direct answer and reuse gathered evidence.
+                    planning_degraded = True
+                    route = "direct_response"
+                    emit(
+                        "tutor_planning_fallback",
+                        {
+                            "stage": "tutor_planning",
+                            "label": "Skipping tool planning and answering directly",
+                            "error": str(exc)[:200],
+                        },
+                    )
+                    break
                 last_plan_status = str(plan["status"])
                 teaching_goal = str(plan["teaching_goal"])[:500]
                 if plan["status"] != "needs_tools":
@@ -674,11 +690,11 @@ class TutorOrchestrator:
                     if len(tools_used) >= MAX_TOOL_CALLS:
                         break
                     name = str(call["name"])
-                    arguments = _clean_tool_arguments(call.get("arguments") or {})
-                    arguments = _scope_tool_arguments(name, arguments, canonical)
-                    spec = self.registry.spec(name)
                     emit("tool_started", {"stage": "tool_execution", "tool": name, "call_id": call["call_id"]})
                     try:
+                        arguments = _clean_tool_arguments(call.get("arguments") or {})
+                        arguments = _scope_tool_arguments(name, arguments, canonical)
+                        spec = self.registry.spec(name)
                         output = self.registry.execute(name, **arguments)
                         observation = {
                             "call_id": call["call_id"],
@@ -718,6 +734,7 @@ class TutorOrchestrator:
                 len(tools_used) >= MAX_TOOL_CALLS
                 or (rounds >= MAX_TOOL_ROUNDS and last_plan_status == "needs_tools")
             ),
+            "planning_degraded": planning_degraded,
             "instruction": (
                 "Use observations as evidence only. Command proposals are not yet confirmed or executed. "
                 + (
@@ -738,6 +755,7 @@ class TutorOrchestrator:
                 "rounds": rounds,
                 "tool_calls": len(tools_used),
                 "tools_used": tools_used,
+                "planning_degraded": planning_degraded,
                 "teaching_goal": teaching_goal,
                 "answer_policy": answer_policy,
                 "latency_profile": initial.get("latency_profile", "deliberate"),
@@ -851,12 +869,21 @@ def _clean_tool_arguments(arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _bounded_json(value: Any) -> Any:
+    """Bound a tool result while preserving its head and structural tail.
+
+    Pure head truncation can silently drop the final entries of long tool
+    results (passages, history lists). Keeping a tail slice preserves more of
+    the structure the final teaching model needs to stay grounded.
+    """
     encoded = json.dumps(value, ensure_ascii=False, default=str)
     if len(encoded) <= MAX_TOOL_RESULT_CHARS:
         return value
+    head_bytes = int(MAX_TOOL_RESULT_CHARS * 0.6)
+    tail_bytes = MAX_TOOL_RESULT_CHARS - head_bytes
     return {
         "truncated": True,
-        "content": encoded[:MAX_TOOL_RESULT_CHARS],
+        "content": encoded[:head_bytes],
+        "tail": encoded[-tail_bytes:],
         "original_sha256": hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
     }
 

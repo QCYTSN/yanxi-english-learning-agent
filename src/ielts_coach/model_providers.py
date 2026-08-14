@@ -914,6 +914,18 @@ def _http_invoke(
     emit: ProviderEvent | None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     system, user = build_provider_prompt(request)
+    use_caching = bool(provider.get("config", {}).get("prompt_caching", False))
+    system_content: str | list[dict[str, Any]] = (
+        [
+            {
+                "type": "text",
+                "text": system,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ]
+        if use_caching
+        else system
+    )
     user_content: str | list[dict[str, Any]] = user
     if provider.get("config", {}).get("image_input"):
         content: list[dict[str, Any]] = [{"type": "text", "text": user}]
@@ -941,7 +953,7 @@ def _http_invoke(
     payload: dict[str, Any] = {
         "model": provider["model_id"],
         "messages": [
-            {"role": "system", "content": system},
+            {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ],
         "stream": use_streaming,

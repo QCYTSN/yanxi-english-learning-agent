@@ -212,6 +212,48 @@ def _v34_vocabulary_candidate_states(conn: sqlite3.Connection) -> None:
     )
 
 
+def _v35_vocabulary_enrichment(conn: sqlite3.Connection) -> None:
+    """Add review streaks and rich word-card enrichment storage.
+
+    success_streak drives the adaptive spaced-review ladder. The
+    vocabulary_enrichments table stores IPA, part of speech, definitions,
+    examples, synonyms, antonyms and word forms with provenance so word cards
+    render offline from bundled or previously generated data.
+    """
+    columns = {
+        str(row[1]) for row in conn.execute("PRAGMA table_info(vocabulary_items)")
+    }
+    if "success_streak" not in columns:
+        conn.execute(
+            "ALTER TABLE vocabulary_items "
+            "ADD COLUMN success_streak INTEGER NOT NULL DEFAULT 0"
+        )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS vocabulary_enrichments (
+            item_id TEXT PRIMARY KEY,
+            ipa_uk TEXT,
+            ipa_us TEXT,
+            pos TEXT,
+            definitions_json TEXT NOT NULL DEFAULT '[]',
+            examples_json TEXT NOT NULL DEFAULT '[]',
+            synonyms_json TEXT NOT NULL DEFAULT '[]',
+            antonyms_json TEXT NOT NULL DEFAULT '[]',
+            forms_json TEXT NOT NULL DEFAULT '{}',
+            source TEXT NOT NULL DEFAULT 'runtime',
+            generated_at TEXT,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(item_id) REFERENCES vocabulary_items(item_id)
+              ON DELETE CASCADE
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_vocabulary_enrichments_source "
+        "ON vocabulary_enrichments(source)"
+    )
+
+
 MIGRATIONS = (
     Migration(
         28,
@@ -254,6 +296,12 @@ MIGRATIONS = (
         "v34-vocabulary-candidate-states",
         "Add candidate and known statuses so dialogue-taught words can be auto-ingested with undo and already-known dedup.",
         _v34_vocabulary_candidate_states,
+    ),
+    Migration(
+        35,
+        "v35-vocabulary-enrichment",
+        "Add adaptive review streaks and rich vocabulary enrichment storage.",
+        _v35_vocabulary_enrichment,
     ),
 )
 

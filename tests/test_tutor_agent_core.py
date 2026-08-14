@@ -144,6 +144,134 @@ def test_complex_tutor_turn_uses_bounded_tools_and_creates_only_a_proposal(
     assert "tool_started" in events
 
 
+class FailingPlannerAdapter:
+    def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
+        del home
+        if request["output_contract"] == "tutor-turn-plan@1":
+            raise RuntimeError("provider down during planning")
+        return {
+            "contract_version": 1,
+            "module": "reading",
+            "request_kind": "guided_hint",
+            "evidence_status": "partial",
+            "answer_status": "withheld",
+            "summary": "先自己定位关键词，再看题干是否改写因果。",
+            "sections": [],
+            "evidence": [],
+            "limitations": ["本轮未能查阅材料。"],
+            "next_action": "圈出题干限定词。",
+        }
+
+
+class BadThreadPlanAdapter:
+    def start(self, home: Path, request: dict[str, Any]) -> dict[str, Any]:
+        del home
+        if request["output_contract"] == "tutor-turn-plan@1":
+            return {
+                "contract_version": 1,
+                "status": "needs_tools",
+                "module": "reading",
+                "teaching_goal": "Inspect the thread material.",
+                "answer_policy": "progressive_hint",
+                "tool_calls": [
+                    {
+                        "call_id": "material-x",
+                        "name": "inspect_thread_material",
+                        "arguments": _arguments(thread_id="another-thread"),
+                    }
+                ],
+                "missing_context": [],
+            }
+        return {
+            "contract_version": 1,
+            "module": "reading",
+            "request_kind": "guided_hint",
+            "evidence_status": "partial",
+            "answer_status": "withheld",
+            "summary": "按原文顺序定位信息。",
+            "sections": [],
+            "evidence": [],
+            "limitations": [],
+            "next_action": "重读题干。",
+        }
+
+
+def _turn_request(home: Path, thread_id: str, content: str) -> dict[str, Any]:
+    context = TutorOrchestrator(home).initial_context(
+        content,
+        thread_id=thread_id,
+        module="reading",
+        has_material=True,
+    )
+    return {
+        "request_id": "run_tutor_loop",
+        "output_contract": "study-help@1",
+        "skill_envelope": {
+            "skill": "ielts-study-help",
+            "instructions": "Preserve Reading answer integrity.",
+            "references": [],
+            "context_policy": {},
+            "output_schema": {},
+        },
+        "canonical_session": {
+            "thread_id": thread_id,
+            "module": "reading",
+            "user_request": content,
+            "source_context": {},
+            "tutor_orchestration": context,
+        },
+    }
+
+
+def test_tutor_turn_degrades_to_direct_response_when_planning_fails(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Degraded turn", module="reading")
+    message = add_user_message(
+        home,
+        thread["thread_id"],
+        content="请根据材料给我一个提示。",
+        files=[("passage.txt", b"Solar heat is stored energy.", "text/plain")],
+    )
+    request = _turn_request(home, thread["thread_id"], str(message["content"]))
+    events: list[str] = []
+    outcome = TutorOrchestrator(home).execute(
+        FailingPlannerAdapter(),
+        request,
+        lambda event_type, payload: events.append(event_type),
+    )
+    assert outcome.orchestration["planning_degraded"] is True
+    assert outcome.orchestration["route"] == "direct_response"
+    assert outcome.result["answer_status"] == "withheld"
+    assert "tutor_planning_fallback" in events
+
+
+def test_tutor_turn_contains_escaping_tool_arguments_as_failed_observation(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Tool containment", module="reading")
+    message = add_user_message(
+        home,
+        thread["thread_id"],
+        content="提示我一下。",
+        files=[("passage.txt", b"Plants store energy.", "text/plain")],
+    )
+    request = _turn_request(home, thread["thread_id"], str(message["content"]))
+    events: list[tuple[str, dict[str, Any]]] = []
+    outcome = TutorOrchestrator(home).execute(
+        BadThreadPlanAdapter(),
+        request,
+        lambda event_type, payload: events.append((event_type, payload)),
+    )
+    assert outcome.result["answer_status"] == "withheld"
+    completed = [payload for event_type, payload in events if event_type == "tool_completed"]
+    assert completed and completed[0]["ok"] is False
+
+
 def test_tutor_turn_effort_is_light_for_chat_and_preserved_for_complex_work(
     tmp_path: Path,
 ) -> None:

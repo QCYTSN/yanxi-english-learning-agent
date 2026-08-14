@@ -51,23 +51,13 @@ def _client(home: Path) -> TestClient:
     return client
 
 
-def test_ielts_is_registered_as_the_first_domain_pack() -> None:
+def test_general_english_is_default_and_ielts_stays_registered() -> None:
     descriptors = domain_pack_descriptors(include_skills=True)
     assert [item["track_id"] for item in descriptors] == [
         DEFAULT_TRACK_ID,
-        "general-english",
+        "ielts-academic",
     ]
-    pack = get_domain_pack(DEFAULT_TRACK_ID)
-    assert {item.dimension_id for item in pack.dimensions} == {
-        "listening",
-        "reading",
-        "writing",
-        "speaking",
-    }
-    assert len(pack.skills) == 21
-    assert len(pack.capabilities) == 8
-
-    general = get_domain_pack("general-english")
+    general = get_domain_pack(DEFAULT_TRACK_ID)
     assert {item.dimension_id for item in general.dimensions} == {
         "listening",
         "reading",
@@ -77,9 +67,19 @@ def test_ielts_is_registered_as_the_first_domain_pack() -> None:
         "grammar",
     }
     assert general.assessment_scale.scale_id == "cefr"
+
+    ielts = get_domain_pack("ielts-academic")
+    assert {item.dimension_id for item in ielts.dimensions} == {
+        "listening",
+        "reading",
+        "writing",
+        "speaking",
+    }
+    assert len(ielts.skills) == 21
+    assert len(ielts.capabilities) == 8
     assert {item["track_id"] for item in capability_descriptors()} == {
         DEFAULT_TRACK_ID,
-        "general-english",
+        "ielts-academic",
     }
 
 
@@ -103,11 +103,11 @@ def test_initialisation_seeds_generic_learning_model_without_user_content(
             (DEFAULT_TRACK_ID,),
         ).fetchone()[0]
         learner_rows = conn.execute("SELECT COUNT(*) FROM learning_objectives").fetchone()[0]
-        general_count = conn.execute(
+        ielts_count = conn.execute(
             "SELECT COUNT(*) FROM learning_skill_nodes WHERE track_id=?",
-            ("general-english",),
+            ("ielts-academic",),
         ).fetchone()[0]
-    assert version == "34"
+    assert version == "35"
     assert {
         "learning_skill_nodes",
         "learning_objectives",
@@ -116,8 +116,8 @@ def test_initialisation_seeds_generic_learning_model_without_user_content(
         "skill_mastery",
         "learning_review_schedules",
     } <= tables
-    assert skill_count == 21
-    assert general_count == 13
+    assert skill_count == 13
+    assert ielts_count == 21
 
     assert learner_rows == 0
 
@@ -130,12 +130,14 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
     objective = create_learning_objective(
         home,
         title="Improve passage evidence location",
+        track_id="ielts-academic",
         dimension_id="reading",
         skill_id="reading.locate_evidence",
         target_value=0.8,
     )
     activity = create_learning_activity(
         home,
+        track_id="ielts-academic",
         activity_type="guided_practice",
         title="Locate evidence in one passage",
         dimension_id="reading",
@@ -159,7 +161,7 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
         )
     first = record_mastery_evidence(
         home,
-        track_id=DEFAULT_TRACK_ID,
+        track_id="ielts-academic",
         skill_id="reading.locate_evidence",
         score=0.35,
         confidence=0.9,
@@ -177,7 +179,7 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
     # Replaying the same authoritative evidence updates it instead of double counting.
     replay = record_mastery_evidence(
         home,
-        track_id=DEFAULT_TRACK_ID,
+        track_id="ielts-academic",
         skill_id="reading.locate_evidence",
         score=0.75,
         confidence=0.9,
@@ -192,7 +194,7 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
     replay_due_at = replay["review"]["due_at"]
     identical_replay = record_mastery_evidence(
         home,
-        track_id=DEFAULT_TRACK_ID,
+        track_id="ielts-academic",
         skill_id="reading.locate_evidence",
         score=0.75,
         confidence=0.9,
@@ -219,7 +221,9 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
             expected_revision=0,
         )
 
-    reviews = list_learning_reviews(home, status="pending")
+    reviews = list_learning_reviews(
+        home, track_id="ielts-academic", status="pending"
+    )
     completed = complete_learning_review(
         home,
         reviews[0]["review_id"],
@@ -230,7 +234,9 @@ def test_objective_activity_mastery_and_spaced_review_are_revision_safe(
     assert completed["review"]["repetition_count"] == 1
     assert completed["mastery"]["evidence_count"] == 2
     update_learning_review_status(home, reviews[0]["review_id"], "dismissed")
-    snapshot = get_learning_model_snapshot(home, dimension_id="reading")
+    snapshot = get_learning_model_snapshot(
+        home, track_id="ielts-academic", dimension_id="reading"
+    )
     skill = next(
         item
         for item in snapshot["skills"]
@@ -267,15 +273,21 @@ def test_authoritative_ielts_session_projects_idempotent_skill_evidence(
         "band": 6.5,
     }
     record_session(home, session)
-    first_due_at = list_learning_reviews(home, status="pending")[0]["due_at"]
+    first_due_at = list_learning_reviews(
+        home, track_id="ielts-academic", status="pending"
+    )[0]["due_at"]
     record_session(home, session)
-    second_due_at = list_learning_reviews(home, status="pending")[0]["due_at"]
-    evidence = list_mastery_evidence(home)
+    second_due_at = list_learning_reviews(
+        home, track_id="ielts-academic", status="pending"
+    )[0]["due_at"]
+    evidence = list_mastery_evidence(home, track_id="ielts-academic")
     assert len(evidence) == 1
     assert second_due_at == first_due_at
     assert evidence[0]["skill_id"] == "reading.inference"
     assert evidence[0]["score"] == 0
-    snapshot = get_learning_model_snapshot(home, dimension_id="reading")
+    snapshot = get_learning_model_snapshot(
+        home, track_id="ielts-academic", dimension_id="reading"
+    )
     assert snapshot["summary"]["observed_skill_count"] == 1
 
     cleared = dict(session)
@@ -283,9 +295,16 @@ def test_authoritative_ielts_session_projects_idempotent_skill_evidence(
     cleared["band"] = None
     cleared["score_kind"] = None
     record_session(home, cleared)
-    assert list_mastery_evidence(home) == []
-    assert list_learning_reviews(home, status="pending") == []
-    cleared_snapshot = get_learning_model_snapshot(home, dimension_id="reading")
+    assert list_mastery_evidence(home, track_id="ielts-academic") == []
+    assert (
+        list_learning_reviews(
+            home, track_id="ielts-academic", status="pending"
+        )
+        == []
+    )
+    cleared_snapshot = get_learning_model_snapshot(
+        home, track_id="ielts-academic", dimension_id="reading"
+    )
     assert cleared_snapshot["summary"]["observed_skill_count"] == 0
 
 
@@ -304,6 +323,7 @@ def test_threads_and_http_bootstrap_expose_learning_track_boundary(
             "/api/v1/learning-objectives",
             json={
                 "title": "Strengthen writer position questions",
+                "track_id": "ielts-academic",
                 "dimension_id": "reading",
                 "skill_id": "reading.writer_position",
             },
@@ -311,6 +331,7 @@ def test_threads_and_http_bootstrap_expose_learning_track_boundary(
         evidence = client.post(
             "/api/v1/mastery-evidence",
             json={
+                "track_id": "ielts-academic",
                 "skill_id": "reading.writer_position",
                 "score": 0.5,
                 "confidence": 0.8,
@@ -328,7 +349,9 @@ def test_threads_and_http_bootstrap_expose_learning_track_boundary(
             f"/api/v1/learning-objectives/{objective.json()['objective_id']}",
             json={"priority": 10, "expected_revision": 0},
         )
-        snapshot = client.get("/api/v1/learning-model?dimension_id=reading")
+        snapshot = client.get(
+            "/api/v1/learning-model?track_id=ielts-academic&dimension_id=reading"
+        )
     assert bootstrap.status_code == 200
     assert bootstrap.json()["active_learning_track_id"] == "general-english"
     assert bootstrap.json()["learning_tracks"][0]["track_id"] == DEFAULT_TRACK_ID

@@ -22,6 +22,7 @@ BACKGROUND_TIMEOUTS = {
     "content_prepare": 900,
     "content_ocr": 3600,
     "content_review_draft": 900,
+    "vocab_enrich": 600,
 }
 
 
@@ -331,6 +332,10 @@ def execute_background_job(home: Path, job_id: str) -> None:
             from .content_imports import build_import_review_draft
 
             build_import_review_draft(home, str(payload["import_id"]))
+        elif job["job_kind"] == "vocab_enrich":
+            from .vocabulary import run_vocabulary_enrichment
+
+            run_vocabulary_enrichment(home, str(payload["item_id"]))
         else:  # pragma: no cover - submit validates the kind
             raise ValueError(f"Unsupported local background job: {job['job_kind']}")
     except BaseException as exc:

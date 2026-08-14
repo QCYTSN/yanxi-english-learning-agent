@@ -54,7 +54,7 @@ def _client(home: Path) -> TestClient:
 def test_schema21_separates_model_providers_without_replacing_sqlite(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    assert SCHEMA_VERSION == 34
+    assert SCHEMA_VERSION == 35
     with connect(home) as conn:
         tables = {
             row["name"]
@@ -145,7 +145,12 @@ def test_architecture_endpoints_expose_capabilities_and_profiles(tmp_path: Path)
         profiles = client.get("/api/v1/execution-profiles?diagnostics=false")
         bootstrap = client.get("/api/v1/bootstrap")
     assert capabilities.status_code == 200
-    assert len(capabilities.json()) == 8
+    # The product default track is General English; IELTS is explicit.
+    assert len(capabilities.json()) == 6
+    ielts_capabilities = client.get(
+        "/api/v1/capabilities?track_id=ielts-academic"
+    )
+    assert len(ielts_capabilities.json()) == 8
     general_capabilities = client.get(
         "/api/v1/capabilities?track_id=general-english"
     )

@@ -11,6 +11,11 @@ from PIL import Image
 from ielts_coach.agent_contracts import persist_agent_contract
 from ielts_coach.init_home import initialise_home
 from ielts_coach.storage import connect
+from ielts_coach.study_threads import (
+    add_user_message,
+    create_study_thread,
+    refresh_study_thread_summary,
+)
 from ielts_coach.validation import validate_data
 from ielts_coach.web.app import create_app
 from ielts_coach.web.auth import AuthState
@@ -305,3 +310,49 @@ def test_study_help_semantics_preserve_reading_answer_integrity() -> None:
     }
     with pytest.raises(ValueError, match="answer withheld"):
         validate_data(result, "study-help")
+
+
+def test_thread_summary_is_deterministic_and_bounded(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    initialise_home(home)
+    thread = create_study_thread(home, title="Long chat", module="mixed")
+    thread_id = thread["thread_id"]
+
+    # Below the live-context window no summary is needed (no model call).
+    for index in range(5):
+        add_user_message(home, thread_id, content=f"消息 {index}", files=[])
+    assert refresh_study_thread_summary(home, thread_id) is None
+
+    # Crossing the window produces a deterministic bounded digest.
+    from datetime import datetime, timedelta, timezone
+
+    stamp = datetime.now(timezone.utc)
+    for index in range(5, 26):
+        add_user_message(home, thread_id, content=f"消息 {index} 学习目标雅思写作", files=[])
+    with connect(home) as conn:
+        for index in range(5, 26):
+            conn.execute(
+                "INSERT INTO study_messages"
+                "(message_id,thread_id,role,content,status,context_json,created_at)"
+                " VALUES(?,?,'assistant',?,'complete','{}',?)",
+                (
+                    f"assist-message-{index:03d}",
+                    thread_id,
+                    f"回复 {index}",
+                    (stamp + timedelta(seconds=index)).isoformat(),
+                ),
+            )
+    summary = refresh_study_thread_summary(home, thread_id)
+    assert summary is not None
+    assert int(summary["message_count"]) == 26 + 21 - 10
+    assert len(summary["summary"]) <= 6_000
+    assert "对话起点与长期目标" in summary["summary"]
+    assert "最近的阶段性进展" in summary["summary"]
+    assert "雅思写作" in summary["summary"]
+    # Track-neutral teacher label, never a hard-coded IELTS teacher.
+    assert "IELTS 教师" not in summary["summary"]
+    assert "英语教师" in summary["summary"]
+
+    # Refresh is stable once the archived window is unchanged.
+    again = refresh_study_thread_summary(home, thread_id)
+    assert again["summary"] == summary["summary"]

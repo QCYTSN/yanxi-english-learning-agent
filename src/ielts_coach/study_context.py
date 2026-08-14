@@ -28,7 +28,7 @@ FALLBACK_TASKS = {
     "listening": ("高频听力场景听写", 20, "skill_drill"),
     "reading": ("雅思阅读题型专项或逐级提示训练", 30, "question_type_drill"),
     "writing": ("完成一道 Academic Writing 单项任务", 45, "section_practice"),
-    "speaking": ("生成 Voice / Live 口语任务包并导回报告", 20, "section_practice"),
+    "speaking": ("领场景口语任务并在练习后贴回转写点评", 20, "section_practice"),
 }
 
 

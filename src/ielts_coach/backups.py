@@ -138,6 +138,82 @@ def backup_download_path(home: Path, backup_id: str) -> Path:
     return _resolve_backup(home, backup_id, allow_external_path=False)
 
 
+AUTOMATIC_BACKUP_INTERVAL_SECONDS = 7 * 24 * 3600
+AUTOMATIC_BACKUP_KEEP = 5
+
+
+def run_automatic_backup_sweep(
+    home: Path,
+    *,
+    now: datetime | None = None,
+    interval_seconds: int = AUTOMATIC_BACKUP_INTERVAL_SECONDS,
+    keep: int = AUTOMATIC_BACKUP_KEEP,
+) -> dict[str, Any] | None:
+    """Create one automatic backup when none is recent, and prune the oldest.
+
+    The sweep backs up at most once per interval based on the newest usable
+    backup of any kind (manual and migration backups also satisfy the
+    freshness requirement). Only automatic backups are pruned and only beyond
+    the keep bound; learner-made backups are never deleted. Returns the new
+    backup manifest, or None when no backup was created (missing database or
+    a recent backup already exists).
+    """
+    home = home.resolve()
+    if not db_path(home).is_file():
+        return None
+    now = now or datetime.now(timezone.utc)
+    newest_at: datetime | None = None
+    for item in list_backups(home):
+        if item.get("status") != "available":
+            continue
+        created_at = item.get("created_at")
+        if not created_at:
+            continue
+        try:
+            candidate = datetime.fromisoformat(str(created_at))
+        except ValueError:
+            continue
+        if newest_at is None or candidate > newest_at:
+            newest_at = candidate
+    if newest_at is not None and (now - newest_at).total_seconds() < interval_seconds:
+        return None
+    created = create_backup(home, kind="automatic")
+    _prune_automatic_backups(home, keep=keep, newest=created["backup_id"])
+    return created
+
+
+def _prune_automatic_backups(
+    home: Path,
+    *,
+    keep: int,
+    newest: str | None,
+) -> None:
+    """Delete oldest automatic backups beyond the keep bound.
+
+    Learner-made (manual) and migration backups are left untouched. The newly
+    created backup counts towards keep when provided as newest.
+    """
+    automatic = [
+        item
+        for item in list_backups(home)
+        if item.get("status") == "available" and item.get("kind") == "automatic"
+    ]
+    if newest:
+        automatic = [item for item in automatic if item["backup_id"] != newest]
+    bound = max(0, keep - (1 if newest else 0))
+    excess = sorted(
+        automatic,
+        key=lambda item: str(item.get("created_at") or ""),
+        reverse=True,
+    )[bound:]
+    for item in excess:
+        path = Path(str(item["path"]))
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            continue
+
+
 def verify_backup(
     home: Path,
     backup: str | Path,

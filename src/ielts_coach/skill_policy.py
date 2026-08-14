@@ -33,10 +33,75 @@ class SkillEnvelope:
         return payload
 
 
+# Which references each skill loads per teaching phase. Unknown skills or
+# phases fall back to the full reference set so older callers stay safe.
+STAGE_REFERENCE_SELECTION: dict[str, dict[str, tuple[str, ...]]] = {
+    "ielts-writing": {
+        "diagnose": ("references/workflow.md",),
+        "teach": ("references/workflow.md",),
+        "guided_practice": (
+            "references/workflow.md",
+            "references/session-template.md",
+        ),
+        "independent_practice": (
+            "references/workflow.md",
+            "references/session-template.md",
+        ),
+        "assess": (
+            "references/workflow.md",
+            "references/scoring-policy.md",
+        ),
+        "review": (
+            "references/error-taxonomy.md",
+            "references/scoring-policy.md",
+        ),
+        "consolidate": ("references/error-taxonomy.md",),
+    },
+    "ielts-reading": {
+        "diagnose": ("references/question-types.md",),
+        "teach": ("references/question-types.md",),
+        "guided_practice": (
+            "references/guided-review.md",
+            "references/question-types.md",
+        ),
+        "independent_practice": (
+            "references/timed-practice.md",
+            "references/session-template.md",
+        ),
+        "assess": ("references/session-template.md",),
+        "review": (
+            "references/error-taxonomy.md",
+            "references/close-reading.md",
+        ),
+        "consolidate": ("references/error-taxonomy.md",),
+    },
+    "ielts-speaking": {
+        "diagnose": ("references/session-template.md",),
+        "teach": ("references/session-template.md",),
+        "guided_practice": ("references/session-template.md",),
+        "independent_practice": ("references/mock-policy.md",),
+        "assess": ("references/evaluation-policy.md",),
+        "review": (
+            "references/error-taxonomy.md",
+            "references/evaluation-policy.md",
+        ),
+        "consolidate": ("references/error-taxonomy.md",),
+    },
+    "ielts-progress": {
+        "review": (
+            "references/error-taxonomy.md",
+            "references/allocation-policy.md",
+        ),
+        "consolidate": ("references/calibration-policy.md",),
+    },
+}
+
+
 def compile_skill_envelope(
     capability: CapabilitySpec,
     *,
     source_root: Path | None = None,
+    stage: str | None = None,
 ) -> SkillEnvelope:
     root = source_root or resolve_skills_source()
     skill_dir = (root / capability.skill).resolve()
@@ -49,7 +114,17 @@ def compile_skill_envelope(
     references: list[dict[str, str]] = []
     reference_dir = skill_dir / "references"
     if reference_dir.is_dir():
+        selection = STAGE_REFERENCE_SELECTION.get(capability.skill, {}).get(
+            stage or ""
+        )
+        allowed = (
+            {(skill_dir / item).resolve() for item in selection}
+            if selection is not None
+            else None
+        )
         for path in sorted(reference_dir.rglob("*.md")):
+            if allowed is not None and path.resolve() not in allowed:
+                continue
             references.append(
                 {
                     "path": path.relative_to(skill_dir).as_posix(),

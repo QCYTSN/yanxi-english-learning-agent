@@ -15,7 +15,7 @@ from filelock import FileLock
 from .validation import normalise_json_value, validate_data
 from .config import load_settings
 
-SCHEMA_VERSION = 34
+SCHEMA_VERSION = 35
 
 _CACHE_LOCK = threading.RLock()
 _DB_FILENAME_CACHE: dict[Path, tuple[tuple[int, int] | None, str]] = {}
@@ -4027,13 +4027,17 @@ def create_learner_memory(
     source_thread_id: str | None = None,
     source_session_id: str | None = None,
     memory_id: str | None = None,
-    track_id: str = "ielts-academic",
+    track_id: str | None = None,
     memory_key: str | None = None,
     expires_at: str | None = None,
     source_kind: str = "learner_confirmed",
     supersedes_memory_id: str | None = None,
     conflicts_with: list[str] | None = None,
 ) -> dict[str, Any]:
+    if not track_id:
+        from .domain_packs import DEFAULT_TRACK_ID
+
+        track_id = DEFAULT_TRACK_ID
     initialise_database(home)
     clean = _normalise_memory_statement(statement)
     if not clean:
@@ -4180,12 +4184,16 @@ def list_learner_memories(
     *,
     status: str | None = "active",
     memory_type: str | None = None,
-    track_id: str | None = "ielts-academic",
+    track_id: str | None = None,
     validity_status: str | None = "current",
     include_expired: bool = False,
     touch_access: bool = False,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
+    if not track_id:
+        from .domain_packs import DEFAULT_TRACK_ID
+
+        track_id = DEFAULT_TRACK_ID
     initialise_database(home)
     clauses: list[str] = []
     params: list[Any] = []
@@ -4423,9 +4431,13 @@ def list_learner_memory_conflicts(
     home: Path,
     *,
     status: str | None = "open",
-    track_id: str | None = "ielts-academic",
+    track_id: str | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
+    if not track_id:
+        from .domain_packs import DEFAULT_TRACK_ID
+
+        track_id = DEFAULT_TRACK_ID
     initialise_database(home)
     clauses: list[str] = []
     params: list[Any] = []

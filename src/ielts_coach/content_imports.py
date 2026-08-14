@@ -22,7 +22,7 @@ from .storage import (
     list_content_import_jobs,
     update_content_import_job,
 )
-from .uploads import StagedUpload, copy_file_atomic
+from .uploads import StagedUpload, copy_file_atomic, read_zip_member
 from .storage_quota import assert_local_storage_capacity, invalidate_storage_usage
 
 
@@ -1398,8 +1398,7 @@ def _extract_document_text(path: Path, suffix: str) -> tuple[str, str]:
         text = path.read_text(encoding="utf-8", errors="replace")
         return text, "text_available" if text.strip() else "text_unavailable"
     if suffix == ".docx":
-        with zipfile.ZipFile(path) as archive:
-            xml = archive.read("word/document.xml")
+        xml = read_zip_member(path, "word/document.xml")
         root = ElementTree.fromstring(xml)
         text = "\n".join(
             item.text or ""

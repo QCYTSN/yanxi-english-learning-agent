@@ -425,5 +425,5 @@ class MockAdapter:
             ],
             "evidence_types": ["transcript"],
             "priorities": ["Collect audio evidence before evaluating Pronunciation."],
-            "next_action": "Import a Voice / Live report with audio observations.",
+            "next_action": "Paste your practice transcript back for review.",
         }

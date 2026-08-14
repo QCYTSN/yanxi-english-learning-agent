@@ -1,4 +1,25 @@
+import zipfile
 from pathlib import Path
+
+import pytest
+
+from ielts_coach.uploads import MAX_ZIP_MEMBER_BYTES, read_zip_member
+
+
+def test_read_zip_member_rejects_oversized_declared_size(tmp_path: Path):
+    archive = tmp_path / "bomb.docx"
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as handle:
+        handle.writestr("word/document.xml", "x" * 5000)
+    with pytest.raises(ValueError, match="the limit is"):
+        read_zip_member(archive, "word/document.xml", max_bytes=1000)
+
+
+def test_read_zip_member_allows_normal_members(tmp_path: Path):
+    archive = tmp_path / "ok.docx"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr("word/document.xml", "<document>hello</document>")
+    payload = read_zip_member(archive, "word/document.xml")
+    assert payload == b"<document>hello</document>"
 
 
 def test_user_facing_text_is_valid_utf8_without_known_mojibake():

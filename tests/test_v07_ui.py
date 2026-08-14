@@ -67,7 +67,9 @@ def test_health_bootstrap_auth_and_origin(tmp_path: Path):
     bootstrap = client.get("/api/v1/bootstrap")
     assert bootstrap.status_code == 200
     assert bootstrap.json()["setup_required"] is False
-    assert bootstrap.json()["core_version"] == "1.4.0"
+    from ielts_coach import __version__
+
+    assert bootstrap.json()["core_version"] == __version__
     assert bootstrap.json()["storage"]["data_home"] == str(home.resolve())
 
     blocked = client.get(
