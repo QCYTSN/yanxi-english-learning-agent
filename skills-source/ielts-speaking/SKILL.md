@@ -24,7 +24,7 @@ back for evaluation.
   role, the exact cue, and 2-3 follow-up questions. Tell the learner to
   practise out loud with their voice tool and come back with what they said.
 - **Evaluation step**: evaluate only what the learner actually brought back.
-  Treat any Voice/Live observations as source evidence, not the system's final
+  Treat any external voice-tool observations as source evidence, not the system's final
   evaluation.
 - During practice, never correct the learner mid-flow; feedback happens after
   the attempt.

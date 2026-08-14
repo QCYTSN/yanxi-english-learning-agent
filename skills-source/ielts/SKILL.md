@@ -24,7 +24,7 @@ Route; do not teach specialist content here.
 ## Routing
 
 - Writing task, essay, scoring or revision: `ielts-writing`.
-- Speaking mock, Cue Card, Voice/Live report or story: `ielts-speaking`.
+- Speaking scenario, mock, transcript review or story: `ielts-speaking`.
 - Reading practice, passage, question or language analysis: `ielts-reading`.
 - Question search, draw, import or provenance: `ielts-corpus`.
 - Scores, Listening review, trends, errors or allocation: `ielts-progress`.
