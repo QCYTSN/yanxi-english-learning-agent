@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -183,7 +182,7 @@ def test_rubric_privacy_and_metadata_only_telemetry(tmp_path: Path):
     record_runtime_telemetry(home, event)
     summary = telemetry_summary(home)
     assert dict(summary[0])["output_tokens"] == 200
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017 - privacy guard raises ValueError subclasses
         record_runtime_telemetry(home, {**event, "prompt": "raw learner text"})
 
 

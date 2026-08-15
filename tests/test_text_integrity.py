@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from ielts_coach.uploads import MAX_ZIP_MEMBER_BYTES, read_zip_member
+from ielts_coach.uploads import read_zip_member
 
 
 def test_read_zip_member_rejects_oversized_declared_size(tmp_path: Path):

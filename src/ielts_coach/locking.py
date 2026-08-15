@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
+from collections.abc import Iterator
 
 from filelock import FileLock, Timeout
 

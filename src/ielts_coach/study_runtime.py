@@ -4,7 +4,8 @@ import json
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from .rubrics import require_rubric
 from .session_io import load_session_file

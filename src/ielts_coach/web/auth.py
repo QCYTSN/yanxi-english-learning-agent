@@ -28,7 +28,7 @@ class AuthState:
             )
 
     @classmethod
-    def create(cls) -> "AuthState":
+    def create(cls) -> AuthState:
         return cls(launch_token=secrets.token_urlsafe(32))
 
     def issue_launch_token(self) -> str:

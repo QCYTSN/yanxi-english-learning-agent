@@ -5,7 +5,8 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from .agent_contracts import validate_agent_contract
 from .learning_model import get_learning_model_snapshot, list_learning_reviews

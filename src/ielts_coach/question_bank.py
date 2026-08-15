@@ -4,7 +4,8 @@ import hashlib
 import json
 import random
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from .storage import (
     count_questions,
@@ -13,7 +14,6 @@ from .storage import (
     get_question_for_grading,
     initialise_database,
     list_questions,
-    question_attempted,
     redact_answer_data,
     upsert_assessment_pack,
     upsert_passage,

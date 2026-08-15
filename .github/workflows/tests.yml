@@ -18,6 +18,8 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: pip install -e ".[ui,dev]"
+      - name: Ruff lint gate
+        run: ruff check src tests scripts
       - name: Compatibility and migration suite
         run: >-
           python -m pytest -q

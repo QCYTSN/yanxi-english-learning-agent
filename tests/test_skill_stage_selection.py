@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 
 from ielts_coach.capabilities import get_capability
 from ielts_coach.skill_policy import compile_skill_envelope

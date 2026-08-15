@@ -32,7 +32,7 @@ ocr = [
   "pypdfium2>=4.30,<6",
   "rapidocr-onnxruntime>=1.4.4,<2",
 ]
-dev = ["pytest>=8.0", "httpx>=0.27", "build>=1.2"]
+dev = ["pytest>=8.0", "httpx>=0.27", "build>=1.2", "ruff>=0.9"]
 
 [project.scripts]
 xiyan = "ielts_coach.cli:app"
@@ -62,3 +62,19 @@ include-package-data = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["frontend", "build", "dist", "release-artifacts"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B", "UP"]
+ignore = [
+  "B008",  # FastAPI Depends/Query/File default patterns are intentional
+  "B904",  # raise ... from ... chaining is handled deliberately
+  "UP007",  # X | None union style is intentional across the codebase
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "S101"]

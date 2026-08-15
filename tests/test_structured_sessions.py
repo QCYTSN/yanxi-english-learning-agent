@@ -78,7 +78,7 @@ def test_session_start_rejects_empty_finish_then_records_evidence(tmp_path: Path
 def test_strict_session_validation_rejects_invalid_band(tmp_path: Path):
     home = tmp_path / "home"
     initialise_home(home)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017 - schema validator raises ValueError subclasses
         record_session(home, {"session_id": "W-1", "module": "writing", "band": 6.3})
 
 

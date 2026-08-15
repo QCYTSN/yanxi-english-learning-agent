@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from ielts_coach.agent_contracts import persist_agent_contract
-from ielts_coach.storage import create_agent_run, initialise_database
+from ielts_coach.storage import create_agent_run
 from ielts_coach.vocabulary import (
     add_vocabulary_item,
     ingest_taught_words,

@@ -13,7 +13,8 @@ from datetime import datetime, timedelta, timezone
 from dataclasses import asdict
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from .agent_gateway import get_adapter
 from .agent_gateway.base import AgentCapabilities, AgentIdentity

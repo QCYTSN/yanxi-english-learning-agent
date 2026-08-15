@@ -5,7 +5,6 @@ import json
 import re
 import secrets
 import shutil
-import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -624,7 +623,7 @@ def build_import_review_draft(home: Path, import_id: str) -> dict[str, Any]:
                     if (text_records.get(str(page)) or {}).get("layout_lines")
                 ]
                 if role != "task_visual":
-                    for page, text in zip(page_numbers, page_texts):
+                    for page, text in zip(page_numbers, page_texts, strict=False):
                         if not text:
                             missing_text.append(f"{stored_name} 第 {page} 页")
                 text = "\n\n".join(item for item in page_texts if item)

@@ -5218,6 +5218,50 @@ button.resume-learning-row {
   border-bottom: 1px solid var(--border);
 }
 
+.track-switch-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.track-choice {
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.track-choice:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.track-choice.selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.track-choice:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.track-choice-title {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.track-choice-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .settings-panel .section-heading h2,
 .settings-panel .section-heading h3 {
   margin: 0 0 5px;

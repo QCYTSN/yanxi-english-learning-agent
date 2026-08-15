@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpenCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api, type ReviewTask, type VocabularyItem } from '../api/client'
 

@@ -40,7 +40,7 @@ export function OnboardingPage({ bootstrap }: { bootstrap: Bootstrap }) {
     allow_cloud_upload: profile?.privacy.allow_cloud_upload ?? false,
     store_raw_voice_audio: profile?.privacy.store_raw_voice_audio ?? false,
   })
-  const [next, setNext] = useState<'conversations' | 'diagnostic'>('conversations')
+  const [, setNext] = useState<'conversations' | 'diagnostic'>('conversations')
   const existingPrimary = bootstrap.model_providers?.find((item) => item.role === 'primary')
   const [aiChoice, setAiChoice] = useState<'api' | 'oauth' | 'later'>(
     existingPrimary?.provider_kind === 'codex_oauth_bridge'

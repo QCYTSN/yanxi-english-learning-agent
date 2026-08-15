@@ -6,7 +6,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from statistics import mean
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from .allocation import recommend_allocation
 from .config import load_profile

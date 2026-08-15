@@ -253,7 +253,7 @@ class _StreamResponse:
 
     def __iter__(self):
         for line in self.lines:
-            yield f"data: {json.dumps(line)}\n".encode("utf-8")
+            yield f"data: {json.dumps(line)}\n".encode()
         yield b"data: [DONE]\n"
 
 

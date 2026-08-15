@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import quote
 
-import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 from pypdf import PdfWriter

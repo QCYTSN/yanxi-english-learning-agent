@@ -183,7 +183,7 @@ def test_validated_study_help_is_saved_as_thread_message(tmp_path: Path):
                 "mock",
                 "material_dialogue",
                 "study-help@1",
-                '{"study_thread_id": "%s"}' % thread["thread_id"],
+                f'{{"study_thread_id": "{thread["thread_id"]}"}}',
                 "2026-01-01T00:00:00+00:00",
             ),
         )

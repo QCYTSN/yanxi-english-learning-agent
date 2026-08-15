@@ -196,7 +196,6 @@ def _start_session_unlocked(
         "speaking": "# Handoff / Questions\n\n# Transcript or Summary\n\n# Feedback\n",
         "listening": "# Test Reference\n\n# Wrong Answers\n\n# Review\n",
     }[module]
-    frontmatter = yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip()
     _write_session_document_atomic(path, data, body)
     try:
         record_session(home, data, mirror_status="synced")

@@ -5,7 +5,6 @@ from pathlib import Path
 from ielts_coach.conformance import (
     assess_pack,
     assess_question,
-    assess_reading_set,
 )
 from ielts_coach.init_home import initialise_home
 from ielts_coach.question_bank import show_question, show_reading_set

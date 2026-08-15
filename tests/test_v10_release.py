@@ -3,21 +3,18 @@ from __future__ import annotations
 import json
 import errno
 import time
-import base64
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from ielts_coach.agent_contracts import CONTRACT_SCHEMAS, validate_agent_contract
-from ielts_coach.agent_gateway import adapter_descriptors
 from ielts_coach.agent_gateway.process_env import (
     _proxy_environment_from_windows_value,
     process_environment,
 )
 from ielts_coach.agent_jobs import AgentJobManager
 from ielts_coach.init_home import initialise_home
-from ielts_coach.media import import_image_bytes
 from ielts_coach.session_manager import show_session, start_session
 from ielts_coach.study_runtime import submit_writing_version
 from ielts_coach.score_results import build_score_result
@@ -120,7 +117,7 @@ def test_agent_contract_golden_and_failure_samples(contract: str):
         (FIXTURES / f"{stem}.invalid.json").read_text(encoding="utf-8")
     )
     assert validate_agent_contract(contract, valid)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017 - contract validator raises ValueError subclasses
         validate_agent_contract(contract, invalid)
 
 
@@ -129,7 +126,7 @@ def test_writing_agent_cannot_invent_authoritative_rubric_id():
         (FIXTURES / "writing-review.valid.json").read_text(encoding="utf-8")
     )
     result["rubric"]["rubric_id"] = "model-invented-rubric"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017 - rubric guard raises ValueError subclasses
         validate_agent_contract("writing-review@1", result)
 
 

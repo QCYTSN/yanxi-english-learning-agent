@@ -8,7 +8,6 @@ from statistics import mean
 
 from .allocation import recommend_allocation
 from .config import load_settings
-from .profiles import build_learning_profile
 from .score_results import build_score_result
 from .storage import connect, error_counts_since, sessions_since
 

@@ -6,7 +6,7 @@ import yaml
 from ielts_coach.init_home import initialise_home
 from ielts_coach.onboarding import complete_onboarding, onboarding_status
 from ielts_coach.reports import build_summary
-from ielts_coach.storage import connect, recent_bands, recent_criterion_average, record_session
+from ielts_coach.storage import recent_bands, recent_criterion_average, record_session
 
 
 WRITING_RUBRIC = {

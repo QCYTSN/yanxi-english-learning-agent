@@ -129,7 +129,7 @@ def _normalise_cues(
             "text": text,
         })
     normalised.sort(key=lambda item: (item["start_seconds"], item["end_seconds"]))
-    for previous, current in zip(normalised, normalised[1:]):
+    for previous, current in zip(normalised, normalised[1:], strict=False):
         if current["start_seconds"] < previous["end_seconds"] - 0.05:
             raise ValueError("Timestamp cues cannot overlap")
     return normalised

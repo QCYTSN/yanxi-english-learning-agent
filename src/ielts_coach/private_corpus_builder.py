@@ -5,7 +5,8 @@ import re
 from copy import deepcopy
 from pathlib import Path
 from statistics import median
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 import yaml
 

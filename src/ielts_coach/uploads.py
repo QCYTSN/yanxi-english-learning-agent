@@ -8,7 +8,8 @@ import uuid
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from .storage_quota import local_storage_status
 

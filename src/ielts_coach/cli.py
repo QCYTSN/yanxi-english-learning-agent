@@ -4,7 +4,6 @@ import json
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from typing import Optional
 
 import typer
 
@@ -19,6 +18,7 @@ from .capability_evaluation import (
 from .config import load_profile
 from .conformance import assess_pack, assess_question, standard_profile
 from .corpus import corpus_stats, import_manifest, reindex_corpus
+from .question_bank import show_question
 from .diagnostics import (
     attach_diagnostic_session,
     cancel_diagnostic,
@@ -100,7 +100,7 @@ def evaluation_contracts_command(
         help="Directory containing <contract>.valid.json and .invalid.json pairs",
     ),
     suite: str = typer.Option("agent-contract-regression"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Run content-free contract regression cases and retain only hashes/outcomes."""
     result = run_contract_evaluation(
@@ -116,7 +116,7 @@ def evaluation_contracts_command(
 @evaluation_app.command("reliability")
 def evaluation_reliability_command(
     days: int = typer.Option(30, min=1, max=365),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Report metadata-only runtime reliability and release-gate status."""
     typer.echo(
@@ -130,14 +130,14 @@ def evaluation_reliability_command(
 
 @evaluation_app.command("teaching-quality")
 def evaluation_teaching_quality_command(
-    cases: Optional[Path] = typer.Option(
+    cases: Path | None = typer.Option(
         None,
         exists=True,
         readable=True,
         help="Optional JSON file or directory; defaults to the built-in teaching-policy suite",
     ),
     suite: str = typer.Option("teaching-quality-regression"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Evaluate teaching policy, memory continuity and recovery controls."""
     result = run_teaching_quality_evaluation(
@@ -153,7 +153,7 @@ def evaluation_teaching_quality_command(
 @evaluation_app.command("history")
 def evaluation_history_command(
     limit: int = typer.Option(20, min=1, max=100),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """List recent local capability evaluation results."""
     typer.echo(
@@ -168,7 +168,7 @@ def evaluation_history_command(
 @evaluation_app.command("teaching-history")
 def evaluation_teaching_history_command(
     limit: int = typer.Option(20, min=1, max=100),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """List recent privacy-safe teaching-quality evaluation results."""
     typer.echo(
@@ -190,13 +190,13 @@ def evaluation_release_command(
         readable=True,
         help="Directory containing contract positive/negative cases",
     ),
-    teaching_cases: Optional[Path] = typer.Option(
+    teaching_cases: Path | None = typer.Option(
         None,
         exists=True,
         readable=True,
         help="Optional teaching-quality JSON file or directory",
     ),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Run deterministic contract and teaching-quality release gates."""
     contract_report = run_contract_evaluation(
@@ -227,7 +227,7 @@ def evaluation_release_command(
 
 @backup_app.command("create")
 def backup_create_command(
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
     kind: str = typer.Option("manual", help="Short reason recorded in the backup manifest"),
 ) -> None:
     """Create a verified local snapshot without including prior backups or runtime files."""
@@ -236,7 +236,7 @@ def backup_create_command(
 
 
 @backup_app.command("list")
-def backup_list_command(home: Optional[Path] = typer.Option(None)) -> None:
+def backup_list_command(home: Path | None = typer.Option(None)) -> None:
     """List backups stored under the current IELTS_HOME."""
     typer.echo(json.dumps(list_backups(resolve_home(home)), ensure_ascii=False, indent=2))
 
@@ -244,7 +244,7 @@ def backup_list_command(home: Optional[Path] = typer.Option(None)) -> None:
 @backup_app.command("verify")
 def backup_verify_command(
     backup: str = typer.Argument(..., help="Backup ID or absolute .zip path"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Verify manifest hashes and SQLite integrity without restoring data."""
     typer.echo(json.dumps(verify_backup(resolve_home(home), backup), ensure_ascii=False, indent=2))
@@ -254,7 +254,7 @@ def backup_verify_command(
 def backup_restore_command(
     backup: str = typer.Argument(..., help="Backup ID or absolute .zip path"),
     confirm: bool = typer.Option(False, "--confirm", help="Required destructive-action confirmation"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Restore managed local data after validation and a pre-restore safety backup."""
     if not confirm:
@@ -277,7 +277,7 @@ def conformance_standard() -> None:
 @conformance_app.command("question")
 def conformance_question(
     question_id: str,
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Re-assess an indexed question without changing it."""
     question = show_question(resolve_home(home), question_id, include_answer=True)
@@ -297,7 +297,7 @@ def conformance_pack(path: Path) -> None:
 
 @ui_app.command("start")
 def ui_start(
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
     port: int = typer.Option(0, min=0, max=65535),
     no_open: bool = typer.Option(False, help="Print the URL without opening a browser"),
 ) -> None:
@@ -316,7 +316,7 @@ def ui_start(
 
 @ui_app.command("open")
 def ui_open(
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
     port: int = typer.Option(0, min=0, max=65535),
     no_open: bool = typer.Option(False, help="Start or reuse the service without opening a browser"),
 ) -> None:
@@ -332,7 +332,7 @@ def ui_open(
 
 
 @ui_app.command("stop")
-def ui_stop(home: Optional[Path] = typer.Option(None)) -> None:
+def ui_stop(home: Path | None = typer.Option(None)) -> None:
     """Stop the background Yanxi (言蹊) UI for this data home."""
     from .web.server import stop_ui
 
@@ -340,7 +340,7 @@ def ui_stop(home: Optional[Path] = typer.Option(None)) -> None:
 
 
 @ui_app.command("status")
-def ui_status_command(home: Optional[Path] = typer.Option(None)) -> None:
+def ui_status_command(home: Path | None = typer.Option(None)) -> None:
     """Show whether the background Study Desk is running."""
     from .web.server import ui_status
 
@@ -348,7 +348,7 @@ def ui_status_command(home: Optional[Path] = typer.Option(None)) -> None:
 
 
 @ui_app.command("shortcut-install")
-def ui_shortcut_install(home: Optional[Path] = typer.Option(None)) -> None:
+def ui_shortcut_install(home: Path | None = typer.Option(None)) -> None:
     """Install a Windows desktop shortcut that starts or reopens the Study Desk."""
     try:
         from .web.shortcut import install_desktop_shortcut
@@ -374,21 +374,21 @@ def ui_shortcut_remove() -> None:
 
 
 @app.command()
-def init(home: Optional[Path] = typer.Option(None), force: bool = typer.Option(False)) -> None:
+def init(home: Path | None = typer.Option(None), force: bool = typer.Option(False)) -> None:
     target = resolve_home(home)
     initialise_home(target, force=force)
     typer.echo(f"Initialised IELTS_HOME: {target}")
 
 
 @app.command("sync-skills")
-def sync_skills_command(project_root: Optional[Path] = typer.Option(None)) -> None:
+def sync_skills_command(project_root: Path | None = typer.Option(None)) -> None:
     root = project_root.resolve() if project_root else find_project_root()
     for path in sync_skills(root):
         typer.echo(f"Synced: {path}")
 
 
 @app.command()
-def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Path] = typer.Option(None)) -> None:
+def doctor(home: Path | None = typer.Option(None), project_root: Path | None = typer.Option(None)) -> None:
     target = resolve_home(home)
     root = project_root.resolve() if project_root else find_project_root()
     try:
@@ -492,23 +492,23 @@ def doctor(home: Optional[Path] = typer.Option(None), project_root: Optional[Pat
 
 
 @app.command()
-def record(session_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
+def record(session_file: Path = typer.Argument(..., exists=True, readable=True), home: Path | None = typer.Option(None)) -> None:
     data = load_session_file(session_file)
     record_session(resolve_home(home), data)
     typer.echo(f"Recorded session: {data['session_id']}")
 
 
 @app.command()
-def summary(days: int = typer.Option(14, min=1), home: Optional[Path] = typer.Option(None)) -> None:
+def summary(days: int = typer.Option(14, min=1), home: Path | None = typer.Option(None)) -> None:
     typer.echo(build_summary(resolve_home(home), days), nl=False)
 
 
 @app.command("study-context")
 def study_context_command(
-    module: Optional[str] = typer.Option(None, help="Optional direct module intent"),
+    module: str | None = typer.Option(None, help="Optional direct module intent"),
     days: int = typer.Option(14, min=1, max=365),
     pretty: bool = typer.Option(False, help="Pretty-print JSON for human inspection"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     """Emit one compact, read-only context payload for an Agent study turn."""
     try:
@@ -526,7 +526,7 @@ def study_context_command(
 
 
 @app.command()
-def allocation(home: Optional[Path] = typer.Option(None), save: bool = typer.Option(True, help="Persist this recommendation")) -> None:
+def allocation(home: Path | None = typer.Option(None), save: bool = typer.Option(True, help="Persist this recommendation")) -> None:
     result = recommend_allocation(resolve_home(home), persist=save)
     typer.echo("Recommended allocation:")
     for module, value in result.allocation.items():
@@ -539,7 +539,7 @@ def allocation(home: Optional[Path] = typer.Option(None), save: bool = typer.Opt
 
 
 @app.command("weekly-report")
-def weekly_report(output: Optional[Path] = typer.Option(None), home: Optional[Path] = typer.Option(None)) -> None:
+def weekly_report(output: Path | None = typer.Option(None), home: Path | None = typer.Option(None)) -> None:
     report = build_weekly_report(resolve_home(home))
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -550,12 +550,12 @@ def weekly_report(output: Optional[Path] = typer.Option(None), home: Optional[Pa
 
 
 @app.command("trends")
-def trends(home: Optional[Path] = typer.Option(None), limit: int = typer.Option(10, min=2, max=100)) -> None:
+def trends(home: Path | None = typer.Option(None), limit: int = typer.Option(10, min=2, max=100)) -> None:
     typer.echo(build_trend_report(resolve_home(home), limit=limit), nl=False)
 
 
 @app.command("learning-profile")
-def learning_profile(home: Optional[Path] = typer.Option(None), output: Optional[Path] = typer.Option(None)) -> None:
+def learning_profile(home: Path | None = typer.Option(None), output: Path | None = typer.Option(None)) -> None:
     report = build_learning_profile(resolve_home(home))
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -567,13 +567,13 @@ def learning_profile(home: Optional[Path] = typer.Option(None), output: Optional
 
 # Backwards-compatible flat corpus commands.
 @app.command("corpus-import")
-def corpus_import_legacy(manifest_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
+def corpus_import_legacy(manifest_file: Path = typer.Argument(..., exists=True, readable=True), home: Path | None = typer.Option(None)) -> None:
     result = import_manifest(resolve_home(home), manifest_file)
     typer.echo(f"Imported corpus: {result['manifest']['corpus_id']} | indexed {result['index']['questions']} questions")
 
 
 @app.command("corpus-list")
-def corpus_list_legacy(home: Optional[Path] = typer.Option(None)) -> None:
+def corpus_list_legacy(home: Path | None = typer.Option(None)) -> None:
     _print_corpora(resolve_home(home))
 
 
@@ -588,7 +588,7 @@ def _print_corpora(home: Path) -> None:
 
 
 @corpus_app.command("import")
-def corpus_import(manifest_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None), no_index: bool = typer.Option(False), force: bool = typer.Option(False)) -> None:
+def corpus_import(manifest_file: Path = typer.Argument(..., exists=True, readable=True), home: Path | None = typer.Option(None), no_index: bool = typer.Option(False), force: bool = typer.Option(False)) -> None:
     result = import_manifest(resolve_home(home), manifest_file, index=not no_index, force=force)
     idx = result["index"]
     typer.echo(
@@ -597,18 +597,18 @@ def corpus_import(manifest_file: Path = typer.Argument(..., exists=True, readabl
 
 
 @corpus_app.command("list")
-def corpus_list(home: Optional[Path] = typer.Option(None)) -> None:
+def corpus_list(home: Path | None = typer.Option(None)) -> None:
     _print_corpora(resolve_home(home))
 
 
 @corpus_app.command("reindex")
-def corpus_reindex(corpus_id: str, home: Optional[Path] = typer.Option(None), force: bool = typer.Option(False)) -> None:
+def corpus_reindex(corpus_id: str, home: Path | None = typer.Option(None), force: bool = typer.Option(False)) -> None:
     result = reindex_corpus(resolve_home(home), corpus_id, force=force)
     typer.echo(f"Reindexed {corpus_id}: passages={result['passages']}, questions={result['questions']}, duplicates={result['duplicates']}")
 
 
 @corpus_app.command("stats")
-def corpus_stats_command(corpus_id: Optional[str] = typer.Option(None), home: Optional[Path] = typer.Option(None)) -> None:
+def corpus_stats_command(corpus_id: str | None = typer.Option(None), home: Path | None = typer.Option(None)) -> None:
     rows = corpus_stats(resolve_home(home), corpus_id=corpus_id)
     if not rows:
         typer.echo("No indexed questions.")
@@ -624,11 +624,11 @@ def corpus_stats_command(corpus_id: Optional[str] = typer.Option(None), home: Op
 
 @session_app.command("start")
 def session_start(
-    module: str = typer.Argument(...), question_id: Optional[str] = typer.Option(None),
-    source_id: Optional[str] = typer.Option(None), passage_id: Optional[str] = typer.Option(None),
-    mode: Optional[str] = typer.Option(None),
-    time_limit_minutes: Optional[float] = typer.Option(None, min=1),
-    home: Optional[Path] = typer.Option(None),
+    module: str = typer.Argument(...), question_id: str | None = typer.Option(None),
+    source_id: str | None = typer.Option(None), passage_id: str | None = typer.Option(None),
+    mode: str | None = typer.Option(None),
+    time_limit_minutes: float | None = typer.Option(None, min=1),
+    home: Path | None = typer.Option(None),
 ) -> None:
     path = start_session(
         resolve_home(home), module, question_id=question_id, source_id=source_id,
@@ -638,7 +638,7 @@ def session_start(
 
 
 @session_app.command("finish")
-def session_finish(session_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
+def session_finish(session_file: Path = typer.Argument(..., exists=True, readable=True), home: Path | None = typer.Option(None)) -> None:
     data = finish_session(resolve_home(home), session_file)
     typer.echo(f"Completed and recorded: {data['session_id']}")
 
@@ -647,14 +647,14 @@ def session_finish(session_file: Path = typer.Argument(..., exists=True, readabl
 def session_transition(
     session_file: Path = typer.Argument(..., exists=True, readable=True),
     status: str = typer.Argument(...),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = transition_session(resolve_home(home), session_file, status)
     typer.echo(f"Session {data['session_id']}: {data['status']}")
 
 
 @session_app.command("show")
-def session_show(session_id: str, home: Optional[Path] = typer.Option(None)) -> None:
+def session_show(session_id: str, home: Path | None = typer.Option(None)) -> None:
     data = show_session(resolve_home(home), session_id)
     if not data:
         raise typer.BadParameter(f"Unknown session: {session_id}")
@@ -662,7 +662,7 @@ def session_show(session_id: str, home: Optional[Path] = typer.Option(None)) -> 
 
 
 @session_app.command("list")
-def session_list(module: Optional[str] = typer.Option(None), limit: int = typer.Option(50), home: Optional[Path] = typer.Option(None)) -> None:
+def session_list(module: str | None = typer.Option(None), limit: int = typer.Option(50), home: Path | None = typer.Option(None)) -> None:
     for row in list_sessions(resolve_home(home), module=module, limit=limit):
         typer.echo(
             f"- {row['session_id']} | {row['module']} | {row['status']} | "
@@ -673,8 +673,8 @@ def session_list(module: Optional[str] = typer.Option(None), limit: int = typer.
 
 @session_app.command("resume")
 def session_resume(
-    module: Optional[str] = typer.Option(None),
-    home: Optional[Path] = typer.Option(None),
+    module: str | None = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = resume_session(resolve_home(home), module=module)
     if not data:
@@ -690,7 +690,7 @@ def session_reconcile(
         "auto",
         help="auto chooses the higher revision; equal-revision forks require markdown or sqlite",
     ),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = reconcile_session(resolve_home(home), session_id, prefer=prefer)
     typer.echo(
@@ -710,8 +710,8 @@ def session_submit_writing(
     session_id: str,
     content_file: Path = typer.Argument(..., exists=True, readable=True),
     label: str = typer.Option("v1", help="v1, v2, or final"),
-    expected_revision: Optional[int] = typer.Option(None, min=0),
-    home: Optional[Path] = typer.Option(None),
+    expected_revision: int | None = typer.Option(None, min=0),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = submit_writing_version(
         resolve_home(home), session_id, label=label,
@@ -724,8 +724,8 @@ def session_submit_writing(
 def session_apply_writing_review(
     session_id: str,
     review_file: Path = typer.Argument(..., exists=True, readable=True),
-    expected_revision: Optional[int] = typer.Option(None, min=0),
-    home: Optional[Path] = typer.Option(None),
+    expected_revision: int | None = typer.Option(None, min=0),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = apply_writing_review(
         resolve_home(home), session_id, load_data_file(review_file),
@@ -737,9 +737,9 @@ def session_apply_writing_review(
 @session_app.command("hint-reading")
 def session_hint_reading(
     session_id: str,
-    level: Optional[int] = typer.Option(None, min=1, max=3),
-    expected_revision: Optional[int] = typer.Option(None, min=0),
-    home: Optional[Path] = typer.Option(None),
+    level: int | None = typer.Option(None, min=1, max=3),
+    expected_revision: int | None = typer.Option(None, min=0),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = record_reading_hint(
         resolve_home(home), session_id, level=level, expected_revision=expected_revision
@@ -751,8 +751,8 @@ def session_hint_reading(
 def session_submit_reading(
     session_id: str,
     answers_file: Path = typer.Argument(..., exists=True, readable=True),
-    expected_revision: Optional[int] = typer.Option(None, min=0),
-    home: Optional[Path] = typer.Option(None),
+    expected_revision: int | None = typer.Option(None, min=0),
+    home: Path | None = typer.Option(None),
 ) -> None:
     payload = load_data_file(answers_file)
     answers = payload.get("answers", payload.get("questions"))
@@ -768,8 +768,8 @@ def session_submit_reading(
 def session_apply_reading_review(
     session_id: str,
     review_file: Path = typer.Argument(..., exists=True, readable=True),
-    expected_revision: Optional[int] = typer.Option(None, min=0),
-    home: Optional[Path] = typer.Option(None),
+    expected_revision: int | None = typer.Option(None, min=0),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = apply_reading_review(
         resolve_home(home), session_id, load_data_file(review_file),
@@ -797,14 +797,14 @@ def teaching_validate_reading(
 @rubric_app.command("register")
 def rubric_register(
     manifest_file: Path = typer.Argument(..., exists=True, readable=True),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     data = register_rubric(resolve_home(home), load_data_file(manifest_file))
     typer.echo(f"Registered rubric: {data['rubric_id']} | {data['availability']}")
 
 
 @rubric_app.command("list")
-def rubric_list(home: Optional[Path] = typer.Option(None)) -> None:
+def rubric_list(home: Path | None = typer.Option(None)) -> None:
     for row in list_rubrics(resolve_home(home)):
         typer.echo(
             f"- {row['rubric_id']} | {row['module']} | {row['availability']} | "
@@ -816,10 +816,10 @@ def rubric_list(home: Optional[Path] = typer.Option(None)) -> None:
 def privacy_check(
     remote: bool = typer.Option(False, help="The selected model processes content remotely"),
     consent: bool = typer.Option(False, help="Explicit one-time consent for this operation"),
-    source_type: Optional[str] = typer.Option(None),
-    question_id: Optional[str] = typer.Option(None),
-    corpus_id: Optional[str] = typer.Option(None),
-    home: Optional[Path] = typer.Option(None),
+    source_type: str | None = typer.Option(None),
+    question_id: str | None = typer.Option(None),
+    corpus_id: str | None = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     result = check_processing_permission(
         resolve_home(home), remote_processing=remote, explicit_consent=consent,
@@ -833,7 +833,7 @@ def privacy_check(
 @telemetry_app.command("record")
 def telemetry_record(
     event_file: Path = typer.Argument(..., exists=True, readable=True),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     record_runtime_telemetry(resolve_home(home), load_data_file(event_file))
     typer.echo("Recorded metadata-only telemetry event.")
@@ -842,7 +842,7 @@ def telemetry_record(
 @telemetry_app.command("summary")
 def telemetry_summary_command(
     days: int = typer.Option(30, min=1, max=3650),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     rows = telemetry_summary(resolve_home(home), days=days)
     if not rows:
@@ -857,17 +857,17 @@ def telemetry_summary_command(
 
 
 @onboarding_app.command("status")
-def onboarding_status_command(home: Optional[Path] = typer.Option(None)) -> None:
+def onboarding_status_command(home: Path | None = typer.Option(None)) -> None:
     typer.echo(json.dumps(onboarding_status(resolve_home(home)), ensure_ascii=False, indent=2))
 
 
 @onboarding_app.command("complete")
 def onboarding_complete_command(
-    setup_file: Optional[Path] = typer.Option(
+    setup_file: Path | None = typer.Option(
         None, "--setup-file", exists=True, readable=True,
         help="Optional YAML/JSON mapping with confirmed goal, baseline and preference updates.",
     ),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     updates = load_data_file(setup_file) if setup_file else None
     result = complete_onboarding(resolve_home(home), updates)
@@ -877,7 +877,7 @@ def onboarding_complete_command(
 @diagnostic_app.command("start")
 def diagnostic_start_command(
     mode: str = typer.Option("quick", help="quick or full"),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     typer.echo(json.dumps(start_diagnostic(resolve_home(home), mode), ensure_ascii=False, indent=2))
 
@@ -886,7 +886,7 @@ def diagnostic_start_command(
 def diagnostic_attach_command(
     diagnostic_id: str = typer.Argument(...),
     session_id: str = typer.Argument(...),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     result = attach_diagnostic_session(resolve_home(home), diagnostic_id, session_id)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
@@ -894,8 +894,8 @@ def diagnostic_attach_command(
 
 @diagnostic_app.command("status")
 def diagnostic_status_command(
-    diagnostic_id: Optional[str] = typer.Argument(None),
-    home: Optional[Path] = typer.Option(None),
+    diagnostic_id: str | None = typer.Argument(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     typer.echo(json.dumps(diagnostic_status(resolve_home(home), diagnostic_id), ensure_ascii=False, indent=2))
 
@@ -903,7 +903,7 @@ def diagnostic_status_command(
 @diagnostic_app.command("complete")
 def diagnostic_complete_command(
     diagnostic_id: str = typer.Argument(...),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     result = complete_diagnostic(resolve_home(home), diagnostic_id)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
@@ -912,14 +912,14 @@ def diagnostic_complete_command(
 @diagnostic_app.command("cancel")
 def diagnostic_cancel_command(
     diagnostic_id: str = typer.Argument(...),
-    home: Optional[Path] = typer.Option(None),
+    home: Path | None = typer.Option(None),
 ) -> None:
     result = cancel_diagnostic(resolve_home(home), diagnostic_id)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 @error_app.command("list")
-def error_list(status: Optional[str] = typer.Option(None), limit: int = typer.Option(100), home: Optional[Path] = typer.Option(None)) -> None:
+def error_list(status: str | None = typer.Option(None), limit: int = typer.Option(100), home: Path | None = typer.Option(None)) -> None:
     rows = list_error_profile(resolve_home(home), status=status, limit=limit)
     if not rows:
         typer.echo("No matching error tags.")
@@ -929,19 +929,19 @@ def error_list(status: Optional[str] = typer.Option(None), limit: int = typer.Op
 
 
 @error_app.command("set-status")
-def error_set_status(tag: str, status: str = typer.Argument(...), home: Optional[Path] = typer.Option(None)) -> None:
+def error_set_status(tag: str, status: str = typer.Argument(...), home: Path | None = typer.Option(None)) -> None:
     count = update_error_status(resolve_home(home), tag, status)
     typer.echo(f"Updated {count} records for {tag} -> {status}")
 
 
 @story_app.command("add")
-def story_add(story_file: Path = typer.Argument(..., exists=True, readable=True), home: Optional[Path] = typer.Option(None)) -> None:
+def story_add(story_file: Path = typer.Argument(..., exists=True, readable=True), home: Path | None = typer.Option(None)) -> None:
     data = add_story(resolve_home(home), story_file)
     typer.echo(f"Added story: {data['story_id']}")
 
 
 @story_app.command("list")
-def story_list(home: Optional[Path] = typer.Option(None)) -> None:
+def story_list(home: Path | None = typer.Option(None)) -> None:
     rows = list_stories(resolve_home(home))
     if not rows:
         typer.echo("No personal stories saved.")
@@ -951,7 +951,7 @@ def story_list(home: Optional[Path] = typer.Option(None)) -> None:
 
 
 @story_app.command("show")
-def story_show(story_id: str, home: Optional[Path] = typer.Option(None)) -> None:
+def story_show(story_id: str, home: Path | None = typer.Option(None)) -> None:
     data = show_story(resolve_home(home), story_id)
     if not data:
         raise typer.BadParameter(f"Unknown story: {story_id}")

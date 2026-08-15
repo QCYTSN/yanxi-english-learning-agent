@@ -4,7 +4,8 @@ import json
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
+from collections.abc import Iterable
 
 from .storage import connect, initialise_database
 from .storage_quota import invalidate_storage_usage

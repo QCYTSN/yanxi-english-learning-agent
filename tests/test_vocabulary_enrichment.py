@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -12,7 +11,6 @@ from ielts_coach.vocabulary import (
     apply_adaptive_vocabulary_review,
     deterministic_word_forms,
     ensure_deterministic_enrichment,
-    get_vocabulary_enrichment,
     upsert_vocabulary_enrichment,
 )
 from ielts_coach.web.app import create_app

@@ -1,43 +1,10 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, CheckCircle2, ClipboardCheck, FileArchive, FolderCog, FolderInput, Search, ShieldCheck } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { ArrowRight, CheckCircle2, FileArchive, FolderCog, FolderInput, Search, ShieldCheck } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, type Question } from '../api/client'
 import { ErrorState, LoadingState, PageHeader, StatusBadge } from '../components/Common'
 
-type View = 'readiness' | 'reviews' | 'assembly' | 'imports'
-type AssessmentPack = {
-  pack_id: string
-  title: string
-  module: string
-  practice_mode: string
-  conformance_status: string
-  local_review_status?: string
-  source_type?: string
-}
-type ReadinessMetric = {
-  key: string
-  label: string
-  current: number
-  minimum: number
-  recommended: number
-  minimum_gap: number
-  recommended_gap: number
-  unit: string
-  status: string
-}
-type ModuleReadiness = {
-  label: string
-  metrics: ReadinessMetric[]
-  missing_coverage: string[]
-  quality_fields: string[]
-  ready_for_varied_practice: boolean
-}
-type Readiness = {
-  modules: Record<string, ModuleReadiness>
-  imports: { total: number; needs_structuring: number; ready_to_import: number; failed: number }
-  band_ready_pack_count: number
-}
 type ImportJob = {
   import_id: string
   title: string
@@ -180,28 +147,6 @@ type ImportDocument = {
     error?: string | null
   }>
 }
-type ReviewQueueItem = {
-  target_type: 'question' | 'passage' | 'assessment_pack'
-  target_id: string
-  title: string
-  local_review_status: string
-  stale_review_count: number
-}
-type ReviewTarget = {
-  target_type: ReviewQueueItem['target_type']
-  target_id: string
-  content_hash: string
-  local_review_status: string
-  stale_review_count: number
-  required_checklist: Record<string, string>
-  material: Record<string, unknown>
-  dependency_status?: {
-    ready: boolean
-    missing_question_reviews: string[]
-    missing_passage_reviews: string[]
-  }
-}
-
 export function LibraryPage() {
   const [module, setModule] = useState('')
   const [query, setQuery] = useState('')
@@ -237,7 +182,7 @@ export function LibraryPage() {
 }
 
 export function ContentStudioPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const promotedImportId = searchParams.get('import')
   const imports = useQuery({
     queryKey: ['content-imports'],
@@ -260,29 +205,6 @@ export function ContentStudioPage() {
   )
 }
 
-function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return <button role="tab" aria-selected={active} className={active ? 'active' : ''} onClick={onClick}>{children}</button>
-}
-
-function ReadinessView({ data, pending, error }: { data?: Readiness; pending: boolean; error: unknown }) {
-  if (pending) return <LoadingState />
-  if (error || !data) return <ErrorState error={error} />
-  return <>
-    <section className="content-summary-strip">
-      <div><span>可换算 Band 的完整套题</span><strong>{data.band_ready_pack_count}</strong></div>
-      <div><span>待结构化材料</span><strong>{data.imports.needs_structuring}</strong></div>
-      <div><span>可执行结构化导入</span><strong>{data.imports.ready_to_import}</strong></div>
-    </section>
-    <p className="conformance-note">库存目标是本产品的训练规划值，不是考试官方规定。只有结构、权利和本地审核均有效的完整套题才能进入可信评分池。</p>
-    <div className="readiness-grid">
-      {Object.entries(data.modules).map(([key, item]) => <section className="readiness-card" key={key}>
-        <div className="section-heading"><div><p className="eyebrow">{key}</p><h2>{item.label}</h2></div><StatusBadge tone={item.ready_for_varied_practice ? 'success' : 'warning'}>{item.ready_for_varied_practice ? '库存充足' : '需要补充'}</StatusBadge></div>
-        <div className="readiness-metrics">{item.metrics.map((metric) => <div key={metric.key}><div><span>{metric.label}</span><strong>{metric.current} / {metric.minimum} {metric.unit}</strong></div><progress max={metric.minimum} value={Math.min(metric.current, metric.minimum)} /><small>{metric.minimum_gap ? `最低库存还缺 ${metric.minimum_gap}${metric.unit}；长期建议还缺 ${metric.recommended_gap}${metric.unit}` : `已达到最低库存；长期建议 ${metric.recommended}${metric.unit}`}</small></div>)}</div>
-        <details><summary>查看缺少的覆盖类型</summary><p>{item.missing_coverage.length ? item.missing_coverage.join(' · ') : '基础类型均已有内容'}</p><p><strong>每份材料需要：</strong>{item.quality_fields.join(' · ')}</p></details>
-      </section>)}
-    </div>
-  </>
-}
 
 function LibraryView({ module, query, setModule, setQuery, questions, pending, error, hasMoreQuestions, loadingMore, loadMoreQuestions }: {
   module: string
@@ -376,130 +298,6 @@ function LibraryView({ module, query, setModule, setQuery, questions, pending, e
       )}
     </div>
   )
-}
-
-function PackAssemblyView() {
-  const queryClient = useQueryClient()
-  const [module, setModule] = useState('reading')
-  const [query, setQuery] = useState('')
-  const [selected, setSelected] = useState<string[]>([])
-  const [packTitle, setPackTitle] = useState('')
-  const questions = useQuery({
-    queryKey: ['pack-assembly-questions', module, query],
-    queryFn: () => api<Question[]>(`/api/v1/questions?review_mode=true&limit=500&module=${module}${query ? `&query=${encodeURIComponent(query)}` : ''}`),
-  })
-  const assemble = useMutation({
-    mutationFn: () => api<AssessmentPack>('/api/v1/assessment-packs', {
-      method: 'POST',
-      body: JSON.stringify({ module, title: packTitle, question_ids: selected }),
-    }),
-    onSuccess: () => {
-      setSelected([])
-      setPackTitle('')
-      void queryClient.invalidateQueries({ queryKey: ['assessment-packs'] })
-      void queryClient.invalidateQueries({ queryKey: ['content-readiness'] })
-      void queryClient.invalidateQueries({ queryKey: ['content-review-queue'] })
-    },
-  })
-  return <section className="pack-assembly-view">
-    <div className="section-heading">
-      <div><h2>把已索引题目组成一套练习</h2><p>组装后仍需在“人工审核”中逐项批准，再批准整套题。</p></div>
-      <strong>{selected.length} 道已选</strong>
-    </div>
-    <div className="filter-bar">
-      <label>科目<select value={module} onChange={(event) => { setModule(event.target.value); setSelected([]) }}><option value="listening">Listening</option><option value="reading">Reading</option><option value="writing">Writing</option><option value="speaking">Speaking</option></select></label>
-      <label>搜索<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="主题或题目内容" /></label>
-    </div>
-    <div className="pack-assembly-bar">
-      <label>套题名称<input value={packTitle} onChange={(event) => setPackTitle(event.target.value)} placeholder="例如：Private Reading Test 01" /></label>
-      <button className="button primary" disabled={!packTitle.trim() || !selected.length || assemble.isPending} onClick={() => assemble.mutate()}>组装并检查</button>
-    </div>
-    {questions.isPending && <LoadingState />}
-    {questions.error && <ErrorState error={questions.error} />}
-    {assemble.error && <ErrorState error={assemble.error} />}
-    <div className="assembly-question-list">{questions.data?.map((question) => <label className={selected.includes(question.question_id) ? 'selected' : ''} key={question.question_id}><input type="checkbox" checked={selected.includes(question.question_id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, question.question_id] : current.filter((value) => value !== question.question_id))} /><span><strong>{question.content}</strong><small>{question.question_id} · {question.task ?? question.question_type ?? question.module}</small></span></label>)}</div>
-  </section>
-}
-
-function ReviewWorkbench() {
-  const queryClient = useQueryClient()
-  const [targetType, setTargetType] = useState('')
-  const [selected, setSelected] = useState<ReviewQueueItem | null>(null)
-  const [reviewer, setReviewer] = useState('Local content reviewer')
-  const [notes, setNotes] = useState('')
-  const [checklist, setChecklist] = useState<Record<string, boolean>>({})
-  const queue = useQuery({
-    queryKey: ['content-review-queue', targetType],
-    queryFn: () => api<ReviewQueueItem[]>(`/api/v1/content-reviews/queue?limit=200${targetType ? `&target_type=${targetType}` : ''}`),
-  })
-  const detail = useQuery({
-    queryKey: ['content-review-target', selected?.target_type, selected?.target_id],
-    queryFn: () => api<ReviewTarget>(`/api/v1/content-reviews/targets/${selected?.target_type}/${selected?.target_id}`),
-    enabled: Boolean(selected),
-  })
-  useEffect(() => {
-    if (!detail.data) return
-    setChecklist(Object.fromEntries(Object.keys(detail.data.required_checklist).map((key) => [key, false])))
-    setNotes('')
-  }, [detail.data])
-  const submit = useMutation({
-    mutationFn: (decision: 'approved' | 'changes_requested' | 'rejected') => {
-      if (!selected) throw new Error('请先选择审核对象')
-      return api<ReviewTarget>(`/api/v1/content-reviews/targets/${selected.target_type}/${selected.target_id}`, {
-        method: 'POST',
-        body: JSON.stringify({ reviewer, decision, checklist, notes: notes || null }),
-      })
-    },
-    onSuccess: () => {
-      setSelected(null)
-      void queryClient.invalidateQueries({ queryKey: ['content-review-queue'] })
-      void queryClient.invalidateQueries({ queryKey: ['content-review-target'] })
-      void queryClient.invalidateQueries({ queryKey: ['library'] })
-      void queryClient.invalidateQueries({ queryKey: ['assessment-packs'] })
-      void queryClient.invalidateQueries({ queryKey: ['content-readiness'] })
-    },
-  })
-  const allChecked = detail.data && Object.keys(detail.data.required_checklist).every((key) => checklist[key])
-  return <div className="review-workbench">
-    <section className="settings-section review-queue">
-      <div className="section-heading"><div><p className="eyebrow">Local approval</p><h2>待审核内容</h2></div><ClipboardCheck /></div>
-      <label>类型<select value={targetType} onChange={(event) => { setTargetType(event.target.value); setSelected(null) }}><option value="">全部</option><option value="question">题目</option><option value="passage">文章</option><option value="assessment_pack">套题</option></select></label>
-      {queue.isPending && <LoadingState />}{queue.error && <ErrorState error={queue.error} />}
-      {!queue.isPending && !queue.data?.length && <p className="muted">当前没有待审核内容。</p>}
-      <div className="review-queue-list">{queue.data?.map((item) => <button key={`${item.target_type}:${item.target_id}`} className={selected?.target_id === item.target_id ? 'active' : ''} onClick={() => setSelected(item)}><span><strong>{item.title}</strong><small>{item.target_type} · {item.target_id}</small></span><StatusBadge tone={item.local_review_status === 'stale' ? 'warning' : 'neutral'}>{reviewLabel(item.local_review_status)}</StatusBadge></button>)}</div>
-    </section>
-    <section className="settings-section review-detail">
-      {!selected && <div className="empty-state"><ClipboardCheck /><h2>选择一项开始审核</h2><p>批准记录会绑定完整内容哈希；内容变化后不会沿用旧结论。</p></div>}
-      {detail.isPending && selected && <LoadingState />}
-      {detail.error && <ErrorState error={detail.error} />}
-      {detail.data && <>
-        <div className="section-heading"><div><p className="eyebrow">{detail.data.target_type}</p><h2>{detail.data.target_id}</h2></div><StatusBadge>{reviewLabel(detail.data.local_review_status)}</StatusBadge></div>
-        <small>内容指纹：{detail.data.content_hash.slice(0, 16)}…</small>
-        <ReviewMaterial material={detail.data.material} />
-        {detail.data.dependency_status && !detail.data.dependency_status.ready && <div className="import-boundary"><ShieldCheck /><p>整套题还缺少本地批准：{[...detail.data.dependency_status.missing_question_reviews, ...detail.data.dependency_status.missing_passage_reviews].join('、')}</p></div>}
-        <label>审核人<input value={reviewer} onChange={(event) => setReviewer(event.target.value)} /></label>
-        <div className="review-checklist">{Object.entries(detail.data.required_checklist).map(([key, label]) => <label key={key}><input type="checkbox" checked={Boolean(checklist[key])} onChange={(event) => setChecklist((current) => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}</div>
-        <label>审核备注<textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="记录核对依据、待修改问题或拒绝原因" /></label>
-        {submit.isError && <ErrorState error={submit.error} />}
-        <div className="review-actions"><button className="button primary" disabled={!reviewer.trim() || !allChecked || submit.isPending || detail.data.dependency_status?.ready === false} onClick={() => submit.mutate('approved')}>批准并进入可信池</button><button className="button secondary" disabled={!reviewer.trim() || submit.isPending} onClick={() => submit.mutate('changes_requested')}>退回修改</button><button className="button ghost" disabled={!reviewer.trim() || submit.isPending} onClick={() => submit.mutate('rejected')}>拒绝</button></div>
-      </>}
-    </section>
-  </div>
-}
-
-function ReviewMaterial({ material }: { material: Record<string, unknown> }) {
-  const options = material.options
-  return <div className="review-material">
-    {Boolean(material.title) && <h3>{String(material.title)}</h3>}
-    {Boolean(material.content) && <p className="review-prompt">{String(material.content)}</p>}
-    {Boolean(material.body) && <div className="review-passage">{String(material.body)}</div>}
-    {Boolean(material.passage) && typeof material.passage === 'object' && <div className="review-passage">{String((material.passage as Record<string, unknown>).body ?? '')}</div>}
-    {Boolean(options) && <pre>{JSON.stringify(options, null, 2)}</pre>}
-    {material.correct_answer !== undefined && <p><strong>答案：</strong>{JSON.stringify(material.correct_answer)}</p>}
-    {Boolean(material.evidence_location) && <p><strong>证据位置：</strong>{String(material.evidence_location)}</p>}
-    {Boolean(material.explanation) && <p><strong>解释：</strong>{String(material.explanation)}</p>}
-    {Boolean(material.structure) && <pre>{JSON.stringify(material.structure, null, 2)}</pre>}
-  </div>
 }
 
 function ImportsView({ jobs, pending, error, initialSelectedImportId }: {
@@ -1203,6 +1001,3 @@ const PAGE_ROLE_LABELS: Record<PageRole, string> = {
   exclude: '不导入',
 }
 
-function reviewLabel(status?: string) {
-  return ({ approved: '已批准', stale: '审核已过期', changes_requested: '待修改', rejected: '已拒绝', unreviewed: '未审核' } as Record<string, string>)[status ?? 'unreviewed'] ?? status
-}

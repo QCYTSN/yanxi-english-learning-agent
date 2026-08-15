@@ -137,6 +137,16 @@ function SettingsOverview({ bootstrap }: { bootstrap: Bootstrap }) {
 
 function ProfileSection({ bootstrap }: { bootstrap: Bootstrap }) {
   const queryClient = useQueryClient()
+  const [activeTrack, setActiveTrack] = useState(bootstrap.active_learning_track_id)
+  const tracks = bootstrap.learning_tracks?.filter((item) => item.status === 'active') ?? []
+  const switchTrack = useMutation({
+    mutationFn: (trackId: string) => api('/api/v1/profile', {
+      method: 'PUT',
+      body: jsonBody({ updates: { active_learning_track_id: trackId } }),
+    }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['bootstrap'] }),
+    onError: () => setActiveTrack(bootstrap.active_learning_track_id),
+  })
   const [testDate, setTestDate] = useState(bootstrap.profile?.test_date ?? '')
   const [targets, setTargets] = useState({ ...(bootstrap.profile?.target ?? {}) })
   const [minimum, setMinimum] = useState({ ...(bootstrap.profile?.minimum_required ?? {}) })
@@ -158,6 +168,33 @@ function ProfileSection({ bootstrap }: { bootstrap: Bootstrap }) {
   })
   return (
     <div className="settings-detail-stack">
+      <section className="settings-panel" aria-label="学习模式">
+        <div className="section-heading"><div><h2>学习模式</h2><p>切换模式不会删除任何学习数据；两个模式各自保留自己的目标、证据与进度。</p></div></div>
+        <div className="track-switch-row">
+          {tracks.map((track) => (
+            <button
+              key={track.track_id}
+              type="button"
+              className={`track-choice${track.track_id === activeTrack ? ' selected' : ''}`}
+              disabled={switchTrack.isPending}
+              onClick={() => {
+                if (track.track_id === activeTrack) return
+                setActiveTrack(track.track_id)
+                switchTrack.mutate(track.track_id)
+              }}
+            >
+              <span className="track-choice-title">{track.track_id === 'ielts-academic' ? 'IELTS Academic' : '通用英语'}</span>
+              <span className="track-choice-sub">
+                {track.track_id === 'ielts-academic'
+                  ? '四科模考、band 评分与题库练习'
+                  : '对话、打词与日常英语（默认）'}
+              </span>
+            </button>
+          ))}
+        </div>
+        {switchTrack.isPending && <p className="muted">正在切换学习模式…</p>}
+        {switchTrack.error && <ErrorState error={switchTrack.error} />}
+      </section>
       <section className="settings-panel">
         <div className="section-heading"><div><h2>考试与目标</h2><p>用于差距计算和 70/30 训练分配。</p></div></div>
         <div className="model-choice-row">

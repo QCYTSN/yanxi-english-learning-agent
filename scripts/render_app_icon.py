@@ -13,7 +13,6 @@ Run:
 from __future__ import annotations
 
 import io
-import shutil
 import struct
 from pathlib import Path
 

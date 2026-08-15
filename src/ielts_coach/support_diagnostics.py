@@ -6,7 +6,6 @@ import platform
 import re
 import sys
 import zipfile
-from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
